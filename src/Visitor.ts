@@ -12,17 +12,17 @@ export class Visitor {
     let prevIndex = 0
     return [this.d[0].reduce((acc, x: XLayer, i: number) => {
       // check if this x layer is hidden
-      if (!x.hidden) {
+      if (!x.isHidden) {
         // calculate the center
         let center = this.getCenter(x.group)
         if (i != 0) this.d[0][prevIndex].remove.forEach(a => this.visitor = this.remove(a))
         x.add.forEach(a => {
-          if (!this.d[1].get(a).hidden) {
+          if (!this.d[1].get(a).isHidden) {
             let entryPoint = yEntryPoints.get(a)
             if (!entryPoint) {
               // generate random entry point
-              entryPoint = Math.floor(Math.random() * this.visitor.length)
-              // entryPoint = Math.random() * 2 - 1
+              // entryPoint = Math.floor(Math.random() * this.visitor.length)
+              entryPoint = Math.random() * 2 - 1
               yEntryPoints.set(a, entryPoint)
             }
             this.add(a, center, entryPoint)
@@ -36,6 +36,28 @@ export class Visitor {
       return acc
     }, []), yEntryPoints]
   }
+
+  private add(a: string, center: number, entryPoint: number) {
+    // add the new object at the distance from the center indicated by the entryPoint
+    let pos = 0
+    if (this.visitor.length) {
+      pos = center + (this.visitor.length - center) * entryPoint
+    }
+    // console.log('pos', pos, 'center', center, 'entry', entryPoint, 'visitor length', this.visitor.length)
+    return this.visitor.splice(entryPoint, 0, a)
+  }
+
+  private switchP(switchY: Switch) {
+    // move the yObj to the group and shift all the others
+    let temp = this.visitor.splice(switchY.prev, 1)
+    this.visitor.splice(switchY.target, 0, ...temp)
+  }
+
+  private remove(a: string) {
+    // a contains the yObj
+    return this.visitor.filter(p => p != a)
+  }
+
 
   private group(group: string[]): Switch[] {
     // calculate the center
@@ -97,27 +119,6 @@ export class Visitor {
         return { p, distance }
       })
       .sort((a, b) => Math.abs(a.distance) - Math.abs(b.distance))
-  }
-
-  private add(a: string, center: number, entryPoint: number) {
-    // add the new object at the distance from the center indicated by the entryPoint
-    let pos = 0
-    if (this.visitor.length) {
-      pos = center + (Math.sign(entryPoint) * - (this.visitor.length - 1) - center) * entryPoint
-    }
-    // console.log('pos', pos, 'center', center, 'entry', entryPoint, 'visitor length', visitor.length)
-    return this.visitor.splice(entryPoint, 0, a)
-  }
-
-  private switchP(switchY: Switch) {
-    // move the yObj to the group and shift all the others
-    let temp = this.visitor.splice(switchY.prev, 1)
-    this.visitor.splice(switchY.target, 0, ...temp)
-  }
-
-  private remove(a: string) {
-    // a contains the yObj
-    return this.visitor.filter(p => p != a)
   }
 
 }

@@ -1,5 +1,5 @@
 import { Visitor } from "./Visitor"
-import { Child, Gene, XLayer } from "./Types"
+import { Child, Gene, XLayer, Data } from "./Types"
 
 export class Optimizer {
 
@@ -9,7 +9,7 @@ export class Optimizer {
     this.visitor = new Visitor(d)
   }
 
-  public fit() {
+  public fit(): Data {
     let best: Child,
       population: Child[],
       newGenes: Map<string, number>[]
@@ -26,7 +26,7 @@ export class Optimizer {
     return [best.x, this.d[1]]
   }
 
-  private getGeneration(yEntryPoints: Map<string, number>[]) {
+  private getGeneration(yEntryPoints: Map<string, number>[]): Child[] {
     let population: Child[] = []
     // Compute new generation
     for (let i = 0; i < this.config.populationSize; i++) {
@@ -39,7 +39,7 @@ export class Optimizer {
     return population.sort((a, b) => a.loss - b.loss)
   }
 
-  private select(population: Child[]) {
+  private select(population: Child[]): Child[] {
     let parents = []
     let length = population.length * this.config.selectionRate
     for (let i = 0; i < length; i++) {
@@ -51,8 +51,8 @@ export class Optimizer {
     return parents
   }
 
-  private mate(parents: Child[]) {
-    let children = []
+  private mate(parents: Child[]): Gene[] {
+    let genes = []
     for (let i = 0; i < parents.length / this.config.selectionRate; i++) {
       let parent1: Child, parent2: Child, index: number
       while (parent1 === parent2) {
@@ -63,15 +63,15 @@ export class Optimizer {
       }
       let gene1 = Array.from(parent1.gene)
       let gene2 = Array.from(parent2.gene)
-      let child = gene1.reduce<Gene>((map, gene, i) => {
+      let newGene = gene1.reduce<Gene>((map, gene, i) => {
         if (Math.random() < 0.5) {
           gene = gene2[i]
         }
         return map.set(gene[0], gene[1])
       }, new Map())
-      children.push(child)
+      genes.push(newGene)
     }
-    return children
+    return genes
   }
 
   private mutate(genes: Gene[]) {
@@ -91,7 +91,7 @@ export class Optimizer {
     return genes
   }
 
-  private getLoss(child: [XLayer[], Gene]) {
+  private getLoss(child: [XLayer[], Gene]): number {
     let acc = 0
     for (let i = 0; i < child[0].length; i++) {
       let center = child[0][i].state.length / 2

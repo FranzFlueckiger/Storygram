@@ -1,4 +1,4 @@
-import { Config, XLayer, YLayer, Data } from '././Types'
+import { Config, XLayer, YLayer, Data, YData, RenderedPoint } from '././Types'
 import { Filter } from '././Filter'
 import { Optimizer } from './Optimizer'
 import { DrawSpec } from './DrawSpec'
@@ -6,13 +6,13 @@ import { DrawSpec } from './DrawSpec'
 export class KnotDiagram {
 
   private data: Data
-  private result: any[]
+  private result: Data
   private vizData: any[]
   public spec: any
   private filter: Filter
   private optimizer: Optimizer
 
-  public constructor(private inputData: object[], private config: Config) {
+  public constructor(private inputData: any[], private config: Config) {
     this.checkConfig()
     this.data = this.initialize(inputData)
     this.filter = new Filter(this.data)
@@ -61,7 +61,7 @@ export class KnotDiagram {
     let ys: Map<string, YLayer> = new Map()
     let xs: XLayer[] = d.map((x: object, i: number) => {
       let xObj: XLayer = new XLayer(i, x[this.config.xField], x)
-      xObj.group = [...Array.from(this.config.yFields.reduce((acc, y) => {
+      xObj.group = [...Array.from(this.config.yFields.reduce<Set<string>>((acc, y) => {
         if (x[y]) this.config.splitFunction ? this.config.splitFunction(x[y]).forEach(p => { if (p) acc.add(p) }) : acc.add(x[y])
         return acc
       }, new Set()))]
@@ -80,21 +80,26 @@ export class KnotDiagram {
     return [xs, ys]
   }
 
-  private draw(visitor) {
-    let result = []
+  private draw(visitor: Data): [RenderedPoint[], number] {
+    let result: RenderedPoint[] = []
     let maxLen = this.data[0].reduce((max, layer) => Math.max(max, layer.state.length), 0)
-    visitor[0].forEach((layer, x) => {
-      let offset: number = layer.state.length % 2 === 0 ? - 0.5 : 0
-      layer.state.forEach((p, y) => {
-        y = this.config.centered ? (layer.state.length - 1) / 2 - y : y
-        let isGrouped = visitor[0][x].group.some(a => a === p)
-        let strokeWidth = layer.data.Int
-        let xVal = layer.xValue
-        let xDescription = this.config.xDescription(layer)
-        let yVal = visitor[1].get(p)
-        result.push({ 'x': x, 'y': y + offset, 'z': p, 'isGrouped': isGrouped, 'strokeWidth': strokeWidth, 'xVal': xVal, 'xDescription': xDescription })
-      })
+    let drawIndex = 0
+    visitor[0].forEach((layer, i) => {
+        let offset: number = layer.state.length % 2 === 0 ? - 0.5 : 0
+        layer.state.forEach((p, y) => {
+          let yVal = visitor[1].get(p)
+          y = this.config.centered ? (layer.state.length - 1) / 2 - y : y
+          let isGrouped = visitor[0][i].group.some(a => a === p)
+          let strokeWidth = layer.data.Int
+          let xVal = layer.xValue
+          let xDescription = this.config.xDescription(layer)
+          let point = new RenderedPoint(drawIndex, y+offset, p, isGrouped, strokeWidth, xVal, xDescription)
+          result.push(point)
+        })
+        drawIndex++
     })
+    console.log(visitor)
+    console.log(result)
     // todo this is ugly and inefficient
     let points = new Map()
     result.forEach(r => {

@@ -54,7 +54,7 @@ export interface Config {
 }
 
 export class XLayer {
-    public hidden: boolean
+    public isHidden: boolean
     public add: string[]
     public remove: string[]
     public group: string[]
@@ -66,7 +66,7 @@ export class XLayer {
         public index: number,
         public xValue: any,
         public data: any) {
-        this.hidden = false
+        this.isHidden = false
         this.add = []
         this.remove = []
         this.group = []
@@ -76,10 +76,10 @@ export class XLayer {
 
 export class YLayer {
     public layers: XLayer[]
-    public hidden: boolean
+    public isHidden: boolean
 
     public constructor(public yID: string, public data: any) {
-        this.hidden = false
+        this.isHidden = false
         this.layers = []
     }
 }
@@ -107,3 +107,20 @@ export type XData = XLayer[]
 export type YData = Map<string, YLayer>
 
 export type Data = [XData, YData]
+
+export class RenderedPoint {
+
+    pointsX: []
+    pointsY: []
+    pointsBool: []
+    pointsSize: []
+
+    public constructor(public x: number,
+        public y: number,
+        public z: string,
+        public isGrouped: boolean, 
+        public strokeWidth: number, 
+        public xVal: any,
+        public xDescription: string
+    ) {}
+}

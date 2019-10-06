@@ -1,5 +1,5 @@
 import { Spec } from "vega"
-import { Config } from '../src/Types'
+import { Config, Data, RenderedPoint } from '../src/Types'
 
 export class DrawSpec {
   /**
@@ -8,7 +8,7 @@ export class DrawSpec {
   * set all line and tick sizes
   * set the adaptive tick length
   */
-  public static getSpec(data: [[], number], config: Config): Spec {
+  public static getSpec(data: [RenderedPoint[], number], config: Config): Spec {
     return {
       "config": {
         "view": {"width": 400, "height": 300, "strokeWidth": 0},

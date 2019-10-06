@@ -1,26 +1,18 @@
 import vega from 'vega-embed';
 import { KnotDiagram } from './src/KnotDiagram';
-import { DummyData } from './src/DummyData'
-import { Config } from './src/Types'
+import {DummyConfig} from './src/DummyConfig'
 
 /**
-* Advanced Filtering (groupAmt, interactedWith + depth)
+* Advanced Filtering (interactedWith + depth)
 * Artistnet Data
 * Bug with single rect
 * Describe
+* Chart Title
 */
 
 async function main() {
-  let config: Config = {
-    xField: 'YEAR',
-    yFields: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'],
-    splitFunction: (d => d ? d.split(', ') : []),
-    xDescription: (xLayer) => xLayer.xValue + ', ' + xLayer.data.Location,
-    xValue: [1992, 1998],
-    groupSize: [4, undefined],
-  }
-  const data = DummyData.warData()
-  const KD = new KnotDiagram(data, config)
+  const config = DummyConfig.getConfig1()
+  const KD = new KnotDiagram(config[0], config[1])
   await vega("#viz", KD.spec);
 }
 
