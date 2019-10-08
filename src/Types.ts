@@ -6,9 +6,9 @@ export interface Config {
     // the line size of the lines and ticks
     lineSize?: number,
     // JSON field for the x value
-    xField: string,
+    xValue: string,
     // JSON field for the grouped y values
-    yFields: string[],
+    yValues: string[],
     // optional function for further processing the y-fields
     splitFunction?: (arg: string) => string[],
     // amount of consecutive Generations to be evaluated
@@ -19,30 +19,36 @@ export interface Config {
     selectionRate?: number,
     // probability that a gene mutates (value between 0 and 1)
     mutationProbability?: number,
+    // whether the y-points start at the beginning or at the first grouping
+    continuousStart?: boolean,
+    // whether the y-points go until the end or until the last grouping
+    continuousEnd?: boolean,
     // whether the graph is centered or not
     centered?: boolean,
     // numeric field that determines the stroke width
     strokeWidth?: (arg: XLayer) => number,
     // function that returns a string describing the selected x
     xDescription: (arg: XLayer) => string,
-    // todo function that returns a string describing the y
+    // function that returns a string describing the y
     tooltipText?: (arg: XLayer) => string,
+    // x filter check if the XLayer contains the given YLayer
+    mustContain?: string[],
     // x filter (Positive and Negative x-Value ranges possible) 
-    xValue?: [number, number],
-    // x filter (Positive indexes ranges only)
-    index?: [number, number],
+    filterXValue?: [number, number],
     // x filter (Positive group sizes only)
-    groupSize?: [number, number],
+    filterGroupSize?: [number, number],
     // todo x filter for data predicates
-    xCustom?: [],
+    filterCustomX?: [],
+    // y filter check if the YLayers interacted with the given ones at the specified depth
+    interactedWith?: [string[], number],
     // y filter (Positive and Negative x value lifetimes possible)
-    xValueLifeTime?: [number, number],
+    filterXValueLifeTime?: [number, number],
     // y filter (Positive index lifetimes only)
-    indexLifeTime?: [number, number],
+    filterIndexLifeTime?: [number, number],
     // y filter (Positive group amounts only)
-    groupAmt?: [number, number],
+    filterGroupAmt?: [number, number],
     // todo y filter for data predicates
-    yCustom?: [],
+    filterCustomY?: [],
     // Penalty for the amount of switches
     amtLoss?: number
     // Penalty for the length of the switches
@@ -54,6 +60,7 @@ export interface Config {
 }
 
 export class XLayer {
+    public index: number
     public isHidden: boolean
     public add: string[]
     public remove: string[]
@@ -63,7 +70,6 @@ export class XLayer {
     public hiddenYs: string[]
 
     public constructor(
-        public index: number,
         public xValue: any,
         public data: any) {
         this.isHidden = false
@@ -71,6 +77,7 @@ export class XLayer {
         this.remove = []
         this.group = []
         this.state = []
+        this.hiddenYs = []
     }
 }
 
@@ -86,7 +93,7 @@ export class YLayer {
 
 export interface Child {
     loss: number
-    gene: Gene
+    gene: GenePool
     x: XLayer[]
 }
 
@@ -100,7 +107,7 @@ export interface Distance {
     distance: number
 }
 
-export type Gene = Map<string, number>
+export type GenePool = Map<string, number>
 
 export type XData = XLayer[]
 

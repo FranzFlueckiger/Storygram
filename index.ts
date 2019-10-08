@@ -3,11 +3,8 @@ import { KnotDiagram } from './src/KnotDiagram';
 import {DummyConfig} from './src/DummyConfig'
 
 /**
-* Advanced Filtering (interactedWith + depth)
 * Artistnet Data
-* Bug with single rect
-* Describe
-* Chart Title
+* Interacted with bug
 */
 
 async function main() {

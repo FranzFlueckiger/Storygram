@@ -6,13 +6,17 @@ export class DummyConfig {
   public static getConfig1(): [any[], Config] {
     return [DummyData.warData(),
     {
-      xField: 'YEAR',
-      yFields: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'],
+      xValue: 'YEAR',
+      yValues: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'],
       splitFunction: (d => d ? d.split(', ') : []),
-      xDescription: (xLayer) => xLayer.xValue + ', ' + xLayer.data.Location,
-      xValue: [1993, 1995],
-      groupSize: [3, undefined],
-      groupAmt: [4, undefined]
+      xDescription: (xLayer) => xLayer.data.YEAR + ', ' + xLayer.data.Location,
+      //mustContain: ['Russia (Soviet Union)'],
+      interactedWith: [['Russia (Soviet Union)'], 0],
+      filterXValue: [undefined, 2000],
+      filterGroupSize: [3, undefined],
+      filterGroupAmt: [4, undefined],
+      //continuousStart: false,
+      //continuousEnd: false
     }
     ]
   }
@@ -20,10 +24,10 @@ export class DummyConfig {
   public static getConfig2(): [any[], Config] {
     return [DummyData.testData(),
     {
-      xField: 'id',
-      yFields: ['a', 'b', 'c', 'd'],
+      xValue: 'id',
+      yValues: ['a', 'b', 'c', 'd'],
       xDescription: (xLayer) => xLayer.xValue,
-      groupAmt: [2, undefined]
+      filterGroupAmt: [2, undefined]
     }
     ]
   }

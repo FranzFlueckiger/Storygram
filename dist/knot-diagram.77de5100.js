@@ -93406,8 +93406,7 @@ Object.defineProperty(exports, "__esModule", {
 var XLayer =
 /** @class */
 function () {
-  function XLayer(index, xValue, data) {
-    this.index = index;
+  function XLayer(xValue, data) {
     this.xValue = xValue;
     this.data = data;
     this.isHidden = false;
@@ -93415,6 +93414,7 @@ function () {
     this.remove = [];
     this.group = [];
     this.state = [];
+    this.hiddenYs = [];
   }
 
   return XLayer;
@@ -93464,129 +93464,140 @@ Object.defineProperty(exports, "__esModule", {
 var Filter =
 /** @class */
 function () {
-  // private filteredYs: Set<string>
-  function Filter(d) {
-    this.d = d; // this.filteredYs = new Set()
-  }
+  function Filter() {}
 
-  Filter.prototype.filter = function (config) {
-    // filter xs
-    this.d = this.filterX(config); // filter ys
+  Filter.filter = function (data, config) {
+    console.log('Pre Filtering', data); // filter xs 
 
-    this.d = this.filterY(config); // set lifecycles
+    data = this.filterX(data, config); // check if Ys comply with the interacteWith filter
 
-    this.d = this.setLifeCycles(); // check hidden Ys
+    data = this.interactedWith(data, config); // filter ys
 
-    this.d = this.removeHiddenYs(config); // check hidden Xs
+    data = this.filterY(data, config); // remove x points without y points
 
-    this.d = this.removeHiddenXs(config);
-    return this.d;
+    data[0] = data[0].filter(function (layer) {
+      return layer.group.length > 0;
+    });
+    this.setLifeCycles(data, config);
+    console.log('Post Filtering', data);
+    return data;
   };
 
-  Filter.prototype.isInRange = function (p, range) {
+  Filter.isInRange = function (p, range) {
     return range ? (range[0] ? p >= range[0] : true) && (range[1] ? p <= range[1] : true) : true;
   };
 
-  Filter.prototype.filterY = function (config) {
+  Filter.filterX = function (data, config) {
     var _this = this;
 
-    Array.from(this.d[1]).forEach(function (yMap) {
-      var y = yMap[1];
-      var layers = y.layers.filter(function (l) {
-        return !l.isHidden;
-      });
+    var Ys = new Map();
+    var Xs = data[0].filter(function (layer) {
+      // check if layer is hidden
+      var contains = true;
 
-      if (layers.length) {
-        if ( // check if y value has an xValue in the allowed range
-        !_this.isInRange(layers[layers.length - 1].xValue - layers[0].xValue, config.xValueLifeTime) || // check if y value has a index lifetime in the allowed range
-        !_this.isInRange(layers[layers.length - 1].index - layers[0].index, config.indexLifeTime)) {
-          y.isHidden = true;
+      if (config.mustContain && config.mustContain.length) {
+        contains = config.mustContain.every(function (query) {
+          return layer.group.includes(query);
+        });
+      }
+
+      if (!_this.isInRange(layer.group.length, config.filterGroupSize) || !_this.isInRange(layer.xValue, config.filterXValue) || layer.group.length == 0 || !contains) {
+        layer.isHidden = true;
+        return false;
+      } else {
+        layer.group.forEach(function (y) {
+          var yVal = data[1].get(y);
+          Ys.set(y, yVal);
+        });
+        return true;
+      }
+    });
+    return [Xs, Ys];
+  };
+
+  Filter.interactedWith = function (data, config) {
+    var allowedYs;
+
+    if (config.interactedWith && config.interactedWith[0].length) {
+      var depth = 0;
+      if (config.interactedWith[1]) depth = config.interactedWith[1];
+      allowedYs = new Set(config.interactedWith[0]);
+
+      for (var i = -1; i < depth; i++) {
+        var _loop_1 = function _loop_1(layer) {
+          if (Array.from(allowedYs).some(function (y) {
+            return layer.group.includes(y);
+          })) {
+            layer.group.forEach(function (y) {
+              return allowedYs.add(y);
+            });
+          }
+        };
+
+        for (var _i = 0, _a = data[0]; _i < _a.length; _i++) {
+          var layer = _a[_i];
+
+          _loop_1(layer);
         }
       }
-    });
-    return this.d;
-  };
 
-  Filter.prototype.filterX = function (config) {
-    var _this = this;
-
-    var hiddenYs = new Set();
-    var xs = this.d[0].map(function (layer) {
-      hiddenYs.clear(); // remove hidden ys from the group
-
-      layer.group = layer.group.reduce(function (acc, y) {
-        !_this.d[1].get(y).isHidden ? acc.push(y) : hiddenYs.add(y);
-        return acc;
-      }, []);
-      layer.hiddenYs = Array.from(hiddenYs); // check if layer is hidden
-
-      if (!_this.isInRange(layer.group.length, config.groupSize) || !_this.isInRange(layer.index, config.index) || !_this.isInRange(layer.xValue, config.xValue) || !(layer.group.length > 0)) {
-        layer.isHidden = true;
-      }
-
-      return layer;
-    });
-    return [xs, this.d[1]];
-  };
-
-  Filter.prototype.interactedWith = function (config) {
-    return this.d;
-  };
-
-  Filter.prototype.removeHiddenYs = function (config) {
-    var _this = this;
-
-    this.d[1].forEach(function (y) {
-      var activeLayers = y.layers.filter(function (l) {
-        return !l.isHidden;
+      Array.from(data[1]).forEach(function (y) {
+        return allowedYs.has(y[0]) ? y : y[1].isHidden = true;
       });
+    }
 
-      if (!_this.isInRange(activeLayers.length, config.groupAmt)) {
+    return data;
+  };
+
+  Filter.filterY = function (data, config) {
+    var _this = this;
+
+    Array.from(data[1]).forEach(function (yMap) {
+      var y = yMap[1];
+      var activeLayers = y.layers ? y.layers.filter(function (l) {
+        return !l.isHidden;
+      }) : [];
+
+      if ( // check if y value has an xValue lifetime in the allowed range
+      !_this.isInRange(activeLayers[activeLayers.length - 1].xValue - activeLayers[0].xValue, config.filterXValueLifeTime) || // check if y value has an amount of non-hidden groups in the allowed range
+      !_this.isInRange(activeLayers.length, config.filterGroupAmt) || y.isHidden) {
+        y.isHidden = true;
         y.layers.forEach(function (l) {
-          if (l.add.includes(y.yID) || l.remove.includes(y.yID) || y.isHidden) {
-            l.add = l.add.filter(function (a) {
-              return a != y.yID;
-            });
-            l.remove = l.remove.filter(function (a) {
-              return a != y.yID;
-            });
-            l.group = l.group.filter(function (a) {
-              return a != y.yID;
-            });
-            l.hiddenYs.push(y.yID);
-          }
+          l.group = l.group.filter(function (a) {
+            return a != y.yID;
+          });
+          l.hiddenYs.push(y.yID);
         });
       }
     });
-    return this.d;
+    return data;
   };
 
-  Filter.prototype.removeHiddenXs = function (config) {
-    this.d[0].forEach(function (layer) {
-      if (layer.group.length == 0) {
-        layer.isHidden = true;
+  Filter.setLifeCycles = function (data, config) {
+    data[0].forEach(function (layer, i) {
+      if (!layer.isHidden) layer.index = i;
+    });
+    Array.from(data[1]).forEach(function (yMap) {
+      var y = yMap[1];
+      var activeLayers = y.layers ? y.layers.filter(function (l) {
+        return !l.isHidden;
+      }) : [];
+
+      if (!y.isHidden) {
+        // check where to add the y-point
+        if (config.continuousStart) {
+          data[0][0].add.push(y.yID);
+        } else {
+          data[0][activeLayers[0].index].add.push(y.yID);
+        }
+
+        if (config.continuousEnd) {
+          data[0][data[0].length - 1].remove.push(y.yID);
+        } else {
+          data[0][activeLayers[activeLayers.length - 1].index].remove.push(y.yID);
+        }
       }
     });
-    return this.d;
-  };
-
-  Filter.prototype.setLifeCycles = function () {
-    var _this = this;
-
-    this.d[1].forEach(function (y) {
-      var visibleLayers = y.layers.filter(function (layer) {
-        return layer.isHidden != true;
-      });
-
-      if (visibleLayers.length) {
-        _this.d[0][visibleLayers[0].index].add.push(y.yID);
-
-        _this.d[0][visibleLayers[visibleLayers.length - 1].index].remove.push(y.yID);
-      } else {
-        y.isHidden = true;
-      }
-    });
-    return this.d;
   };
 
   return Filter;
@@ -93614,44 +93625,44 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var Optimizer_1 = require("./Optimizer");
+
 var Visitor =
 /** @class */
 function () {
-  function Visitor(d) {
-    this.d = d;
-  }
+  function Visitor() {}
 
-  Visitor.prototype.visit = function (yEntryPoints) {
+  Visitor.visit = function (d, yEntryPoints) {
     var _this = this;
 
-    this.visitor = [];
+    var visitor = [];
     yEntryPoints = yEntryPoints ? yEntryPoints : new Map();
     var prevIndex = 0;
-    return [this.d[0].reduce(function (acc, x, i) {
+    return [d[0].reduce(function (acc, x, i) {
       // check if this x layer is hidden
       if (!x.isHidden) {
         // calculate the center
-        var center_1 = _this.getCenter(x.group);
+        var center_1 = _this.getCenter(x.group, visitor);
 
-        if (i != 0) _this.d[0][prevIndex].remove.forEach(function (a) {
-          return _this.visitor = _this.remove(a);
+        if (i != 0) d[0][prevIndex].remove.forEach(function (a) {
+          return visitor = _this.remove(a, visitor);
         });
-        x.add.forEach(function (a) {
-          if (!_this.d[1].get(a).isHidden) {
-            var entryPoint = yEntryPoints.get(a);
+        x.add.forEach(function (y) {
+          var yVal = d[1].get(y);
+
+          if (!yVal.isHidden) {
+            var entryPoint = yEntryPoints.get(y);
 
             if (!entryPoint) {
-              // generate random entry point
-              // entryPoint = Math.floor(Math.random() * this.visitor.length)
-              entryPoint = Math.random() * 2 - 1;
-              yEntryPoints.set(a, entryPoint);
+              var entryPoint_1 = Optimizer_1.Optimizer.getRandomGene();
+              yEntryPoints.set(y, entryPoint_1);
             }
 
-            _this.add(a, center_1, entryPoint);
+            _this.add(y, center_1, entryPoint, visitor);
           }
         });
-        x.switch = _this.group(x.group);
-        x.state = __spreadArrays(_this.visitor);
+        x.switch = _this.group(x.group, visitor);
+        x.state = __spreadArrays(visitor);
         prevIndex = i;
         acc.push(x);
       }
@@ -93660,56 +93671,55 @@ function () {
     }, []), yEntryPoints];
   };
 
-  Visitor.prototype.add = function (a, center, entryPoint) {
+  Visitor.add = function (a, center, gene, visitor) {
     // add the new object at the distance from the center indicated by the entryPoint
     var pos = 0;
 
-    if (this.visitor.length) {
-      pos = center + (this.visitor.length - center) * entryPoint;
-    } // console.log('pos', pos, 'center', center, 'entry', entryPoint, 'visitor length', this.visitor.length)
+    if (visitor.length) {
+      if (gene > 0) {
+        pos = Math.round((visitor.length - center) * gene);
+      } else {
+        pos = Math.round(center * gene);
+      }
+    }
 
-
-    return this.visitor.splice(entryPoint, 0, a);
+    return visitor.splice(pos, 0, a);
   };
 
-  Visitor.prototype.switchP = function (switchY) {
-    var _a; // move the yObj to the group and shift all the others
-
-
-    var temp = this.visitor.splice(switchY.prev, 1);
-
-    (_a = this.visitor).splice.apply(_a, __spreadArrays([switchY.target, 0], temp));
+  Visitor.switchP = function (switchY, visitor) {
+    // move the yObj to the group and shift all the others
+    var temp = visitor.splice(switchY.prev, 1);
+    visitor.splice.apply(visitor, __spreadArrays([switchY.target, 0], temp));
   };
 
-  Visitor.prototype.remove = function (a) {
+  Visitor.remove = function (a, visitor) {
     // a contains the yObj
-    return this.visitor.filter(function (p) {
+    return visitor.filter(function (p) {
       return p != a;
     });
   };
 
-  Visitor.prototype.group = function (group) {
+  Visitor.group = function (group, visitor) {
     var _this = this; // calculate the center
 
 
-    var center = this.getCenter(group); // let center = 0
-    // calculate the distance from the mass center
+    var center = this.getCenter(group, visitor); // calculate the distance from the mass center
 
-    var dists = this.getDistances(group, center); // array containing the switch operations
+    var dists = this.getDistances(group, center, visitor); // array containing the switch operations
 
     var switches = []; // array describing the outer boundary of the already-adiacent group elements
 
-    var edges = [Math.ceil(center), Math.floor(center)]; // looping strategies for backward and forward searching
+    var edges = [center, center]; // looping strategies for backward and forward searching
 
-    var proc = new Map(); // first element is the descending edge, the second one the ascending
+    var strategies = new Map(); // first element is the descending edge, the second one the ascending
 
-    proc.set(1, {
+    strategies.set(1, {
       'init': 1,
       'comp': function comp(i) {
-        return i < _this.visitor.length;
+        return i < visitor.length;
       }
     });
-    proc.set(-1, {
+    strategies.set(-1, {
       'init': 0,
       'comp': function comp(i) {
         return i >= 0;
@@ -93720,15 +93730,14 @@ function () {
       var direction = -Math.sign(p.distance);
 
       if (direction != 0) {
-        var strategy = proc.get(direction);
-
-        var index = _this.visitor.indexOf(p.p);
+        var strategy = strategies.get(direction);
+        var index = visitor.indexOf(p.p);
 
         var _loop_1 = function _loop_1(i) {
-          if (index >= edges[0] && index <= edges[1] || edges[1] === 0 && direction === 1 || edges[0] === _this.visitor.length - 1 && direction === -1) {
+          if (index >= edges[0] && index <= edges[1] || edges[1] === 0 && direction === 1 || edges[0] === visitor.length - 1 && direction === -1) {
             return "break";
           } else if (!dists.some(function (a) {
-            return a.p === _this.visitor[i];
+            return a.p === visitor[i];
           })) {
             // if the visited y is a non-grouped element, then switch it 
             // with the current element p
@@ -93738,7 +93747,7 @@ function () {
             };
             switches.push(switchY);
 
-            _this.switchP(switchY);
+            _this.switchP(switchY, visitor);
 
             return "break";
           } else {
@@ -93757,18 +93766,15 @@ function () {
     return switches;
   };
 
-  Visitor.prototype.getCenter = function (group) {
-    return this.visitor.reduce(function (c, p, i) {
-      return group.includes(p) ? c + i : c;
-    }, 0) / group.length;
+  Visitor.getCenter = function (group, visitor) {
+    return Math.round(visitor.reduce(function (count, y, i) {
+      return group.includes(y) ? count + i : count;
+    }, 0) / group.length);
   };
 
-  Visitor.prototype.getDistances = function (group, center) {
-    var _this = this;
-
+  Visitor.getDistances = function (group, center, visitor) {
     return group.map(function (p) {
-      var i = _this.visitor.indexOf(p);
-
+      var i = visitor.indexOf(p);
       var distance = center - i;
       return {
         p: p,
@@ -93783,7 +93789,7 @@ function () {
 }();
 
 exports.Visitor = Visitor;
-},{}],"src/Optimizer.ts":[function(require,module,exports) {
+},{"./Optimizer":"src/Optimizer.ts"}],"src/Optimizer.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -93795,38 +93801,34 @@ var Visitor_1 = require("./Visitor");
 var Optimizer =
 /** @class */
 function () {
-  function Optimizer(d, config) {
-    this.d = d;
-    this.config = config;
-    this.visitor = new Visitor_1.Visitor(d);
-  }
+  function Optimizer() {}
 
-  Optimizer.prototype.fit = function () {
+  Optimizer.fit = function (data, config) {
     var best, population, newGenes;
 
-    for (var i = 0; i < this.config.generationAmt; i++) {
-      population = this.getGeneration(newGenes);
+    for (var i = 0; i < config.generationAmt; i++) {
+      population = this.getGeneration(data, newGenes, config);
 
       if (!best || population[0].loss < best.loss) {
         best = population[0];
         console.log(best);
       }
 
-      var parents = this.select(population);
-      newGenes = this.mate(parents);
-      newGenes = this.mutate(newGenes);
+      var parents = this.select(population, config);
+      newGenes = this.mate(parents, config);
+      newGenes = this.mutate(data, newGenes, config);
     }
 
-    return [best.x, this.d[1]];
+    return [best.x, data[1]];
   };
 
-  Optimizer.prototype.getGeneration = function (yEntryPoints) {
+  Optimizer.getGeneration = function (data, yEntryPoints, config) {
     var population = []; // Compute new generation
 
-    for (var i = 0; i < this.config.populationSize; i++) {
+    for (var i = 0; i < config.populationSize; i++) {
       var entryPoints = yEntryPoints ? yEntryPoints[i] : undefined;
-      var result = this.visitor.visit(entryPoints);
-      var loss = this.getLoss(result);
+      var result = Visitor_1.Visitor.visit(data, entryPoints);
+      var loss = this.getLoss(result, config);
       var child = {
         loss: loss,
         gene: result[1],
@@ -93840,9 +93842,9 @@ function () {
     });
   };
 
-  Optimizer.prototype.select = function (population) {
+  Optimizer.select = function (population, config) {
     var parents = [];
-    var length = population.length * this.config.selectionRate;
+    var length = population.length * config.selectionRate;
 
     for (var i = 0; i < length; i++) {
       var index = Math.floor(Math.pow(Math.random(), 8) * population.length);
@@ -93854,7 +93856,7 @@ function () {
     return parents;
   };
 
-  Optimizer.prototype.mate = function (parents) {
+  Optimizer.mate = function (parents, config) {
     var genes = [];
 
     var _loop_1 = function _loop_1(i) {
@@ -93881,22 +93883,23 @@ function () {
       genes.push(newGene);
     };
 
-    for (var i = 0; i < parents.length / this.config.selectionRate; i++) {
+    for (var i = 0; i < parents.length / config.selectionRate; i++) {
       _loop_1(i);
     }
 
     return genes;
   };
 
-  Optimizer.prototype.mutate = function (genes) {
+  Optimizer.mutate = function (data, genes, config) {
     var _this = this;
 
     genes.forEach(function (_, i) {
-      _this.d[0].forEach(function (x) {
-        if (!x.hidden) {
+      data[0].forEach(function (x) {
+        if (!x.isHidden) {
           x.add.forEach(function (y) {
-            if (Math.random() < _this.config.mutationProbability) {
-              var newY = Math.floor(Math.random() * x.state.length);
+            if (Math.random() < config.mutationProbability) {
+              var newY = _this.getRandomGene();
+
               genes[i].set(y, newY);
             }
           });
@@ -93906,7 +93909,7 @@ function () {
     return genes;
   };
 
-  Optimizer.prototype.getLoss = function (child) {
+  Optimizer.getLoss = function (child, config) {
     var acc = 0;
 
     var _loop_2 = function _loop_2(i) {
@@ -93914,30 +93917,32 @@ function () {
 
       acc += child[0][i].add.reduce(function (a, s) {
         return a + Math.abs(child[1].get(s) - center);
-      }, 0) * this_1.config.centeredAddLoss; // Penalty for removing ys in the middle
+      }, 0) * config.centeredAddLoss; // Penalty for removing ys in the middle
 
       acc += child[0][i].remove.reduce(function (a, s) {
         return a + Math.abs(child[1].get(s) - center);
-      }, 0) * this_1.config.centeredRemoveLoss; // Penalty for the amount of switches
+      }, 0) * config.centeredRemoveLoss; // Penalty for the amount of switches
 
       acc += child[0][i].switch.reduce(function (a, s) {
         if (!child[0][i].add.includes(child[0][i].state[s.prev])) a++;
         return a;
-      }, 0) * this_1.config.amtLoss; // Penalty for the size of the switches
+      }, 0) * config.amtLoss; // Penalty for the size of the switches
 
       acc += child[0][i].switch.reduce(function (a, s) {
         if (!child[0][i].add.includes(child[0][i].state[s.prev])) a + Math.abs(s.target - s.prev);
         return a;
-      }, 0) * this_1.config.lengthLoss;
+      }, 0) * config.lengthLoss;
     };
-
-    var this_1 = this;
 
     for (var i = 0; i < child[0].length; i++) {
       _loop_2(i);
     }
 
     return acc;
+  };
+
+  Optimizer.getRandomGene = function () {
+    return Math.pow(Math.random(), 1) * 2 - 1;
   };
 
   return Optimizer;
@@ -94404,42 +94409,42 @@ function () {
   function KnotDiagram(inputData, config) {
     this.inputData = inputData;
     this.config = config;
-    this.checkConfig();
-    this.data = this.initialize(inputData);
-    this.filter = new Filter_1.Filter(this.data);
-    this.optimizer = new Optimizer_1.Optimizer(this.data, config);
-    console.log(this.data);
-    this.data = this.filter.filter(config);
-    this.result = this.optimizer.fit();
-    this.vizData = this.draw(this.result);
-    this.spec = DrawSpec_1.DrawSpec.getSpec(this.vizData, config); // console.log(JSON.stringify(vizData))
+    this.checkDefaultConfig();
+    this.fullData = this.initialize(inputData);
+    this.processedData = Filter_1.Filter.filter(this.fullData, config);
+    this.processedData = Optimizer_1.Optimizer.fit(this.processedData, config);
+    this.renderedGrid = this.draw(this.processedData);
+    this.spec = DrawSpec_1.DrawSpec.getSpec(this.renderedGrid, config);
   }
   /**
    * If undefined, set default values for the config object
    */
 
 
-  KnotDiagram.prototype.checkConfig = function () {
+  KnotDiagram.prototype.checkDefaultConfig = function () {
     if (!this.config.height) this.config.height = 550;
     if (!this.config.width) this.config.width = 1000;
     if (!this.config.lineSize) this.config.lineSize = 12;
-    if (!this.config.generationAmt) this.config.generationAmt = 160;
-    if (!this.config.populationSize) this.config.populationSize = 40;
-    if (!this.config.selectionRate) this.config.selectionRate = 0.25;
+    if (!this.config.generationAmt) this.config.generationAmt = 100;
+    if (!this.config.populationSize) this.config.populationSize = 80;
+    if (!this.config.selectionRate) this.config.selectionRate = 0.125;
     if (!this.config.mutationProbability) this.config.mutationProbability = 0.05;
-    if (!this.config.centered) this.config.centered = true;
-    if (!this.config.xValue) this.config.xValue = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER];
-    if (!this.config.index) this.config.index = [0, Number.MAX_SAFE_INTEGER];
-    if (!this.config.groupSize) this.config.groupSize = [0, Number.MAX_SAFE_INTEGER];
-    if (!this.config.xCustom) this.config.xCustom = [];
-    if (!this.config.xValueLifeTime) this.config.xValueLifeTime = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER];
-    if (!this.config.indexLifeTime) this.config.indexLifeTime = [0, Number.MAX_SAFE_INTEGER];
-    if (!this.config.groupAmt) this.config.groupAmt = [0, Number.MAX_SAFE_INTEGER];
-    if (!this.config.yCustom) this.config.yCustom = [];
-    if (!this.config.amtLoss) this.config.amtLoss = 8;
+    if (this.config.continuousStart == null) this.config.continuousStart = true;
+    if (this.config.continuousEnd == null) this.config.continuousEnd = true;
+    if (this.config.centered == null) this.config.centered = true;
+    if (!this.config.mustContain) this.config.mustContain = [];
+    if (!this.config.interactedWith) this.config.interactedWith = [[], 0];
+    if (!this.config.filterXValue) this.config.filterXValue = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER];
+    if (!this.config.filterGroupSize) this.config.filterGroupSize = [0, Number.MAX_SAFE_INTEGER];
+    if (!this.config.filterCustomX) this.config.filterCustomX = [];
+    if (!this.config.filterXValueLifeTime) this.config.filterXValueLifeTime = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER];
+    if (!this.config.filterIndexLifeTime) this.config.filterIndexLifeTime = [0, Number.MAX_SAFE_INTEGER];
+    if (!this.config.filterGroupAmt) this.config.filterGroupAmt = [0, Number.MAX_SAFE_INTEGER];
+    if (!this.config.filterCustomY) this.config.filterCustomY = [];
+    if (!this.config.amtLoss) this.config.amtLoss = 80;
     if (!this.config.lengthLoss) this.config.lengthLoss = 4;
-    if (!this.config.centeredAddLoss) this.config.centeredAddLoss = 1;
-    if (!this.config.centeredRemoveLoss) this.config.centeredRemoveLoss = 1;
+    if (!this.config.centeredAddLoss) this.config.centeredAddLoss = 0;
+    if (!this.config.centeredRemoveLoss) this.config.centeredRemoveLoss = 0;
   };
   /**
    * This function prepares the data for the processing from a
@@ -94448,16 +94453,16 @@ function () {
    */
 
 
-  KnotDiagram.prototype.initialize = function (d) {
+  KnotDiagram.prototype.initialize = function (inputData) {
     var _this = this;
 
-    d.sort(function (a, b) {
-      return a[_this.config.xField] - b[_this.config.xField];
+    inputData.sort(function (a, b) {
+      return a[_this.config.xValue] - b[_this.config.xValue];
     });
     var ys = new Map();
-    var xs = d.map(function (x, i) {
-      var xObj = new Types_1.XLayer(i, x[_this.config.xField], x);
-      xObj.group = __spreadArrays(Array.from(_this.config.yFields.reduce(function (acc, y) {
+    var xs = inputData.map(function (x) {
+      var xObj = new Types_1.XLayer(x[_this.config.xValue], x);
+      xObj.group = __spreadArrays(Array.from(_this.config.yValues.reduce(function (acc, y) {
         if (x[y]) _this.config.splitFunction ? _this.config.splitFunction(x[y]).forEach(function (p) {
           if (p) acc.add(p);
         }) : acc.add(x[y]);
@@ -94484,10 +94489,9 @@ function () {
     var _this = this;
 
     var result = [];
-    var maxLen = this.data[0].reduce(function (max, layer) {
+    var maxLen = this.fullData[0].reduce(function (max, layer) {
       return Math.max(max, layer.state.length);
     }, 0);
-    var drawIndex = 0;
     visitor[0].forEach(function (layer, i) {
       var offset = layer.state.length % 2 === 0 ? -0.5 : 0;
       layer.state.forEach(function (p, y) {
@@ -94501,13 +94505,12 @@ function () {
 
         var xDescription = _this.config.xDescription(layer);
 
-        var point = new Types_1.RenderedPoint(drawIndex, y + offset, p, isGrouped, strokeWidth, xVal, xDescription);
+        var point = new Types_1.RenderedPoint(i, y + offset, p, isGrouped, strokeWidth, xVal, xDescription);
         result.push(point);
       });
-      drawIndex++;
-    });
-    console.log(visitor);
-    console.log(result); // todo this is ugly and inefficient
+    }); // console.log(visitor)
+    // console.log(result)
+    // todo this is ugly and inefficient
 
     var points = new Map();
     result.forEach(function (r) {
@@ -112246,28 +112249,30 @@ function () {
 
   DummyConfig.getConfig1 = function () {
     return [DummyData_1.DummyData.warData(), {
-      xField: 'YEAR',
-      yFields: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'],
+      xValue: 'YEAR',
+      yValues: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'],
       splitFunction: function splitFunction(d) {
         return d ? d.split(', ') : [];
       },
       xDescription: function xDescription(xLayer) {
-        return xLayer.xValue + ', ' + xLayer.data.Location;
+        return xLayer.data.YEAR + ', ' + xLayer.data.Location;
       },
-      xValue: [1993, 1995],
-      groupSize: [3, undefined],
-      groupAmt: [4, undefined]
+      //mustContain: ['Russia (Soviet Union)'],
+      interactedWith: [['Russia (Soviet Union)'], 0],
+      filterXValue: [undefined, 2000],
+      filterGroupSize: [3, undefined],
+      filterGroupAmt: [4, undefined]
     }];
   };
 
   DummyConfig.getConfig2 = function () {
     return [DummyData_1.DummyData.testData(), {
-      xField: 'id',
-      yFields: ['a', 'b', 'c', 'd'],
+      xValue: 'id',
+      yValues: ['a', 'b', 'c', 'd'],
       xDescription: function xDescription(xLayer) {
         return xLayer.xValue;
       },
-      groupAmt: [2, undefined]
+      filterGroupAmt: [2, undefined]
     }];
   };
 
@@ -112437,11 +112442,8 @@ var KnotDiagram_1 = require("./src/KnotDiagram");
 
 var DummyConfig_1 = require("./src/DummyConfig");
 /**
-* Advanced Filtering (interactedWith + depth)
 * Artistnet Data
-* Bug with single rect
-* Describe
-* Chart Title
+* Interacted with bug
 */
 
 
@@ -112497,7 +112499,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60039" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61398" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

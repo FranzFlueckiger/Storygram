@@ -1,35 +1,31 @@
-import { XLayer, Switch, Distance, Gene, Data, XData } from './Types'
+import { XLayer, Switch, Distance, GenePool, Data, XData } from './Types'
+import { Optimizer } from './Optimizer'
 
 export class Visitor {
 
-  private visitor: string[]
-
-  public constructor(private d: Data) { }
-
-  public visit(yEntryPoints: Map<string, number> | undefined): [XData, Gene] {
-    this.visitor = []
+  public static visit(d: Data, yEntryPoints: GenePool | undefined): [XData, GenePool] {
+    let visitor: string[] = []
     yEntryPoints = yEntryPoints ? yEntryPoints : new Map()
     let prevIndex = 0
-    return [this.d[0].reduce((acc, x: XLayer, i: number) => {
+    return [d[0].reduce((acc, x: XLayer, i: number) => {
       // check if this x layer is hidden
       if (!x.isHidden) {
         // calculate the center
-        let center = this.getCenter(x.group)
-        if (i != 0) this.d[0][prevIndex].remove.forEach(a => this.visitor = this.remove(a))
-        x.add.forEach(a => {
-          if (!this.d[1].get(a).isHidden) {
-            let entryPoint = yEntryPoints.get(a)
+        let center = this.getCenter(x.group, visitor)
+        if (i != 0) d[0][prevIndex].remove.forEach(a => visitor = this.remove(a, visitor))
+        x.add.forEach(y => {
+          let yVal = d[1].get(y)
+          if (!yVal.isHidden) {
+            let entryPoint = yEntryPoints.get(y)
             if (!entryPoint) {
-              // generate random entry point
-              // entryPoint = Math.floor(Math.random() * this.visitor.length)
-              entryPoint = Math.random() * 2 - 1
-              yEntryPoints.set(a, entryPoint)
+              let entryPoint = Optimizer.getRandomGene()
+              yEntryPoints.set(y, entryPoint)
             }
-            this.add(a, center, entryPoint)
+            this.add(y, center, entryPoint, visitor)
           }
         })
-        x.switch = this.group(x.group)
-        x.state = [...this.visitor]
+        x.switch = this.group(x.group, visitor)
+        x.state = [...visitor]
         prevIndex = i
         acc.push(x)
       }
@@ -37,63 +33,64 @@ export class Visitor {
     }, []), yEntryPoints]
   }
 
-  private add(a: string, center: number, entryPoint: number) {
+  private static add(a: string, center: number, gene: number, visitor: string[]) {
     // add the new object at the distance from the center indicated by the entryPoint
     let pos = 0
-    if (this.visitor.length) {
-      pos = center + (this.visitor.length - center) * entryPoint
+    if (visitor.length) {
+      if (gene > 0) {
+        pos = Math.round((visitor.length - center) * gene)
+      } else {
+        pos = Math.round(center * gene)
+      }
     }
-    // console.log('pos', pos, 'center', center, 'entry', entryPoint, 'visitor length', this.visitor.length)
-    return this.visitor.splice(entryPoint, 0, a)
+    return visitor.splice(pos, 0, a)
   }
 
-  private switchP(switchY: Switch) {
+  private static switchP(switchY: Switch, visitor: string[]) {
     // move the yObj to the group and shift all the others
-    let temp = this.visitor.splice(switchY.prev, 1)
-    this.visitor.splice(switchY.target, 0, ...temp)
+    let temp = visitor.splice(switchY.prev, 1)
+    visitor.splice(switchY.target, 0, ...temp)
   }
 
-  private remove(a: string) {
+  private static remove(a: string, visitor: string[]) {
     // a contains the yObj
-    return this.visitor.filter(p => p != a)
+    return visitor.filter(p => p != a)
   }
 
-
-  private group(group: string[]): Switch[] {
+  private static group(group: string[], visitor: string[]): Switch[] {
     // calculate the center
-    let center: number = this.getCenter(group)
-    // let center = 0
+    let center: number = this.getCenter(group, visitor)
     // calculate the distance from the mass center
-    let dists: Distance[] = this.getDistances(group, center)
+    let dists: Distance[] = this.getDistances(group, center, visitor)
     // array containing the switch operations
     let switches: Switch[] = []
     // array describing the outer boundary of the already-adiacent group elements
-    let edges: [number, number] = [Math.ceil(center), Math.floor(center)]
+    let edges: [number, number] = [center, center]
     // looping strategies for backward and forward searching
-    let proc = new Map()
+    let strategies = new Map()
     // first element is the descending edge, the second one the ascending
-    proc.set(1, { 'init': 1, 'comp': (i) => i < this.visitor.length })
-    proc.set(-1, { 'init': 0, 'comp': (i) => i >= 0 })
+    strategies.set(1, { 'init': 1, 'comp': (i: number) => i < visitor.length })
+    strategies.set(-1, { 'init': 0, 'comp': (i: number) => i >= 0 })
     // Check for every y that has to be grouped if it is adjacent, else switch
     dists.forEach(p => {
       let direction: number = -Math.sign(p.distance)
       if (direction != 0) {
-        let strategy = proc.get(direction)
-        let index: number = this.visitor.indexOf(p.p)
+        let strategy = strategies.get(direction)
+        let index: number = visitor.indexOf(p.p)
         for (let i = edges[strategy.init]; strategy.comp(i); i += direction) {
           if ((index >= edges[0] && index <= edges[1]) ||
             (edges[1] === 0 && direction === 1) ||
-            (edges[0] === this.visitor.length - 1 && direction === -1)) {
+            (edges[0] === visitor.length - 1 && direction === -1)) {
             // if the index of p in the visitor is inside the edges, it is adjacent
             // if the edges are at the end of the visitor and the direction points 
             // to it, then p is adjacent
             break
-          } else if (!dists.some(a => a.p === this.visitor[i])) {
+          } else if (!dists.some(a => a.p === visitor[i])) {
             // if the visited y is a non-grouped element, then switch it 
             // with the current element p
             let switchY: Switch = { target: i, prev: index }
             switches.push(switchY)
-            this.switchP(switchY)
+            this.switchP(switchY, visitor)
             break
           } else {
             // extend adjacent edges
@@ -105,16 +102,16 @@ export class Visitor {
     return switches
   }
 
-  private getCenter(group: string[]) {
-    return this.visitor.reduce((c: number, p: string, i: number) => {
-      return group.includes(p) ? c + i : c
-    }, 0) / group.length
+  private static getCenter(group: string[], visitor: string[]) {
+    return Math.round(visitor.reduce((count: number, y: string, i: number) => {
+      return group.includes(y) ? count + i : count
+    }, 0) / group.length)
   }
 
-  private getDistances(group: string[], center: number) {
+  private static getDistances(group: string[], center: number, visitor: string[]) {
     return group
       .map(p => {
-        let i = this.visitor.indexOf(p)
+        let i = visitor.indexOf(p)
         let distance = center - i
         return { p, distance }
       })
