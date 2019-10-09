@@ -93396,7 +93396,7 @@ function embed(el, spec, opt = {}) {
     };
   });
 }
-},{"tslib":"node_modules/tslib/tslib.es6.js","d3-selection":"node_modules/d3-selection/src/index.js","deepmerge":"node_modules/deepmerge/dist/cjs.js","json-stringify-pretty-compact":"node_modules/json-stringify-pretty-compact/index.js","semver":"node_modules/semver/semver.js","vega":"node_modules/vega/index.js","vega-lite":"node_modules/vega-lite/build/src/index.js","vega-schema-url-parser":"node_modules/vega-schema-url-parser/index.js","vega-themes":"node_modules/vega-themes/build/src/index.js","vega-tooltip":"node_modules/vega-tooltip/build/src/index.js","./post":"node_modules/vega-embed/build/src/post.js","./style":"node_modules/vega-embed/build/src/style.js"}],"src/Types.ts":[function(require,module,exports) {
+},{"tslib":"node_modules/tslib/tslib.es6.js","d3-selection":"node_modules/d3-selection/src/index.js","deepmerge":"node_modules/deepmerge/dist/cjs.js","json-stringify-pretty-compact":"node_modules/json-stringify-pretty-compact/index.js","semver":"node_modules/semver/semver.js","vega":"node_modules/vega/index.js","vega-lite":"node_modules/vega-lite/build/src/index.js","vega-schema-url-parser":"node_modules/vega-schema-url-parser/index.js","vega-themes":"node_modules/vega-themes/build/src/index.js","vega-tooltip":"node_modules/vega-tooltip/build/src/index.js","./post":"node_modules/vega-embed/build/src/post.js","./style":"node_modules/vega-embed/build/src/style.js"}],"typescript/Types.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -93454,7 +93454,7 @@ function () {
 }();
 
 exports.RenderedPoint = RenderedPoint;
-},{}],"src/Filter.ts":[function(require,module,exports) {
+},{}],"typescript/Filter.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -93604,7 +93604,7 @@ function () {
 }();
 
 exports.Filter = Filter;
-},{}],"src/Visitor.ts":[function(require,module,exports) {
+},{}],"typescript/Visitor.ts":[function(require,module,exports) {
 "use strict";
 
 var __spreadArrays = this && this.__spreadArrays || function () {
@@ -93789,7 +93789,7 @@ function () {
 }();
 
 exports.Visitor = Visitor;
-},{"./Optimizer":"src/Optimizer.ts"}],"src/Optimizer.ts":[function(require,module,exports) {
+},{"./Optimizer":"typescript/Optimizer.ts"}],"typescript/Optimizer.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -93949,7 +93949,7 @@ function () {
 }();
 
 exports.Optimizer = Optimizer;
-},{"./Visitor":"src/Visitor.ts"}],"src/DrawSpec.ts":[function(require,module,exports) {
+},{"./Visitor":"typescript/Visitor.ts"}],"typescript/DrawSpec.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -93968,7 +93968,11 @@ function () {
   */
 
 
-  DrawSpec.getSpec = function (data, config) {
+  DrawSpec.getSpecNew = function (data, config) {
+    return {};
+  };
+
+  DrawSpec.getSpecOld = function (data, config) {
     return {
       "config": {
         "view": {
@@ -94024,7 +94028,7 @@ function () {
       }, {
         "mark": {
           "type": "tick",
-          "size": config.height / data[1] + 2,
+          "size": config.height / data[1],
           "thickness": config.lineSize
         },
         "encoding": {
@@ -94148,7 +94152,7 @@ function () {
       }, {
         "mark": {
           "type": "tick",
-          "size": config.height / data[1] + 2,
+          "size": config.height / data[1] * 1.1,
           "thickness": config.lineSize
         },
         "encoding": {
@@ -94374,7 +94378,7 @@ function () {
 }();
 
 exports.DrawSpec = DrawSpec;
-},{}],"src/KnotDiagram.ts":[function(require,module,exports) {
+},{}],"typescript/KnotDiagram.ts":[function(require,module,exports) {
 "use strict";
 
 var __spreadArrays = this && this.__spreadArrays || function () {
@@ -94395,9 +94399,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var Types_1 = require("././Types");
+var Types_1 = require("./Types");
 
-var Filter_1 = require("././Filter");
+var Filter_1 = require("./Filter");
 
 var Optimizer_1 = require("./Optimizer");
 
@@ -94413,8 +94417,8 @@ function () {
     this.fullData = this.initialize(inputData);
     this.processedData = Filter_1.Filter.filter(this.fullData, config);
     this.processedData = Optimizer_1.Optimizer.fit(this.processedData, config);
-    this.renderedGrid = this.draw(this.processedData);
-    this.spec = DrawSpec_1.DrawSpec.getSpec(this.renderedGrid, config);
+    this.renderedGrid = this.draw(this.processedData, config);
+    this.spec = DrawSpec_1.DrawSpec.getSpecOld(this.renderedGrid, config);
   }
   /**
    * If undefined, set default values for the config object
@@ -94425,6 +94429,7 @@ function () {
     if (!this.config.height) this.config.height = 550;
     if (!this.config.width) this.config.width = 1000;
     if (!this.config.lineSize) this.config.lineSize = 12;
+    if (!this.config.xValueScaling) this.config.xValueScaling = 0;
     if (!this.config.generationAmt) this.config.generationAmt = 100;
     if (!this.config.populationSize) this.config.populationSize = 80;
     if (!this.config.selectionRate) this.config.selectionRate = 0.125;
@@ -94485,13 +94490,18 @@ function () {
     return [xs, ys];
   };
 
-  KnotDiagram.prototype.draw = function (visitor) {
+  KnotDiagram.prototype.draw = function (visitor, config) {
     var _this = this;
 
     var result = [];
-    var maxLen = this.fullData[0].reduce(function (max, layer) {
+    var maxYLen = this.fullData[0].reduce(function (max, layer) {
       return Math.max(max, layer.state.length);
     }, 0);
+    var xLen = this.fullData[0].length;
+    var maxXValue = this.fullData[0].reduce(function (max, x) {
+      return Math.max(max, x.xValue);
+    }, 0);
+    var scaling = config.xValueScaling;
     visitor[0].forEach(function (layer, i) {
       var offset = layer.state.length % 2 === 0 ? -0.5 : 0;
       layer.state.forEach(function (p, y) {
@@ -94502,10 +94512,11 @@ function () {
         });
         var strokeWidth = layer.data.Int;
         var xVal = layer.xValue;
+        var xDrawn = scaling * xVal + (1 - scaling) * i;
 
         var xDescription = _this.config.xDescription(layer);
 
-        var point = new Types_1.RenderedPoint(i, y + offset, p, isGrouped, strokeWidth, xVal, xDescription);
+        var point = new Types_1.RenderedPoint(xDrawn, y + offset, p, isGrouped, strokeWidth, xVal, xDescription);
         result.push(point);
       });
     }); // console.log(visitor)
@@ -94524,28 +94535,29 @@ function () {
       points.set(r.z, arr);
     });
     result.map(function (r) {
-      r.pointsX = points.get(r.z).map(function (g) {
+      var point = points.get(r.z);
+      r.pointsX = point.map(function (g) {
         return g.x;
       });
-      r.pointsY = points.get(r.z).map(function (g) {
+      r.pointsY = point.map(function (g) {
         return g.y;
       });
-      r.pointsBool = points.get(r.z).map(function (g) {
+      r.pointsBool = point.map(function (g) {
         return g.bool;
       });
-      r.pointsSize = points.get(r.z).map(function (g) {
+      r.pointsSize = point.map(function (g) {
         return g.strokeWidth;
       });
       return r;
     });
-    return [result, maxLen];
+    return [result, maxYLen];
   };
 
   return KnotDiagram;
 }();
 
 exports.KnotDiagram = KnotDiagram;
-},{"././Types":"src/Types.ts","././Filter":"src/Filter.ts","./Optimizer":"src/Optimizer.ts","./DrawSpec":"src/DrawSpec.ts"}],"src/DummyData.ts":[function(require,module,exports) {
+},{"./Types":"typescript/Types.ts","./Filter":"typescript/Filter.ts","./Optimizer":"typescript/Optimizer.ts","./DrawSpec":"typescript/DrawSpec.ts"}],"typescript/DummyData.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -112233,7 +112245,7 @@ function () {
 }();
 
 exports.DummyData = DummyData;
-},{}],"src/DummyConfig.ts":[function(require,module,exports) {
+},{}],"typescript/DummyConfig.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -112257,11 +112269,12 @@ function () {
       xDescription: function xDescription(xLayer) {
         return xLayer.data.YEAR + ', ' + xLayer.data.Location;
       },
-      //mustContain: ['Russia (Soviet Union)'],
-      interactedWith: [['Russia (Soviet Union)'], 0],
-      filterXValue: [undefined, 2000],
-      filterGroupSize: [3, undefined],
-      filterGroupAmt: [4, undefined]
+      mustContain: ['United Kingdom'],
+      //interactedWith: [['Russia (Soviet Union)'], 0],
+      filterXValue: [undefined, undefined],
+      filterGroupSize: [1, undefined],
+      filterGroupAmt: [2, undefined],
+      xValueScaling: 0.5
     }];
   };
 
@@ -112270,9 +112283,9 @@ function () {
       xValue: 'id',
       yValues: ['a', 'b', 'c', 'd'],
       xDescription: function xDescription(xLayer) {
-        return xLayer.xValue;
+        return String(xLayer.xValue);
       },
-      filterGroupAmt: [2, undefined]
+      filterGroupAmt: [3, undefined]
     }];
   };
 
@@ -112280,7 +112293,7 @@ function () {
 }();
 
 exports.DummyConfig = DummyConfig;
-},{"./DummyData":"src/DummyData.ts"}],"index.ts":[function(require,module,exports) {
+},{"./DummyData":"typescript/DummyData.ts"}],"index.ts":[function(require,module,exports) {
 "use strict";
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -112438,12 +112451,13 @@ Object.defineProperty(exports, "__esModule", {
 
 var vega_embed_1 = __importDefault(require("vega-embed"));
 
-var KnotDiagram_1 = require("./src/KnotDiagram");
+var KnotDiagram_1 = require("./typescript/KnotDiagram");
 
-var DummyConfig_1 = require("./src/DummyConfig");
+var DummyConfig_1 = require("./typescript/DummyConfig");
 /**
 * Artistnet Data
-* Interacted with bug
+* interactedWith bug and maybe redundant with mustContain
+* Highlighting, YFilter Info
 */
 
 
@@ -112453,7 +112467,7 @@ function main() {
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          config = DummyConfig_1.DummyConfig.getConfig1();
+          config = DummyConfig_1.DummyConfig.getConfig2();
           KD = new KnotDiagram_1.KnotDiagram(config[0], config[1]);
           return [4
           /*yield*/
@@ -112471,7 +112485,7 @@ function main() {
 }
 
 main();
-},{"vega-embed":"node_modules/vega-embed/build/src/embed.js","./src/KnotDiagram":"src/KnotDiagram.ts","./src/DummyConfig":"src/DummyConfig.ts"}],"../../../../../usr/local/lib/node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"vega-embed":"node_modules/vega-embed/build/src/embed.js","./typescript/KnotDiagram":"typescript/KnotDiagram.ts","./typescript/DummyConfig":"typescript/DummyConfig.ts"}],"../../../../../usr/local/lib/node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -112499,7 +112513,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61398" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60522" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
