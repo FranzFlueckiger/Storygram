@@ -3,18 +3,18 @@ import { Optimizer } from './Optimizer'
 
 export class Visitor {
 
-  public static visit(d: Data, yEntryPoints: GenePool | undefined): [XData, GenePool] {
+  public static visit(data: Data, yEntryPoints: GenePool | undefined): [XData, GenePool] {
     let visitor: string[] = []
     yEntryPoints = yEntryPoints ? yEntryPoints : new Map()
     let prevIndex = 0
-    return [d[0].reduce((acc, x: XLayer, i: number) => {
-      // check if this x layer is hidden
+    return [data.xData.reduce((acc, x: XLayer, i: number) => {
+      // todo remove this as it is redundant check if this x layer is hidden
       if (!x.isHidden) {
         // calculate the center
         let center = this.getCenter(x.group, visitor)
-        if (i != 0) d[0][prevIndex].remove.forEach(a => visitor = this.remove(a, visitor))
+        if (i != 0) data.xData[prevIndex].remove.forEach(a => visitor = this.remove(a, visitor))
         x.add.forEach(y => {
-          let yVal = d[1].get(y)
+          let yVal = data.yData.get(y)
           if (!yVal.isHidden) {
             let entryPoint = yEntryPoints.get(y)
             if (!entryPoint) {

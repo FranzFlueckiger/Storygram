@@ -1,16 +1,15 @@
 import vega from 'vega-embed';
 import { KnotDiagram } from './typescript/KnotDiagram';
-import {DummyConfig} from './typescript/DummyConfig'
+import {Templates} from './typescript/Templates'
 
 /**
-* Artistnet Data
-* interactedWith bug and maybe redundant with mustContain
-* Highlighting, YFilter Info
+* Testing
+* Gui: Highlighting, Stability
 */
 
 async function main() {
-  const config = DummyConfig.getConfig2()
-  const KD = new KnotDiagram(config[0], config[1])
+  const template = Templates.getTemplate3()
+  const KD = new KnotDiagram(template[0], template[1])
   await vega("#viz", KD.spec);
 }
  

@@ -1,18 +1,12 @@
 export interface Config {
     // the height of the whole chart
-    height?: number,
+    yPadding?: number,
     // the width of the whole chart
-    width?: number,
+    xPadding?: number,
     // the line size of the lines and ticks
     lineSize?: number,
-    // JSON field for the x value
-    xValue: string,
-    // JSON field for the grouped y values
-    yValues: string[],
     // x Value scaling factor (0 has no effect, 1 has 100% effect)
     xValueScaling?: number,
-    // optional function for further processing the y-fields
-    splitFunction?: (arg: string) => string[],
     // amount of consecutive Generations to be evaluated
     generationAmt?: number,
     // Size of one generation
@@ -40,7 +34,7 @@ export interface Config {
     // x filter (Positive group sizes only)
     filterGroupSize?: [number, number],
     // todo x filter for data predicates
-    filterCustomX?: [],
+    filterCustomX?: (xLayer: XLayer) => boolean,
     // y filter check if the YLayers interacted with the given ones at the specified depth
     interactedWith?: [string[], number],
     // y filter (Positive and Negative x value lifetimes possible)
@@ -50,7 +44,7 @@ export interface Config {
     // y filter (Positive group amounts only)
     filterGroupAmt?: [number, number],
     // todo y filter for data predicates
-    filterCustomY?: [],
+    filterCustomY?: (yLayer: YLayer) => boolean,
     // Penalty for the amount of switches
     amtLoss?: number
     // Penalty for the length of the switches
@@ -62,6 +56,7 @@ export interface Config {
 }
 
 export class XLayer {
+    public id: number
     public index: number
     public isHidden: boolean
     public add: string[]
@@ -115,7 +110,7 @@ export type XData = XLayer[]
 
 export type YData = Map<string, YLayer>
 
-export type Data = [XData, YData]
+export type Data = {xData: XData, yData: YData}
 
 export class RenderedPoint {
 

@@ -17,7 +17,7 @@ export class Optimizer {
       newGenes = this.mate(parents, config)
       newGenes = this.mutate(data, newGenes, config)
     }
-    return [best.x, data[1]]
+    return {xData: best.x, yData: data.yData}
   }
 
   private static getGeneration(data: Data, yEntryPoints: Map<string, number>[], config: Config): Child[] {
@@ -70,7 +70,7 @@ export class Optimizer {
 
   private static mutate(data: Data, genes: GenePool[], config: Config) {
     genes.forEach((_, i) => {
-      data[0].forEach(x => {
+      data.xData.forEach(x => {
         if (!x.isHidden) {
           x.add.forEach(y => {
             if (Math.random() < config.mutationProbability) {

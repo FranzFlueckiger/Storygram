@@ -93396,65 +93396,7 @@ function embed(el, spec, opt = {}) {
     };
   });
 }
-},{"tslib":"node_modules/tslib/tslib.es6.js","d3-selection":"node_modules/d3-selection/src/index.js","deepmerge":"node_modules/deepmerge/dist/cjs.js","json-stringify-pretty-compact":"node_modules/json-stringify-pretty-compact/index.js","semver":"node_modules/semver/semver.js","vega":"node_modules/vega/index.js","vega-lite":"node_modules/vega-lite/build/src/index.js","vega-schema-url-parser":"node_modules/vega-schema-url-parser/index.js","vega-themes":"node_modules/vega-themes/build/src/index.js","vega-tooltip":"node_modules/vega-tooltip/build/src/index.js","./post":"node_modules/vega-embed/build/src/post.js","./style":"node_modules/vega-embed/build/src/style.js"}],"typescript/Types.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var XLayer =
-/** @class */
-function () {
-  function XLayer(xValue, data) {
-    this.xValue = xValue;
-    this.data = data;
-    this.isHidden = false;
-    this.add = [];
-    this.remove = [];
-    this.group = [];
-    this.state = [];
-    this.hiddenYs = [];
-  }
-
-  return XLayer;
-}();
-
-exports.XLayer = XLayer;
-
-var YLayer =
-/** @class */
-function () {
-  function YLayer(yID, data) {
-    this.yID = yID;
-    this.data = data;
-    this.isHidden = false;
-    this.layers = [];
-  }
-
-  return YLayer;
-}();
-
-exports.YLayer = YLayer;
-
-var RenderedPoint =
-/** @class */
-function () {
-  function RenderedPoint(x, y, z, isGrouped, strokeWidth, xVal, xDescription) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.isGrouped = isGrouped;
-    this.strokeWidth = strokeWidth;
-    this.xVal = xVal;
-    this.xDescription = xDescription;
-  }
-
-  return RenderedPoint;
-}();
-
-exports.RenderedPoint = RenderedPoint;
-},{}],"typescript/Filter.ts":[function(require,module,exports) {
+},{"tslib":"node_modules/tslib/tslib.es6.js","d3-selection":"node_modules/d3-selection/src/index.js","deepmerge":"node_modules/deepmerge/dist/cjs.js","json-stringify-pretty-compact":"node_modules/json-stringify-pretty-compact/index.js","semver":"node_modules/semver/semver.js","vega":"node_modules/vega/index.js","vega-lite":"node_modules/vega-lite/build/src/index.js","vega-schema-url-parser":"node_modules/vega-schema-url-parser/index.js","vega-themes":"node_modules/vega-themes/build/src/index.js","vega-tooltip":"node_modules/vega-tooltip/build/src/index.js","./post":"node_modules/vega-embed/build/src/post.js","./style":"node_modules/vega-embed/build/src/style.js"}],"typescript/Filter.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -93469,19 +93411,18 @@ function () {
   Filter.filter = function (data, config) {
     console.log('Pre Filtering', data); // filter xs 
 
-    data = this.filterX(data, config); // check if Ys comply with the interacteWith filter
-
-    data = this.interactedWith(data, config); // filter ys
+    data = this.filterX(data, config); // filter ys
 
     data = this.filterY(data, config); // remove x points without y points
 
-    data[0] = data[0].filter(function (layer) {
+    data.xData = data.xData.filter(function (layer) {
       return layer.group.length > 0;
     });
     this.setLifeCycles(data, config);
     console.log('Post Filtering', data);
     return data;
-  };
+  }; // todo test this
+
 
   Filter.isInRange = function (p, range) {
     return range ? (range[0] ? p >= range[0] : true) && (range[1] ? p <= range[1] : true) : true;
@@ -93490,83 +93431,51 @@ function () {
   Filter.filterX = function (data, config) {
     var _this = this;
 
-    var Ys = new Map();
-    var Xs = data[0].filter(function (layer) {
-      // check if layer is hidden
-      var contains = true;
+    var yData = new Map();
+    var xData = data.xData.filter(function (xLayer) {
+      var contains = true; // todo initialise this before loop
 
       if (config.mustContain && config.mustContain.length) {
         contains = config.mustContain.every(function (query) {
-          return layer.group.includes(query);
+          return xLayer.group.includes(query);
         });
       }
 
-      if (!_this.isInRange(layer.group.length, config.filterGroupSize) || !_this.isInRange(layer.xValue, config.filterXValue) || layer.group.length == 0 || !contains) {
-        layer.isHidden = true;
+      if (!_this.isInRange(xLayer.group.length, config.filterGroupSize) || !_this.isInRange(xLayer.xValue, config.filterXValue) || xLayer.group.length == 0 || !contains || !config.filterCustomX(xLayer)) {
+        xLayer.isHidden = true;
         return false;
       } else {
-        layer.group.forEach(function (y) {
-          var yVal = data[1].get(y);
-          Ys.set(y, yVal);
+        xLayer.group.forEach(function (y) {
+          var yVal = data.yData.get(y);
+          yData.set(y, yVal);
         });
         return true;
       }
     });
-    return [Xs, Ys];
-  };
-
-  Filter.interactedWith = function (data, config) {
-    var allowedYs;
-
-    if (config.interactedWith && config.interactedWith[0].length) {
-      var depth = 0;
-      if (config.interactedWith[1]) depth = config.interactedWith[1];
-      allowedYs = new Set(config.interactedWith[0]);
-
-      for (var i = -1; i < depth; i++) {
-        var _loop_1 = function _loop_1(layer) {
-          if (Array.from(allowedYs).some(function (y) {
-            return layer.group.includes(y);
-          })) {
-            layer.group.forEach(function (y) {
-              return allowedYs.add(y);
-            });
-          }
-        };
-
-        for (var _i = 0, _a = data[0]; _i < _a.length; _i++) {
-          var layer = _a[_i];
-
-          _loop_1(layer);
-        }
-      }
-
-      Array.from(data[1]).forEach(function (y) {
-        return allowedYs.has(y[0]) ? y : y[1].isHidden = true;
-      });
-    }
-
-    return data;
+    return {
+      xData: xData,
+      yData: yData
+    };
   };
 
   Filter.filterY = function (data, config) {
     var _this = this;
 
-    Array.from(data[1]).forEach(function (yMap) {
-      var y = yMap[1];
-      var activeLayers = y.layers ? y.layers.filter(function (l) {
+    Array.from(data.yData).forEach(function (yMap) {
+      var yVal = yMap[1];
+      var activeLayers = yVal.layers ? yVal.layers.filter(function (l) {
         return !l.isHidden;
       }) : [];
 
       if ( // check if y value has an xValue lifetime in the allowed range
       !_this.isInRange(activeLayers[activeLayers.length - 1].xValue - activeLayers[0].xValue, config.filterXValueLifeTime) || // check if y value has an amount of non-hidden groups in the allowed range
-      !_this.isInRange(activeLayers.length, config.filterGroupAmt) || y.isHidden) {
-        y.isHidden = true;
-        y.layers.forEach(function (l) {
+      !_this.isInRange(activeLayers.length, config.filterGroupAmt) || yVal.isHidden || !config.filterCustomY(yVal)) {
+        yVal.isHidden = true;
+        yVal.layers.forEach(function (l) {
           l.group = l.group.filter(function (a) {
-            return a != y.yID;
+            return a != yVal.yID;
           });
-          l.hiddenYs.push(y.yID);
+          l.hiddenYs.push(yVal.yID);
         });
       }
     });
@@ -93574,10 +93483,10 @@ function () {
   };
 
   Filter.setLifeCycles = function (data, config) {
-    data[0].forEach(function (layer, i) {
-      if (!layer.isHidden) layer.index = i;
+    data.xData.forEach(function (xLayer, i) {
+      if (!xLayer.isHidden) xLayer.index = i;
     });
-    Array.from(data[1]).forEach(function (yMap) {
+    Array.from(data.yData).forEach(function (yMap) {
       var y = yMap[1];
       var activeLayers = y.layers ? y.layers.filter(function (l) {
         return !l.isHidden;
@@ -93586,15 +93495,15 @@ function () {
       if (!y.isHidden) {
         // check where to add the y-point
         if (config.continuousStart) {
-          data[0][0].add.push(y.yID);
+          data.xData[0].add.push(y.yID);
         } else {
-          data[0][activeLayers[0].index].add.push(y.yID);
+          data.xData[activeLayers[0].index].add.push(y.yID);
         }
 
         if (config.continuousEnd) {
-          data[0][data[0].length - 1].remove.push(y.yID);
+          data.xData[data.xData.length - 1].remove.push(y.yID);
         } else {
-          data[0][activeLayers[activeLayers.length - 1].index].remove.push(y.yID);
+          data.xData[activeLayers[activeLayers.length - 1].index].remove.push(y.yID);
         }
       }
     });
@@ -93632,23 +93541,23 @@ var Visitor =
 function () {
   function Visitor() {}
 
-  Visitor.visit = function (d, yEntryPoints) {
+  Visitor.visit = function (data, yEntryPoints) {
     var _this = this;
 
     var visitor = [];
     yEntryPoints = yEntryPoints ? yEntryPoints : new Map();
     var prevIndex = 0;
-    return [d[0].reduce(function (acc, x, i) {
-      // check if this x layer is hidden
+    return [data.xData.reduce(function (acc, x, i) {
+      // todo remove this as it is redundant check if this x layer is hidden
       if (!x.isHidden) {
         // calculate the center
         var center_1 = _this.getCenter(x.group, visitor);
 
-        if (i != 0) d[0][prevIndex].remove.forEach(function (a) {
+        if (i != 0) data.xData[prevIndex].remove.forEach(function (a) {
           return visitor = _this.remove(a, visitor);
         });
         x.add.forEach(function (y) {
-          var yVal = d[1].get(y);
+          var yVal = data.yData.get(y);
 
           if (!yVal.isHidden) {
             var entryPoint = yEntryPoints.get(y);
@@ -93819,7 +93728,10 @@ function () {
       newGenes = this.mutate(data, newGenes, config);
     }
 
-    return [best.x, data[1]];
+    return {
+      xData: best.x,
+      yData: data.yData
+    };
   };
 
   Optimizer.getGeneration = function (data, yEntryPoints, config) {
@@ -93894,7 +93806,7 @@ function () {
     var _this = this;
 
     genes.forEach(function (_, i) {
-      data[0].forEach(function (x) {
+      data.xData.forEach(function (x) {
         if (!x.isHidden) {
           x.add.forEach(function (y) {
             if (Math.random() < config.mutationProbability) {
@@ -93949,12 +93861,72 @@ function () {
 }();
 
 exports.Optimizer = Optimizer;
-},{"./Visitor":"typescript/Visitor.ts"}],"typescript/DrawSpec.ts":[function(require,module,exports) {
+},{"./Visitor":"typescript/Visitor.ts"}],"typescript/Types.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var XLayer =
+/** @class */
+function () {
+  function XLayer(xValue, data) {
+    this.xValue = xValue;
+    this.data = data;
+    this.isHidden = false;
+    this.add = [];
+    this.remove = [];
+    this.group = [];
+    this.state = [];
+    this.hiddenYs = [];
+  }
+
+  return XLayer;
+}();
+
+exports.XLayer = XLayer;
+
+var YLayer =
+/** @class */
+function () {
+  function YLayer(yID, data) {
+    this.yID = yID;
+    this.data = data;
+    this.isHidden = false;
+    this.layers = [];
+  }
+
+  return YLayer;
+}();
+
+exports.YLayer = YLayer;
+
+var RenderedPoint =
+/** @class */
+function () {
+  function RenderedPoint(x, y, z, isGrouped, strokeWidth, xVal, xDescription) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.isGrouped = isGrouped;
+    this.strokeWidth = strokeWidth;
+    this.xVal = xVal;
+    this.xDescription = xDescription;
+  }
+
+  return RenderedPoint;
+}();
+
+exports.RenderedPoint = RenderedPoint;
+},{}],"typescript/DrawSpec.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var Types_1 = require("./Types");
 
 var DrawSpec =
 /** @class */
@@ -93966,7 +93938,68 @@ function () {
   * set all line and tick sizes
   * set the adaptive tick length
   */
+  // todo normalize coordinates
 
+
+  DrawSpec.draw = function (data, config) {
+    var result = [];
+    var maxYLen = data.xData.reduce(function (max, layer) {
+      return Math.max(max, layer.state.length);
+    }, 0);
+    var xLen = data.xData.length;
+    var scaling = config.xValueScaling;
+    data.xData.forEach(function (xLayer, xIndex) {
+      var offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
+      xLayer.state.forEach(function (yID, yIndex) {
+        var yLayer = data.yData.get(yID);
+        console.log(yLayer, xLayer, yIndex, data.xData[yIndex], data.xData[yIndex].group.some(function (a) {
+          return a === yID;
+        }));
+        var isGrouped = xLayer.group.some(function (a) {
+          return a === yID;
+        });
+        var yDrawn = config.centered ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
+        yDrawn += offset;
+        var strokeWidth = config.strokeWidth(xLayer);
+        var xVal = xLayer.xValue;
+        var xDrawn = scaling * xVal + (1 - scaling) * xIndex;
+        var xDescription = config.xDescription(xLayer);
+        var point = new Types_1.RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xVal, xDescription);
+        result.push(point);
+      });
+    }); // console.log(visitor)
+    // console.log(result)
+    // todo this is ugly and inefficient
+
+    var points = new Map();
+    result.forEach(function (r) {
+      var arr = points.get(r.z) ? points.get(r.z) : [];
+      arr.push({
+        'x': r.x,
+        'y': r.y,
+        'bool': r.isGrouped,
+        'strokeWidth': r.strokeWidth
+      });
+      points.set(r.z, arr);
+    });
+    result.map(function (r) {
+      var point = points.get(r.z);
+      r.pointsX = point.map(function (g) {
+        return g.x;
+      });
+      r.pointsY = point.map(function (g) {
+        return g.y;
+      });
+      r.pointsBool = point.map(function (g) {
+        return g.bool;
+      });
+      r.pointsSize = point.map(function (g) {
+        return g.strokeWidth;
+      });
+      return r;
+    });
+    return [result, maxYLen, xLen];
+  };
 
   DrawSpec.getSpecNew = function (data, config) {
     return {};
@@ -94028,7 +94061,7 @@ function () {
       }, {
         "mark": {
           "type": "tick",
-          "size": config.height / data[1],
+          "size": config.yPadding * 1.1,
           "thickness": config.lineSize
         },
         "encoding": {
@@ -94152,7 +94185,7 @@ function () {
       }, {
         "mark": {
           "type": "tick",
-          "size": config.height / data[1] * 1.1,
+          "size": config.yPadding * 1.1,
           "thickness": config.lineSize
         },
         "encoding": {
@@ -94368,8 +94401,8 @@ function () {
       "datasets": {
         "data-31a3ca55662c252b94e9791f188d05fe": data[0]
       },
-      "height": config.height,
-      "width": config.width,
+      "height": config.yPadding * data[1],
+      "width": config.xPadding * data[2],
       "$schema": "https://vega.github.io/schema/vega-lite/v3.4.0.json"
     };
   };
@@ -94378,28 +94411,12 @@ function () {
 }();
 
 exports.DrawSpec = DrawSpec;
-},{}],"typescript/KnotDiagram.ts":[function(require,module,exports) {
+},{"./Types":"typescript/Types.ts"}],"typescript/KnotDiagram.ts":[function(require,module,exports) {
 "use strict";
-
-var __spreadArrays = this && this.__spreadArrays || function () {
-  for (var s = 0, i = 0, il = arguments.length; i < il; i++) {
-    s += arguments[i].length;
-  }
-
-  for (var r = Array(s), k = 0, i = 0; i < il; i++) {
-    for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {
-      r[k] = a[j];
-    }
-  }
-
-  return r;
-};
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var Types_1 = require("./Types");
 
 var Filter_1 = require("./Filter");
 
@@ -94410,14 +94427,14 @@ var DrawSpec_1 = require("./DrawSpec");
 var KnotDiagram =
 /** @class */
 function () {
-  function KnotDiagram(inputData, config) {
-    this.inputData = inputData;
+  function KnotDiagram(data, config) {
+    this.data = data;
     this.config = config;
     this.checkDefaultConfig();
-    this.fullData = this.initialize(inputData);
-    this.processedData = Filter_1.Filter.filter(this.fullData, config);
+    this.processedData = Filter_1.Filter.filter(this.data, config);
     this.processedData = Optimizer_1.Optimizer.fit(this.processedData, config);
-    this.renderedGrid = this.draw(this.processedData, config);
+    this.renderedGrid = DrawSpec_1.DrawSpec.draw(this.processedData, config);
+    console.log(this.renderedGrid);
     this.spec = DrawSpec_1.DrawSpec.getSpecOld(this.renderedGrid, config);
   }
   /**
@@ -94426,8 +94443,8 @@ function () {
 
 
   KnotDiagram.prototype.checkDefaultConfig = function () {
-    if (!this.config.height) this.config.height = 550;
-    if (!this.config.width) this.config.width = 1000;
+    if (!this.config.yPadding) this.config.yPadding = 40;
+    if (!this.config.xPadding) this.config.xPadding = 60;
     if (!this.config.lineSize) this.config.lineSize = 12;
     if (!this.config.xValueScaling) this.config.xValueScaling = 0;
     if (!this.config.generationAmt) this.config.generationAmt = 100;
@@ -94437,127 +94454,33 @@ function () {
     if (this.config.continuousStart == null) this.config.continuousStart = true;
     if (this.config.continuousEnd == null) this.config.continuousEnd = true;
     if (this.config.centered == null) this.config.centered = true;
+    if (this.config.strokeWidth == null) this.config.strokeWidth = function (d) {
+      return null;
+    };
     if (!this.config.mustContain) this.config.mustContain = [];
     if (!this.config.interactedWith) this.config.interactedWith = [[], 0];
     if (!this.config.filterXValue) this.config.filterXValue = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER];
     if (!this.config.filterGroupSize) this.config.filterGroupSize = [0, Number.MAX_SAFE_INTEGER];
-    if (!this.config.filterCustomX) this.config.filterCustomX = [];
+    if (!this.config.filterCustomX) this.config.filterCustomX = function (xLayer) {
+      return true;
+    };
     if (!this.config.filterXValueLifeTime) this.config.filterXValueLifeTime = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER];
     if (!this.config.filterIndexLifeTime) this.config.filterIndexLifeTime = [0, Number.MAX_SAFE_INTEGER];
     if (!this.config.filterGroupAmt) this.config.filterGroupAmt = [0, Number.MAX_SAFE_INTEGER];
-    if (!this.config.filterCustomY) this.config.filterCustomY = [];
+    if (!this.config.filterCustomY) this.config.filterCustomY = function (yLayer) {
+      return true;
+    };
     if (!this.config.amtLoss) this.config.amtLoss = 80;
     if (!this.config.lengthLoss) this.config.lengthLoss = 4;
     if (!this.config.centeredAddLoss) this.config.centeredAddLoss = 0;
     if (!this.config.centeredRemoveLoss) this.config.centeredRemoveLoss = 0;
-  };
-  /**
-   * This function prepares the data for the processing from a
-   * JSON-Array. It removes duplicates in groups and ignores
-   * undefined and null values.
-   */
-
-
-  KnotDiagram.prototype.initialize = function (inputData) {
-    var _this = this;
-
-    inputData.sort(function (a, b) {
-      return a[_this.config.xValue] - b[_this.config.xValue];
-    });
-    var ys = new Map();
-    var xs = inputData.map(function (x) {
-      var xObj = new Types_1.XLayer(x[_this.config.xValue], x);
-      xObj.group = __spreadArrays(Array.from(_this.config.yValues.reduce(function (acc, y) {
-        if (x[y]) _this.config.splitFunction ? _this.config.splitFunction(x[y]).forEach(function (p) {
-          if (p) acc.add(p);
-        }) : acc.add(x[y]);
-        return acc;
-      }, new Set())));
-      xObj.group = xObj.group.map(function (y) {
-        var yObj = ys.get(y);
-
-        if (!yObj) {
-          // create the y object
-          yObj = new Types_1.YLayer(y, x);
-        }
-
-        yObj.layers.push(xObj);
-        ys.set(y, yObj);
-        return y;
-      });
-      return xObj;
-    });
-    return [xs, ys];
-  };
-
-  KnotDiagram.prototype.draw = function (visitor, config) {
-    var _this = this;
-
-    var result = [];
-    var maxYLen = this.fullData[0].reduce(function (max, layer) {
-      return Math.max(max, layer.state.length);
-    }, 0);
-    var xLen = this.fullData[0].length;
-    var maxXValue = this.fullData[0].reduce(function (max, x) {
-      return Math.max(max, x.xValue);
-    }, 0);
-    var scaling = config.xValueScaling;
-    visitor[0].forEach(function (layer, i) {
-      var offset = layer.state.length % 2 === 0 ? -0.5 : 0;
-      layer.state.forEach(function (p, y) {
-        var yVal = visitor[1].get(p);
-        y = _this.config.centered ? (layer.state.length - 1) / 2 - y : y;
-        var isGrouped = visitor[0][i].group.some(function (a) {
-          return a === p;
-        });
-        var strokeWidth = layer.data.Int;
-        var xVal = layer.xValue;
-        var xDrawn = scaling * xVal + (1 - scaling) * i;
-
-        var xDescription = _this.config.xDescription(layer);
-
-        var point = new Types_1.RenderedPoint(xDrawn, y + offset, p, isGrouped, strokeWidth, xVal, xDescription);
-        result.push(point);
-      });
-    }); // console.log(visitor)
-    // console.log(result)
-    // todo this is ugly and inefficient
-
-    var points = new Map();
-    result.forEach(function (r) {
-      var arr = points.get(r.z) ? points.get(r.z) : [];
-      arr.push({
-        'x': r.x,
-        'y': r.y,
-        'bool': r.isGrouped,
-        'strokeWidth': r.strokeWidth
-      });
-      points.set(r.z, arr);
-    });
-    result.map(function (r) {
-      var point = points.get(r.z);
-      r.pointsX = point.map(function (g) {
-        return g.x;
-      });
-      r.pointsY = point.map(function (g) {
-        return g.y;
-      });
-      r.pointsBool = point.map(function (g) {
-        return g.bool;
-      });
-      r.pointsSize = point.map(function (g) {
-        return g.strokeWidth;
-      });
-      return r;
-    });
-    return [result, maxYLen];
   };
 
   return KnotDiagram;
 }();
 
 exports.KnotDiagram = KnotDiagram;
-},{"./Types":"typescript/Types.ts","./Filter":"typescript/Filter.ts","./Optimizer":"typescript/Optimizer.ts","./DrawSpec":"typescript/DrawSpec.ts"}],"typescript/DummyData.ts":[function(require,module,exports) {
+},{"./Filter":"typescript/Filter.ts","./Optimizer":"typescript/Optimizer.ts","./DrawSpec":"typescript/DrawSpec.ts"}],"typescript/DummyData.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -94568,6 +94491,1381 @@ var DummyData =
 /** @class */
 function () {
   function DummyData() {}
+
+  DummyData.testData = function () {
+    return [{
+      'a': 'bf',
+      'b': 'gf',
+      'c': 'kf',
+      'id': 0
+    }, {
+      'a': 'ff',
+      'b': 'ef',
+      'c': 'af',
+      'd': 'zf',
+      'id': 1
+    }, {
+      'a': 'ff',
+      'b': 'gf',
+      'id': 2
+    }, {
+      'a': 'ff',
+      'b': 'ef',
+      'c': 'cf',
+      'd': 'pf',
+      'id': 3
+    }, {
+      'a': 'zf',
+      'b': 'lf',
+      'c': 'bf',
+      'id': 4
+    }, {
+      'a': 'gf',
+      'b': 'ef',
+      'c': 'af',
+      'd': 'pf',
+      'id': 5
+    }, {
+      'a': 'bf',
+      'b': 'gf',
+      'c': 'kf',
+      'id': 6
+    }, {
+      'a': 'pf',
+      'b': 'ff',
+      'id': 7
+    }, {
+      'a': 'ff',
+      'b': 'gf',
+      'c': 'cf',
+      'd': 'af',
+      'id': 8
+    }, {
+      'a': 'ef',
+      'b': 'gf',
+      'c': 'zf',
+      'id': 9
+    }];
+  };
+
+  DummyData.dataFBlues = function () {
+    return [{
+      'id': 0,
+      '0': 'F',
+      '1': 'A',
+      '2': 'C'
+    }, {
+      'id': 1,
+      '0': 'Bb',
+      '1': 'D',
+      '2': 'F'
+    }, {
+      'id': 2,
+      '0': 'F',
+      '1': 'A',
+      '2': 'C'
+    }, {
+      'id': 2,
+      '0': 'C',
+      '1': 'E',
+      '2': 'G'
+    }, {
+      'id': 2,
+      '0': 'Bb',
+      '1': 'D',
+      '2': 'F'
+    }, {
+      'id': 2,
+      '0': 'F',
+      '1': 'A',
+      '2': 'C'
+    }, {
+      'id': 2,
+      '0': 'C',
+      '1': 'E',
+      '2': 'G'
+    }];
+  };
+
+  DummyData.dataGiIpTriads = function () {
+    return [// a part
+    {
+      'id': 0,
+      '0': 'F',
+      '1': 'A',
+      '2': 'C'
+    }, {
+      'id': 1,
+      '0': 'G',
+      '1': 'B',
+      '2': 'D'
+    }, {
+      'id': 2,
+      '0': 'G',
+      '1': 'Bb',
+      '2': 'D'
+    }, {
+      'id': 3,
+      '0': 'Gb',
+      '1': 'Bb',
+      '2': 'Db'
+    }, {
+      'id': 4,
+      '0': 'F',
+      '1': 'A',
+      '2': 'C'
+    }, {
+      'id': 5,
+      '0': 'Gb',
+      '1': 'Bb',
+      '2': 'C'
+    }, // b part
+    {
+      'id': 6,
+      '0': 'Gb',
+      '1': 'Bb',
+      '2': 'Db'
+    }, {
+      'id': 7,
+      '0': 'B',
+      '1': 'Eb',
+      '2': 'Gb'
+    }, {
+      'id': 8,
+      '0': 'Gb',
+      '1': 'A',
+      '2': 'Db'
+    }, {
+      'id': 9,
+      '0': 'D',
+      '1': 'Gb',
+      '2': 'A'
+    }, {
+      'id': 10,
+      '0': 'G',
+      '1': 'Bb',
+      '2': 'D'
+    }, {
+      'id': 11,
+      '0': 'Eb',
+      '1': 'G',
+      '2': 'Bb'
+    }, {
+      'id': 12,
+      '0': 'A',
+      '1': 'C',
+      '2': 'E'
+    }, {
+      'id': 13,
+      '0': 'D',
+      '1': 'Gb',
+      '2': 'A'
+    }, {
+      'id': 14,
+      '0': 'G',
+      '1': 'Bb',
+      '2': 'D'
+    }, {
+      'id': 15,
+      '0': 'C',
+      '1': 'E',
+      '2': 'G'
+    }];
+  };
+
+  DummyData.bundesraete = function () {
+    return [{
+      "Name": "Jonas Furrer",
+      "Kanton": "Zürich",
+      "Partei": "freis.",
+      "Amtsantritt": 1848,
+      "Amtsende": 1861.0,
+      "Geburtsjahr": 1805,
+      "Todesjahr": 1861.0,
+      "Lebensdauer": 56.0,
+      "Amtsdauer": 13.0
+    }, {
+      "Name": "Ulrich Ochsenbein",
+      "Kanton": "Bern",
+      "Partei": "freis.",
+      "Amtsantritt": 1848,
+      "Amtsende": 1854.0,
+      "Geburtsjahr": 1811,
+      "Todesjahr": 1890.0,
+      "Lebensdauer": 79.0,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Henri Druey",
+      "Kanton": "Waadt",
+      "Partei": "freis.",
+      "Amtsantritt": 1848,
+      "Amtsende": 1855.0,
+      "Geburtsjahr": 1799,
+      "Todesjahr": 1855.0,
+      "Lebensdauer": 56.0,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Josef Munzinger",
+      "Kanton": "Solothurn",
+      "Partei": "freis.",
+      "Amtsantritt": 1848,
+      "Amtsende": 1855.0,
+      "Geburtsjahr": 1791,
+      "Todesjahr": 1855.0,
+      "Lebensdauer": 64.0,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Stefano Franscini",
+      "Kanton": "Tessin",
+      "Partei": "freis.",
+      "Amtsantritt": 1848,
+      "Amtsende": 1857.0,
+      "Geburtsjahr": 1796,
+      "Todesjahr": 1857.0,
+      "Lebensdauer": 61.0,
+      "Amtsdauer": 9.0
+    }, {
+      "Name": "Friedrich Frey-Herosé",
+      "Kanton": "Aargau",
+      "Partei": "freis.",
+      "Amtsantritt": 1848,
+      "Amtsende": 1866.0,
+      "Geburtsjahr": 1801,
+      "Todesjahr": 1873.0,
+      "Lebensdauer": 72.0,
+      "Amtsdauer": 18.0
+    }, {
+      "Name": "Wilhelm Matthias Naeff",
+      "Kanton": "St. Gallen",
+      "Partei": "freis.",
+      "Amtsantritt": 1848,
+      "Amtsende": 1875.0,
+      "Geburtsjahr": 1802,
+      "Todesjahr": 1881.0,
+      "Lebensdauer": 79.0,
+      "Amtsdauer": 27.0
+    }, {
+      "Name": "Jakob Stämpfli",
+      "Kanton": "Bern",
+      "Partei": "freis.",
+      "Amtsantritt": 1855,
+      "Amtsende": 1863.0,
+      "Geburtsjahr": 1820,
+      "Todesjahr": 1879.0,
+      "Lebensdauer": 59.0,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Constant Fornerod",
+      "Kanton": "Waadt",
+      "Partei": "freis.",
+      "Amtsantritt": 1855,
+      "Amtsende": 1867.0,
+      "Geburtsjahr": 1819,
+      "Todesjahr": 1899.0,
+      "Lebensdauer": 80.0,
+      "Amtsdauer": 12.0
+    }, {
+      "Name": "Josef Martin Knüsel",
+      "Kanton": "Luzern",
+      "Partei": "freis.",
+      "Amtsantritt": 1855,
+      "Amtsende": 1875.0,
+      "Geburtsjahr": 1813,
+      "Todesjahr": 1889.0,
+      "Lebensdauer": 76.0,
+      "Amtsdauer": 20.0
+    }, {
+      "Name": "Giovanni Battista Pioda",
+      "Kanton": "Tessin",
+      "Partei": "freis.",
+      "Amtsantritt": 1857,
+      "Amtsende": 1864.0,
+      "Geburtsjahr": 1808,
+      "Todesjahr": 1882.0,
+      "Lebensdauer": 74.0,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Jakob Dubs",
+      "Kanton": "Zürich",
+      "Partei": "freis.",
+      "Amtsantritt": 1861,
+      "Amtsende": 1872.0,
+      "Geburtsjahr": 1822,
+      "Todesjahr": 1879.0,
+      "Lebensdauer": 57.0,
+      "Amtsdauer": 11.0
+    }, {
+      "Name": "Karl Schenk",
+      "Kanton": "Bern",
+      "Partei": "freis.",
+      "Amtsantritt": 1864,
+      "Amtsende": 1895.0,
+      "Geburtsjahr": 1823,
+      "Todesjahr": 1895.0,
+      "Lebensdauer": 72.0,
+      "Amtsdauer": 31.0
+    }, {
+      "Name": "Jean-Jacques Challet-Venel",
+      "Kanton": "Genf",
+      "Partei": "freis.",
+      "Amtsantritt": 1864,
+      "Amtsende": 1872.0,
+      "Geburtsjahr": 1811,
+      "Todesjahr": 1893.0,
+      "Lebensdauer": 82.0,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Emil Welti",
+      "Kanton": "Aargau",
+      "Partei": "freis.",
+      "Amtsantritt": 1867,
+      "Amtsende": 1891.0,
+      "Geburtsjahr": 1825,
+      "Todesjahr": 1899.0,
+      "Lebensdauer": 74.0,
+      "Amtsdauer": 24.0
+    }, {
+      "Name": "Victor Ruffy",
+      "Kanton": "Waadt",
+      "Partei": "freis.",
+      "Amtsantritt": 1867,
+      "Amtsende": 1869.0,
+      "Geburtsjahr": 1823,
+      "Todesjahr": 1869.0,
+      "Lebensdauer": 46.0,
+      "Amtsdauer": 2.0
+    }, {
+      "Name": "Paul Cérésole",
+      "Kanton": "Waadt",
+      "Partei": "freis.",
+      "Amtsantritt": 1870,
+      "Amtsende": 1875.0,
+      "Geburtsjahr": 1832,
+      "Todesjahr": 1905.0,
+      "Lebensdauer": 73.0,
+      "Amtsdauer": 5.0
+    }, {
+      "Name": "Johann Jakob Scherer",
+      "Kanton": "Zürich",
+      "Partei": "freis.",
+      "Amtsantritt": 1872,
+      "Amtsende": 1878.0,
+      "Geburtsjahr": 1825,
+      "Todesjahr": 1878.0,
+      "Lebensdauer": 53.0,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Eugène Borel",
+      "Kanton": "Neuenburg",
+      "Partei": "freis.",
+      "Amtsantritt": 1873,
+      "Amtsende": 1875.0,
+      "Geburtsjahr": 1835,
+      "Todesjahr": 1892.0,
+      "Lebensdauer": 57.0,
+      "Amtsdauer": 2.0
+    }, {
+      "Name": "Joachim Heer",
+      "Kanton": "Glarus",
+      "Partei": "freis.",
+      "Amtsantritt": 1876,
+      "Amtsende": 1878.0,
+      "Geburtsjahr": 1825,
+      "Todesjahr": 1879.0,
+      "Lebensdauer": 54.0,
+      "Amtsdauer": 2.0
+    }, {
+      "Name": "Fridolin Anderwert",
+      "Kanton": "Thurgau",
+      "Partei": "freis.",
+      "Amtsantritt": 1876,
+      "Amtsende": 1880.0,
+      "Geburtsjahr": 1828,
+      "Todesjahr": 1880.0,
+      "Lebensdauer": 52.0,
+      "Amtsdauer": 4.0
+    }, {
+      "Name": "Bernhard Hammer",
+      "Kanton": "Solothurn",
+      "Partei": "freis.",
+      "Amtsantritt": 1876,
+      "Amtsende": 1890.0,
+      "Geburtsjahr": 1822,
+      "Todesjahr": 1907.0,
+      "Lebensdauer": 85.0,
+      "Amtsdauer": 14.0
+    }, {
+      "Name": "Numa Droz",
+      "Kanton": "Neuenburg",
+      "Partei": "freis.",
+      "Amtsantritt": 1876,
+      "Amtsende": 1892.0,
+      "Geburtsjahr": 1844,
+      "Todesjahr": 1899.0,
+      "Lebensdauer": 55.0,
+      "Amtsdauer": 16.0
+    }, {
+      "Name": "Simeon Bavier",
+      "Kanton": "Graubünden",
+      "Partei": "freis.",
+      "Amtsantritt": 1879,
+      "Amtsende": 1883.0,
+      "Geburtsjahr": 1825,
+      "Todesjahr": 1896.0,
+      "Lebensdauer": 71.0,
+      "Amtsdauer": 4.0
+    }, {
+      "Name": "Wilhelm Hertenstein",
+      "Kanton": "Zürich",
+      "Partei": "freis.",
+      "Amtsantritt": 1879,
+      "Amtsende": 1888.0,
+      "Geburtsjahr": 1825,
+      "Todesjahr": 1888.0,
+      "Lebensdauer": 63.0,
+      "Amtsdauer": 9.0
+    }, {
+      "Name": "Louis Ruchonnet",
+      "Kanton": "Waadt",
+      "Partei": "freis.",
+      "Amtsantritt": 1881,
+      "Amtsende": 1893.0,
+      "Geburtsjahr": 1834,
+      "Todesjahr": 1893.0,
+      "Lebensdauer": 59.0,
+      "Amtsdauer": 12.0
+    }, {
+      "Name": "Adolf Deucher",
+      "Kanton": "Thurgau",
+      "Partei": "FDP",
+      "Amtsantritt": 1883,
+      "Amtsende": 1912.0,
+      "Geburtsjahr": 1831,
+      "Todesjahr": 1912.0,
+      "Lebensdauer": 81.0,
+      "Amtsdauer": 29.0
+    }, {
+      "Name": "Walter Hauser",
+      "Kanton": "Zürich",
+      "Partei": "FDP",
+      "Amtsantritt": 1889,
+      "Amtsende": 1902.0,
+      "Geburtsjahr": 1837,
+      "Todesjahr": 1902.0,
+      "Lebensdauer": 65.0,
+      "Amtsdauer": 13.0
+    }, {
+      "Name": "Emil Frey",
+      "Kanton": "Basel-Landschaft",
+      "Partei": "FDP",
+      "Amtsantritt": 1891,
+      "Amtsende": 1897.0,
+      "Geburtsjahr": 1838,
+      "Todesjahr": 1922.0,
+      "Lebensdauer": 84.0,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Josef Zemp",
+      "Kanton": "Luzern",
+      "Partei": "kath.-kons.",
+      "Amtsantritt": 1892,
+      "Amtsende": 1908.0,
+      "Geburtsjahr": 1834,
+      "Todesjahr": 1908.0,
+      "Lebensdauer": 74.0,
+      "Amtsdauer": 16.0
+    }, {
+      "Name": "Adrien Lachenal",
+      "Kanton": "Genf",
+      "Partei": "FDP",
+      "Amtsantritt": 1893,
+      "Amtsende": 1899.0,
+      "Geburtsjahr": 1849,
+      "Todesjahr": 1918.0,
+      "Lebensdauer": 69.0,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Eugène Ruffy",
+      "Kanton": "Waadt",
+      "Partei": "FDP",
+      "Amtsantritt": 1894,
+      "Amtsende": 1899.0,
+      "Geburtsjahr": 1854,
+      "Todesjahr": 1919.0,
+      "Lebensdauer": 65.0,
+      "Amtsdauer": 5.0
+    }, {
+      "Name": "Eduard Müller",
+      "Kanton": "Bern",
+      "Partei": "FDP",
+      "Amtsantritt": 1895,
+      "Amtsende": 1919.0,
+      "Geburtsjahr": 1848,
+      "Todesjahr": 1919.0,
+      "Lebensdauer": 71.0,
+      "Amtsdauer": 24.0
+    }, {
+      "Name": "Ernst Brenner",
+      "Kanton": "Basel-Stadt",
+      "Partei": "FDP",
+      "Amtsantritt": 1897,
+      "Amtsende": 1911.0,
+      "Geburtsjahr": 1856,
+      "Todesjahr": 1911.0,
+      "Lebensdauer": 55.0,
+      "Amtsdauer": 14.0
+    }, {
+      "Name": "Robert Comtesse",
+      "Kanton": "Neuenburg",
+      "Partei": "FDP",
+      "Amtsantritt": 1900,
+      "Amtsende": 1912.0,
+      "Geburtsjahr": 1847,
+      "Todesjahr": 1922.0,
+      "Lebensdauer": 75.0,
+      "Amtsdauer": 12.0
+    }, {
+      "Name": "Marc Ruchet",
+      "Kanton": "Waadt",
+      "Partei": "FDP",
+      "Amtsantritt": 1900,
+      "Amtsende": 1912.0,
+      "Geburtsjahr": 1853,
+      "Todesjahr": 1912.0,
+      "Lebensdauer": 59.0,
+      "Amtsdauer": 12.0
+    }, {
+      "Name": "Ludwig Forrer",
+      "Kanton": "Zürich",
+      "Partei": "FDP",
+      "Amtsantritt": 1903,
+      "Amtsende": 1917.0,
+      "Geburtsjahr": 1845,
+      "Todesjahr": 1921.0,
+      "Lebensdauer": 76.0,
+      "Amtsdauer": 14.0
+    }, {
+      "Name": "Josef Anton Schobinger",
+      "Kanton": "Luzern",
+      "Partei": "kath.-kons.",
+      "Amtsantritt": 1908,
+      "Amtsende": 1911.0,
+      "Geburtsjahr": 1849,
+      "Todesjahr": 1911.0,
+      "Lebensdauer": 62.0,
+      "Amtsdauer": 3.0
+    }, {
+      "Name": "Arthur Hoffmann",
+      "Kanton": "St. Gallen",
+      "Partei": "FDP",
+      "Amtsantritt": 1911,
+      "Amtsende": 1917.0,
+      "Geburtsjahr": 1857,
+      "Todesjahr": 1927.0,
+      "Lebensdauer": 70.0,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Giuseppe Motta",
+      "Kanton": "Tessin",
+      "Partei": "SKVP",
+      "Amtsantritt": 1912,
+      "Amtsende": 1940.0,
+      "Geburtsjahr": 1871,
+      "Todesjahr": 1940.0,
+      "Lebensdauer": 69.0,
+      "Amtsdauer": 28.0
+    }, {
+      "Name": "Louis Perrier",
+      "Kanton": "Neuenburg",
+      "Partei": "FDP",
+      "Amtsantritt": 1912,
+      "Amtsende": 1913.0,
+      "Geburtsjahr": 1849,
+      "Todesjahr": 1913.0,
+      "Lebensdauer": 64.0,
+      "Amtsdauer": 1.0
+    }, {
+      "Name": "Camille Decoppet",
+      "Kanton": "Waadt",
+      "Partei": "FDP",
+      "Amtsantritt": 1912,
+      "Amtsende": 1919.0,
+      "Geburtsjahr": 1862,
+      "Todesjahr": 1925.0,
+      "Lebensdauer": 63.0,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Edmund Schulthess",
+      "Kanton": "Aargau",
+      "Partei": "FDP",
+      "Amtsantritt": 1912,
+      "Amtsende": 1935.0,
+      "Geburtsjahr": 1868,
+      "Todesjahr": 1944.0,
+      "Lebensdauer": 76.0,
+      "Amtsdauer": 23.0
+    }, {
+      "Name": "Felix Calonder",
+      "Kanton": "Graubünden",
+      "Partei": "FDP",
+      "Amtsantritt": 1913,
+      "Amtsende": 1920.0,
+      "Geburtsjahr": 1863,
+      "Todesjahr": 1952.0,
+      "Lebensdauer": 89.0,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Gustave Ador",
+      "Kanton": "Genf",
+      "Partei": "LP",
+      "Amtsantritt": 1917,
+      "Amtsende": 1919.0,
+      "Geburtsjahr": 1845,
+      "Todesjahr": 1928.0,
+      "Lebensdauer": 83.0,
+      "Amtsdauer": 2.0
+    }, {
+      "Name": "Robert Haab",
+      "Kanton": "Zürich",
+      "Partei": "FDP",
+      "Amtsantritt": 1918,
+      "Amtsende": 1929.0,
+      "Geburtsjahr": 1865,
+      "Todesjahr": 1939.0,
+      "Lebensdauer": 74.0,
+      "Amtsdauer": 11.0
+    }, {
+      "Name": "Karl Scheurer",
+      "Kanton": "Bern",
+      "Partei": "FDP",
+      "Amtsantritt": 1920,
+      "Amtsende": 1929.0,
+      "Geburtsjahr": 1872,
+      "Todesjahr": 1929.0,
+      "Lebensdauer": 57.0,
+      "Amtsdauer": 9.0
+    }, {
+      "Name": "Ernest Chuard",
+      "Kanton": "Waadt",
+      "Partei": "FDP",
+      "Amtsantritt": 1920,
+      "Amtsende": 1928.0,
+      "Geburtsjahr": 1857,
+      "Todesjahr": 1942.0,
+      "Lebensdauer": 85.0,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Jean-Marie Musy",
+      "Kanton": "Freiburg",
+      "Partei": "SKVP",
+      "Amtsantritt": 1920,
+      "Amtsende": 1934.0,
+      "Geburtsjahr": 1876,
+      "Todesjahr": 1952.0,
+      "Lebensdauer": 76.0,
+      "Amtsdauer": 14.0
+    }, {
+      "Name": "Heinrich Häberlin",
+      "Kanton": "Thurgau",
+      "Partei": "FDP",
+      "Amtsantritt": 1920,
+      "Amtsende": 1934.0,
+      "Geburtsjahr": 1868,
+      "Todesjahr": 1947.0,
+      "Lebensdauer": 79.0,
+      "Amtsdauer": 14.0
+    }, {
+      "Name": "Marcel Pilet-Golaz",
+      "Kanton": "Waadt",
+      "Partei": "FDP",
+      "Amtsantritt": 1929,
+      "Amtsende": 1944.0,
+      "Geburtsjahr": 1889,
+      "Todesjahr": 1958.0,
+      "Lebensdauer": 69.0,
+      "Amtsdauer": 15.0
+    }, {
+      "Name": "Rudolf Minger",
+      "Kanton": "Bern",
+      "Partei": "BGB",
+      "Amtsantritt": 1930,
+      "Amtsende": 1940.0,
+      "Geburtsjahr": 1881,
+      "Todesjahr": 1955.0,
+      "Lebensdauer": 74.0,
+      "Amtsdauer": 10.0
+    }, {
+      "Name": "Albert Meyer",
+      "Kanton": "Zürich",
+      "Partei": "FDP",
+      "Amtsantritt": 1930,
+      "Amtsende": 1938.0,
+      "Geburtsjahr": 1870,
+      "Todesjahr": 1953.0,
+      "Lebensdauer": 83.0,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Johannes Baumann",
+      "Kanton": "Appenzell Ausserrhoden",
+      "Partei": "FDP",
+      "Amtsantritt": 1934,
+      "Amtsende": 1940.0,
+      "Geburtsjahr": 1874,
+      "Todesjahr": 1953.0,
+      "Lebensdauer": 79.0,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Philipp Etter",
+      "Kanton": "Zug",
+      "Partei": "SKVP",
+      "Amtsantritt": 1934,
+      "Amtsende": 1959.0,
+      "Geburtsjahr": 1891,
+      "Todesjahr": 1977.0,
+      "Lebensdauer": 86.0,
+      "Amtsdauer": 25.0
+    }, {
+      "Name": "Hermann Obrecht",
+      "Kanton": "Solothurn",
+      "Partei": "FDP",
+      "Amtsantritt": 1935,
+      "Amtsende": 1940.0,
+      "Geburtsjahr": 1882,
+      "Todesjahr": 1940.0,
+      "Lebensdauer": 58.0,
+      "Amtsdauer": 5.0
+    }, {
+      "Name": "Ernst Wetter",
+      "Kanton": "Zürich",
+      "Partei": "FDP",
+      "Amtsantritt": 1939,
+      "Amtsende": 1943.0,
+      "Geburtsjahr": 1877,
+      "Todesjahr": 1963.0,
+      "Lebensdauer": 86.0,
+      "Amtsdauer": 4.0
+    }, {
+      "Name": "Enrico Celio",
+      "Kanton": "Tessin",
+      "Partei": "SKVP",
+      "Amtsantritt": 1940,
+      "Amtsende": 1950.0,
+      "Geburtsjahr": 1889,
+      "Todesjahr": 1980.0,
+      "Lebensdauer": 91.0,
+      "Amtsdauer": 10.0
+    }, {
+      "Name": "Walther Stampfli",
+      "Kanton": "Solothurn",
+      "Partei": "FDP",
+      "Amtsantritt": 1940,
+      "Amtsende": 1947.0,
+      "Geburtsjahr": 1884,
+      "Todesjahr": 1965.0,
+      "Lebensdauer": 81.0,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Eduard von Steiger",
+      "Kanton": "Bern",
+      "Partei": "BGB",
+      "Amtsantritt": 1941,
+      "Amtsende": 1951.0,
+      "Geburtsjahr": 1881,
+      "Todesjahr": 1962.0,
+      "Lebensdauer": 81.0,
+      "Amtsdauer": 10.0
+    }, {
+      "Name": "Karl Kobelt",
+      "Kanton": "St. Gallen",
+      "Partei": "FDP",
+      "Amtsantritt": 1941,
+      "Amtsende": 1954.0,
+      "Geburtsjahr": 1891,
+      "Todesjahr": 1968.0,
+      "Lebensdauer": 77.0,
+      "Amtsdauer": 13.0
+    }, {
+      "Name": "Ernst Nobs",
+      "Kanton": "Zürich",
+      "Partei": "SP",
+      "Amtsantritt": 1944,
+      "Amtsende": 1951.0,
+      "Geburtsjahr": 1886,
+      "Todesjahr": 1957.0,
+      "Lebensdauer": 71.0,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Max Petitpierre",
+      "Kanton": "Neuenburg",
+      "Partei": "FDP",
+      "Amtsantritt": 1945,
+      "Amtsende": 1961.0,
+      "Geburtsjahr": 1899,
+      "Todesjahr": 1994.0,
+      "Lebensdauer": 95.0,
+      "Amtsdauer": 16.0
+    }, {
+      "Name": "Rodolphe Rubattel",
+      "Kanton": "Waadt",
+      "Partei": "FDP",
+      "Amtsantritt": 1948,
+      "Amtsende": 1954.0,
+      "Geburtsjahr": 1896,
+      "Todesjahr": 1961.0,
+      "Lebensdauer": 65.0,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Josef Escher",
+      "Kanton": "Wallis",
+      "Partei": "SKVP",
+      "Amtsantritt": 1950,
+      "Amtsende": 1954.0,
+      "Geburtsjahr": 1885,
+      "Todesjahr": 1954.0,
+      "Lebensdauer": 69.0,
+      "Amtsdauer": 4.0
+    }, {
+      "Name": "Markus Feldmann",
+      "Kanton": "Bern",
+      "Partei": "BGB",
+      "Amtsantritt": 1952,
+      "Amtsende": 1958.0,
+      "Geburtsjahr": 1897,
+      "Todesjahr": 1958.0,
+      "Lebensdauer": 61.0,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Max Weber",
+      "Kanton": "Zürich",
+      "Partei": "SP",
+      "Amtsantritt": 1952,
+      "Amtsende": 1954.0,
+      "Geburtsjahr": 1897,
+      "Todesjahr": 1974.0,
+      "Lebensdauer": 77.0,
+      "Amtsdauer": 2.0
+    }, {
+      "Name": "Hans Streuli",
+      "Kanton": "Zürich",
+      "Partei": "FDP",
+      "Amtsantritt": 1954,
+      "Amtsende": 1959.0,
+      "Geburtsjahr": 1892,
+      "Todesjahr": 1970.0,
+      "Lebensdauer": 78.0,
+      "Amtsdauer": 5.0
+    }, {
+      "Name": "Thomas Holenstein",
+      "Kanton": "St. Gallen",
+      "Partei": "KCVP",
+      "Amtsantritt": 1955,
+      "Amtsende": 1959.0,
+      "Geburtsjahr": 1896,
+      "Todesjahr": 1962.0,
+      "Lebensdauer": 66.0,
+      "Amtsdauer": 4.0
+    }, {
+      "Name": "Paul Chaudet",
+      "Kanton": "Waadt",
+      "Partei": "FDP",
+      "Amtsantritt": 1955,
+      "Amtsende": 1966.0,
+      "Geburtsjahr": 1904,
+      "Todesjahr": 1977.0,
+      "Lebensdauer": 73.0,
+      "Amtsdauer": 11.0
+    }, {
+      "Name": "Giuseppe Lepori",
+      "Kanton": "Tessin",
+      "Partei": "KCVP",
+      "Amtsantritt": 1955,
+      "Amtsende": 1959.0,
+      "Geburtsjahr": 1902,
+      "Todesjahr": 1968.0,
+      "Lebensdauer": 66.0,
+      "Amtsdauer": 4.0
+    }, {
+      "Name": "Friedrich Traugott Wahlen",
+      "Kanton": "Bern",
+      "Partei": "BGB",
+      "Amtsantritt": 1959,
+      "Amtsende": 1965.0,
+      "Geburtsjahr": 1899,
+      "Todesjahr": 1985.0,
+      "Lebensdauer": 86.0,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Jean Bourgknecht",
+      "Kanton": "Freiburg",
+      "Partei": "KCVP",
+      "Amtsantritt": 1960,
+      "Amtsende": 1962.0,
+      "Geburtsjahr": 1902,
+      "Todesjahr": 1964.0,
+      "Lebensdauer": 62.0,
+      "Amtsdauer": 2.0
+    }, {
+      "Name": "Willy Spühler",
+      "Kanton": "Zürich",
+      "Partei": "SP",
+      "Amtsantritt": 1960,
+      "Amtsende": 1970.0,
+      "Geburtsjahr": 1902,
+      "Todesjahr": 1990.0,
+      "Lebensdauer": 88.0,
+      "Amtsdauer": 10.0
+    }, {
+      "Name": "Ludwig von Moos",
+      "Kanton": "Obwalden",
+      "Partei": "CVP",
+      "Amtsantritt": 1960,
+      "Amtsende": 1971.0,
+      "Geburtsjahr": 1910,
+      "Todesjahr": 1990.0,
+      "Lebensdauer": 80.0,
+      "Amtsdauer": 11.0
+    }, {
+      "Name": "Hans-Peter Tschudi",
+      "Kanton": "Basel-Stadt",
+      "Partei": "SP",
+      "Amtsantritt": 1960,
+      "Amtsende": 1973.0,
+      "Geburtsjahr": 1913,
+      "Todesjahr": 2002.0,
+      "Lebensdauer": 89.0,
+      "Amtsdauer": 13.0
+    }, {
+      "Name": "Hans Schaffner",
+      "Kanton": "Aargau",
+      "Partei": "FDP",
+      "Amtsantritt": 1961,
+      "Amtsende": 1969.0,
+      "Geburtsjahr": 1908,
+      "Todesjahr": 2004.0,
+      "Lebensdauer": 96.0,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Roger Bonvin",
+      "Kanton": "Wallis",
+      "Partei": "CVP",
+      "Amtsantritt": 1962,
+      "Amtsende": 1973.0,
+      "Geburtsjahr": 1907,
+      "Todesjahr": 1982.0,
+      "Lebensdauer": 75.0,
+      "Amtsdauer": 11.0
+    }, {
+      "Name": "Rudolf Gnägi",
+      "Kanton": "Bern",
+      "Partei": "SVP",
+      "Amtsantritt": 1966,
+      "Amtsende": 1979.0,
+      "Geburtsjahr": 1917,
+      "Todesjahr": 1985.0,
+      "Lebensdauer": 68.0,
+      "Amtsdauer": 13.0
+    }, {
+      "Name": "Nello Celio",
+      "Kanton": "Tessin",
+      "Partei": "FDP",
+      "Amtsantritt": 1967,
+      "Amtsende": 1973.0,
+      "Geburtsjahr": 1914,
+      "Todesjahr": 1995.0,
+      "Lebensdauer": 81.0,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Ernst Brugger",
+      "Kanton": "Zürich",
+      "Partei": "FDP",
+      "Amtsantritt": 1970,
+      "Amtsende": 1978.0,
+      "Geburtsjahr": 1914,
+      "Todesjahr": 1998.0,
+      "Lebensdauer": 84.0,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Pierre Graber",
+      "Kanton": "Neuenburg",
+      "Partei": "SP",
+      "Amtsantritt": 1970,
+      "Amtsende": 1978.0,
+      "Geburtsjahr": 1908,
+      "Todesjahr": 2003.0,
+      "Lebensdauer": 95.0,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Kurt Furgler",
+      "Kanton": "St. Gallen",
+      "Partei": "CVP",
+      "Amtsantritt": 1972,
+      "Amtsende": 1986.0,
+      "Geburtsjahr": 1924,
+      "Todesjahr": 2008.0,
+      "Lebensdauer": 84.0,
+      "Amtsdauer": 14.0
+    }, {
+      "Name": "Willi Ritschard",
+      "Kanton": "Solothurn",
+      "Partei": "SP",
+      "Amtsantritt": 1974,
+      "Amtsende": 1983.0,
+      "Geburtsjahr": 1918,
+      "Todesjahr": 1983.0,
+      "Lebensdauer": 65.0,
+      "Amtsdauer": 9.0
+    }, {
+      "Name": "Hans Hürlimann",
+      "Kanton": "Zug",
+      "Partei": "CVP",
+      "Amtsantritt": 1974,
+      "Amtsende": 1982.0,
+      "Geburtsjahr": 1918,
+      "Todesjahr": 1994.0,
+      "Lebensdauer": 76.0,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Georges-André Chevallaz",
+      "Kanton": "Waadt",
+      "Partei": "FDP",
+      "Amtsantritt": 1974,
+      "Amtsende": 1983.0,
+      "Geburtsjahr": 1915,
+      "Todesjahr": 2002.0,
+      "Lebensdauer": 87.0,
+      "Amtsdauer": 9.0
+    }, {
+      "Name": "Fritz Honegger",
+      "Kanton": "Zürich",
+      "Partei": "FDP",
+      "Amtsantritt": 1978,
+      "Amtsende": 1982.0,
+      "Geburtsjahr": 1917,
+      "Todesjahr": 1999.0,
+      "Lebensdauer": 82.0,
+      "Amtsdauer": 4.0
+    }, {
+      "Name": "Pierre Aubert",
+      "Kanton": "Neuenburg",
+      "Partei": "SP",
+      "Amtsantritt": 1978,
+      "Amtsende": 1987.0,
+      "Geburtsjahr": 1927,
+      "Todesjahr": 2016.0,
+      "Lebensdauer": 89.0,
+      "Amtsdauer": 9.0
+    }, {
+      "Name": "Leon Schlumpf",
+      "Kanton": "Graubünden",
+      "Partei": "SVP",
+      "Amtsantritt": 1980,
+      "Amtsende": 1987.0,
+      "Geburtsjahr": 1925,
+      "Todesjahr": 2012.0,
+      "Lebensdauer": 87.0,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Alphons Egli",
+      "Kanton": "Luzern",
+      "Partei": "CVP",
+      "Amtsantritt": 1983,
+      "Amtsende": 1986.0,
+      "Geburtsjahr": 1924,
+      "Todesjahr": 2016.0,
+      "Lebensdauer": 92.0,
+      "Amtsdauer": 3.0
+    }, {
+      "Name": "Rudolf Friedrich",
+      "Kanton": "Zürich",
+      "Partei": "FDP",
+      "Amtsantritt": 1983,
+      "Amtsende": 1984.0,
+      "Geburtsjahr": 1923,
+      "Todesjahr": 2013.0,
+      "Lebensdauer": 90.0,
+      "Amtsdauer": 1.0
+    }, {
+      "Name": "Otto Stich",
+      "Kanton": "Solothurn",
+      "Partei": "SP",
+      "Amtsantritt": 1984,
+      "Amtsende": 1995.0,
+      "Geburtsjahr": 1927,
+      "Todesjahr": 2012.0,
+      "Lebensdauer": 85.0,
+      "Amtsdauer": 11.0
+    }, {
+      "Name": "Jean-Pascal Delamuraz",
+      "Kanton": "Waadt",
+      "Partei": "FDP",
+      "Amtsantritt": 1984,
+      "Amtsende": 1998.0,
+      "Geburtsjahr": 1936,
+      "Todesjahr": 1998.0,
+      "Lebensdauer": 62.0,
+      "Amtsdauer": 14.0
+    }, {
+      "Name": "Elisabeth Kopp",
+      "Kanton": "Zürich",
+      "Partei": "FDP",
+      "Amtsantritt": 1984,
+      "Amtsende": 1989.0,
+      "Geburtsjahr": 1936,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 5.0
+    }, {
+      "Name": "Arnold Koller",
+      "Kanton": "Appenzell Innerrhoden",
+      "Partei": "CVP",
+      "Amtsantritt": 1987,
+      "Amtsende": 1999.0,
+      "Geburtsjahr": 1933,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 12.0
+    }, {
+      "Name": "Flavio Cotti",
+      "Kanton": "Tessin",
+      "Partei": "CVP",
+      "Amtsantritt": 1987,
+      "Amtsende": 1999.0,
+      "Geburtsjahr": 1939,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 12.0
+    }, {
+      "Name": "René Felber",
+      "Kanton": "Neuenburg",
+      "Partei": "SP",
+      "Amtsantritt": 1988,
+      "Amtsende": 1993.0,
+      "Geburtsjahr": 1933,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 5.0
+    }, {
+      "Name": "Adolf Ogi",
+      "Kanton": "Bern",
+      "Partei": "SVP",
+      "Amtsantritt": 1988,
+      "Amtsende": 2000.0,
+      "Geburtsjahr": 1942,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 12.0
+    }, {
+      "Name": "Kaspar Villiger",
+      "Kanton": "Luzern",
+      "Partei": "FDP",
+      "Amtsantritt": 1989,
+      "Amtsende": 2003.0,
+      "Geburtsjahr": 1941,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 14.0
+    }, {
+      "Name": "Ruth Dreifuss",
+      "Kanton": "Genf",
+      "Partei": "SP",
+      "Amtsantritt": 1993,
+      "Amtsende": 2002.0,
+      "Geburtsjahr": 1940,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 9.0
+    }, {
+      "Name": "Moritz Leuenberger",
+      "Kanton": "Zürich",
+      "Partei": "SP",
+      "Amtsantritt": 1995,
+      "Amtsende": 2010.0,
+      "Geburtsjahr": 1946,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 15.0
+    }, {
+      "Name": "Pascal Couchepin",
+      "Kanton": "Wallis",
+      "Partei": "FDP",
+      "Amtsantritt": 1998,
+      "Amtsende": 2009.0,
+      "Geburtsjahr": 1942,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 11.0
+    }, {
+      "Name": "Ruth Metzler-Arnold",
+      "Kanton": "Appenzell Innerrhoden",
+      "Partei": "CVP",
+      "Amtsantritt": 1999,
+      "Amtsende": 2003.0,
+      "Geburtsjahr": 1964,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 4.0
+    }, {
+      "Name": "Joseph Deiss",
+      "Kanton": "Freiburg",
+      "Partei": "CVP",
+      "Amtsantritt": 1999,
+      "Amtsende": 2006.0,
+      "Geburtsjahr": 1946,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Samuel Schmid",
+      "Kanton": "Bern",
+      "Partei": "BDP",
+      "Amtsantritt": 2001,
+      "Amtsende": 2008.0,
+      "Geburtsjahr": 1947,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Micheline Calmy-Rey",
+      "Kanton": "Genf",
+      "Partei": "SP",
+      "Amtsantritt": 2003,
+      "Amtsende": 2011.0,
+      "Geburtsjahr": 1945,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Christoph Blocher",
+      "Kanton": "Zürich",
+      "Partei": "SVP",
+      "Amtsantritt": 2004,
+      "Amtsende": 2007.0,
+      "Geburtsjahr": 1940,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 3.0
+    }, {
+      "Name": "Hans-Rudolf Merz",
+      "Kanton": "Appenzell Ausserrhoden",
+      "Partei": "FDP",
+      "Amtsantritt": 2004,
+      "Amtsende": 2010.0,
+      "Geburtsjahr": 1942,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 6.0
+    }, {
+      "Name": "Doris Leuthard",
+      "Kanton": "Aargau",
+      "Partei": "CVP",
+      "Amtsantritt": 2006,
+      "Amtsende": 2018.0,
+      "Geburtsjahr": 1963,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 12.0
+    }, {
+      "Name": "Eveline Widmer-Schlumpf",
+      "Kanton": "Graubünden",
+      "Partei": "BDP",
+      "Amtsantritt": 2008,
+      "Amtsende": 2015.0,
+      "Geburtsjahr": 1956,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 7.0
+    }, {
+      "Name": "Ueli Maurer",
+      "Kanton": "Zürich",
+      "Partei": "SVP",
+      "Amtsantritt": 2009,
+      "Amtsende": null,
+      "Geburtsjahr": 1950,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": null
+    }, {
+      "Name": "Didier Burkhalter",
+      "Kanton": "Neuenburg",
+      "Partei": "FDP",
+      "Amtsantritt": 2009,
+      "Amtsende": 2017.0,
+      "Geburtsjahr": 1960,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Simonetta Sommaruga",
+      "Kanton": "Bern",
+      "Partei": "SP",
+      "Amtsantritt": 2010,
+      "Amtsende": null,
+      "Geburtsjahr": 1960,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": null
+    }, {
+      "Name": "Johann Schneider-Ammann",
+      "Kanton": "Bern",
+      "Partei": "FDP",
+      "Amtsantritt": 2010,
+      "Amtsende": 2018.0,
+      "Geburtsjahr": 1952,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": 8.0
+    }, {
+      "Name": "Alain Berset",
+      "Kanton": "Freiburg",
+      "Partei": "SP",
+      "Amtsantritt": 2012,
+      "Amtsende": null,
+      "Geburtsjahr": 1972,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": null
+    }, {
+      "Name": "Guy Parmelin",
+      "Kanton": "Waadt",
+      "Partei": "SVP",
+      "Amtsantritt": 2016,
+      "Amtsende": null,
+      "Geburtsjahr": 1959,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": null
+    }, {
+      "Name": "Ignazio Cassis",
+      "Kanton": "Tessin",
+      "Partei": "FDP",
+      "Amtsantritt": 2017,
+      "Amtsende": null,
+      "Geburtsjahr": 1961,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": null
+    }, {
+      "Name": "Viola Amherd",
+      "Kanton": "Wallis",
+      "Partei": "CVP",
+      "Amtsantritt": 2019,
+      "Amtsende": null,
+      "Geburtsjahr": 1962,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": null
+    }, {
+      "Name": "Karin Keller-Sutter",
+      "Kanton": "St. Gallen",
+      "Partei": "FDP",
+      "Amtsantritt": 2019,
+      "Amtsende": null,
+      "Geburtsjahr": 1963,
+      "Todesjahr": null,
+      "Lebensdauer": null,
+      "Amtsdauer": null
+    }];
+  };
 
   DummyData.warData = function () {
     return [{
@@ -112060,192 +113358,121 @@ function () {
     }];
   };
 
-  DummyData.testData = function () {
-    return [{
-      'a': 'bf',
-      'b': 'gf',
-      'c': 'kf',
-      'id': 0
-    }, {
-      'a': 'ff',
-      'b': 'ef',
-      'c': 'af',
-      'd': 'zf',
-      'id': 1
-    }, {
-      'a': 'ff',
-      'b': 'gf',
-      'id': 2
-    }, {
-      'a': 'ff',
-      'b': 'ef',
-      'c': 'cf',
-      'd': 'pf',
-      'id': 3
-    }, {
-      'a': 'zf',
-      'b': 'lf',
-      'c': 'zf',
-      'id': 4
-    }, {
-      'a': 'gf',
-      'b': 'ef',
-      'c': 'af',
-      'd': 'pf',
-      'id': 5
-    }, {
-      'a': 'bf',
-      'b': 'gf',
-      'c': 'kf',
-      'id': 6
-    }, {
-      'a': 'pf',
-      'b': 'ff',
-      'id': 7
-    }, {
-      'a': 'ff',
-      'b': 'gf',
-      'c': 'cf',
-      'd': 'af',
-      'id': 8
-    }, {
-      'a': 'ef',
-      'b': 'gf',
-      'c': 'zf',
-      'id': 9
-    }];
-  };
-
-  DummyData.dataFBlues = function () {
-    return [{
-      'id': 0,
-      '0': 'F',
-      '1': 'A',
-      '2': 'C'
-    }, {
-      'id': 1,
-      '0': 'Bb',
-      '1': 'D',
-      '2': 'F'
-    }, {
-      'id': 2,
-      '0': 'F',
-      '1': 'A',
-      '2': 'C'
-    }, {
-      'id': 2,
-      '0': 'C',
-      '1': 'E',
-      '2': 'G'
-    }, {
-      'id': 2,
-      '0': 'Bb',
-      '1': 'D',
-      '2': 'F'
-    }, {
-      'id': 2,
-      '0': 'F',
-      '1': 'A',
-      '2': 'C'
-    }, {
-      'id': 2,
-      '0': 'C',
-      '1': 'E',
-      '2': 'G'
-    }];
-  };
-
-  DummyData.dataGiIpTriads = function () {
-    return [// a part
-    {
-      'id': 0,
-      '0': 'F',
-      '1': 'A',
-      '2': 'C'
-    }, {
-      'id': 1,
-      '0': 'G',
-      '1': 'B',
-      '2': 'D'
-    }, {
-      'id': 2,
-      '0': 'G',
-      '1': 'Bb',
-      '2': 'D'
-    }, {
-      'id': 3,
-      '0': 'Gb',
-      '1': 'Bb',
-      '2': 'Db'
-    }, {
-      'id': 4,
-      '0': 'F',
-      '1': 'A',
-      '2': 'C'
-    }, {
-      'id': 5,
-      '0': 'Gb',
-      '1': 'Bb',
-      '2': 'C'
-    }, // b part
-    {
-      'id': 6,
-      '0': 'Gb',
-      '1': 'Bb',
-      '2': 'Db'
-    }, {
-      'id': 7,
-      '0': 'B',
-      '1': 'Eb',
-      '2': 'Gb'
-    }, {
-      'id': 8,
-      '0': 'Gb',
-      '1': 'A',
-      '2': 'Db'
-    }, {
-      'id': 9,
-      '0': 'D',
-      '1': 'Gb',
-      '2': 'A'
-    }, {
-      'id': 10,
-      '0': 'G',
-      '1': 'Bb',
-      '2': 'D'
-    }, {
-      'id': 11,
-      '0': 'Eb',
-      '1': 'G',
-      '2': 'Bb'
-    }, {
-      'id': 12,
-      '0': 'A',
-      '1': 'C',
-      '2': 'E'
-    }, {
-      'id': 13,
-      '0': 'D',
-      '1': 'Gb',
-      '2': 'A'
-    }, {
-      'id': 14,
-      '0': 'G',
-      '1': 'Bb',
-      '2': 'D'
-    }, {
-      'id': 15,
-      '0': 'C',
-      '1': 'E',
-      '2': 'G'
-    }];
-  };
-
   return DummyData;
 }();
 
 exports.DummyData = DummyData;
-},{}],"typescript/DummyConfig.ts":[function(require,module,exports) {
+},{}],"typescript/PreProcessing.ts":[function(require,module,exports) {
+"use strict";
+
+var __spreadArrays = this && this.__spreadArrays || function () {
+  for (var s = 0, i = 0, il = arguments.length; i < il; i++) {
+    s += arguments[i].length;
+  }
+
+  for (var r = Array(s), k = 0, i = 0; i < il; i++) {
+    for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {
+      r[k] = a[j];
+    }
+  }
+
+  return r;
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var Types_1 = require("./Types");
+
+var PreProcessing =
+/** @class */
+function () {
+  function PreProcessing() {}
+  /**
+  * This function prepares the data for the processing from a
+  * JSON object array containing two range fields. It ignores
+  * undefined and null values. This form of input contains no additional
+  * information of the xLayers except for the id.
+  */
+
+
+  PreProcessing.fromRanges = function (data, yField, fromField, toField) {
+    var xs = new Set();
+    var yData = new Map();
+    data.forEach(function (d) {
+      if (d[fromField]) xs.add(d[fromField]);
+      if (d[toField]) xs.add(d[toField]);
+      yData.set(d[yField], new Types_1.YLayer(d[yField], d));
+    });
+    var sortedXs = Array.from(xs).sort(function (a, b) {
+      return a - b;
+    });
+    var xData = sortedXs.map(function (x) {
+      var xLayer = new Types_1.XLayer(x, {});
+      data.forEach(function (d) {
+        if ((d[fromField] <= x || !d[fromField]) && (d[toField] >= x || !d[toField])) {
+          var yID = d[yField];
+          xLayer.group.push(yID);
+          var yVal = yData.get(yID);
+          yVal.layers.push(xLayer);
+          yData.set(yID, yVal);
+        }
+      });
+      return xLayer;
+    });
+    return {
+      xData: xData,
+      yData: yData
+    };
+  };
+  /**
+  * This function prepares the data for the processing from a
+  * JSON object array. It removes duplicates in groups and ignores
+  * undefined and null values. This form of input contains no additional
+  * information of the yLayers except for the id.
+  */
+
+
+  PreProcessing.fromArray = function (inputData, xField, yFields, splitFunction) {
+    inputData.sort(function (a, b) {
+      return a[xField] - b[xField];
+    });
+    var yData = new Map();
+    var xData = inputData.map(function (x, i) {
+      var xObj = new Types_1.XLayer(x[xField], x);
+      xObj.id = i;
+      xObj.group = __spreadArrays(Array.from(yFields.reduce(function (acc, y) {
+        if (x[y]) splitFunction ? splitFunction(x[y]).forEach(function (p) {
+          if (p) acc.add(p);
+        }) : acc.add(x[y]);
+        return acc;
+      }, new Set())));
+      xObj.group = xObj.group.map(function (y) {
+        var yObj = yData.get(y);
+
+        if (!yObj) {
+          // create the y object
+          yObj = new Types_1.YLayer(y, {});
+        }
+
+        yObj.layers.push(xObj);
+        yData.set(y, yObj);
+        return y;
+      });
+      return xObj;
+    });
+    return {
+      xData: xData,
+      yData: yData
+    };
+  };
+
+  return PreProcessing;
+}();
+
+exports.PreProcessing = PreProcessing;
+},{"./Types":"typescript/Types.ts"}],"typescript/Templates.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -112254,46 +113481,61 @@ Object.defineProperty(exports, "__esModule", {
 
 var DummyData_1 = require("./DummyData");
 
-var DummyConfig =
+var PreProcessing_1 = require("./PreProcessing");
+
+var Templates =
 /** @class */
 function () {
-  function DummyConfig() {}
+  function Templates() {}
 
-  DummyConfig.getConfig1 = function () {
-    return [DummyData_1.DummyData.warData(), {
-      xValue: 'YEAR',
-      yValues: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'],
-      splitFunction: function splitFunction(d) {
-        return d ? d.split(', ') : [];
-      },
+  Templates.getTemplate1 = function () {
+    var data = PreProcessing_1.PreProcessing.fromArray(DummyData_1.DummyData.warData(), 'YEAR', ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'], function (d) {
+      return d ? d.split(', ') : [];
+    });
+    var config = {
       xDescription: function xDescription(xLayer) {
         return xLayer.data.YEAR + ', ' + xLayer.data.Location;
       },
       mustContain: ['United Kingdom'],
-      //interactedWith: [['Russia (Soviet Union)'], 0],
       filterXValue: [undefined, undefined],
       filterGroupSize: [1, undefined],
       filterGroupAmt: [2, undefined],
       xValueScaling: 0.5
-    }];
+    };
+    return [data, config];
   };
 
-  DummyConfig.getConfig2 = function () {
-    return [DummyData_1.DummyData.testData(), {
-      xValue: 'id',
-      yValues: ['a', 'b', 'c', 'd'],
+  Templates.getTemplate2 = function () {
+    var data = PreProcessing_1.PreProcessing.fromArray(DummyData_1.DummyData.testData(), 'id', ['a', 'b', 'c', 'd']);
+    var config = {
       xDescription: function xDescription(xLayer) {
         return String(xLayer.xValue);
       },
       filterGroupAmt: [3, undefined]
-    }];
+    };
+    return [data, config];
   };
 
-  return DummyConfig;
+  Templates.getTemplate3 = function () {
+    var data = PreProcessing_1.PreProcessing.fromRanges(DummyData_1.DummyData.bundesraete(), 'Name', 'Amtsantritt', 'Amtsende');
+    var config = {
+      xDescription: function xDescription(xLayer) {
+        return String(xLayer.xValue);
+      },
+      xValueScaling: 0.,
+      continuousStart: false,
+      continuousEnd: false,
+      generationAmt: 10,
+      populationSize: 10
+    };
+    return [data, config];
+  };
+
+  return Templates;
 }();
 
-exports.DummyConfig = DummyConfig;
-},{"./DummyData":"typescript/DummyData.ts"}],"index.ts":[function(require,module,exports) {
+exports.Templates = Templates;
+},{"./DummyData":"typescript/DummyData.ts","./PreProcessing":"typescript/PreProcessing.ts"}],"index.ts":[function(require,module,exports) {
 "use strict";
 
 var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -112453,22 +113695,21 @@ var vega_embed_1 = __importDefault(require("vega-embed"));
 
 var KnotDiagram_1 = require("./typescript/KnotDiagram");
 
-var DummyConfig_1 = require("./typescript/DummyConfig");
+var Templates_1 = require("./typescript/Templates");
 /**
-* Artistnet Data
-* interactedWith bug and maybe redundant with mustContain
-* Highlighting, YFilter Info
+* Testing
+* Gui: Highlighting, Stability
 */
 
 
 function main() {
   return __awaiter(this, void 0, void 0, function () {
-    var config, KD;
+    var template, KD;
     return __generator(this, function (_a) {
       switch (_a.label) {
         case 0:
-          config = DummyConfig_1.DummyConfig.getConfig2();
-          KD = new KnotDiagram_1.KnotDiagram(config[0], config[1]);
+          template = Templates_1.Templates.getTemplate3();
+          KD = new KnotDiagram_1.KnotDiagram(template[0], template[1]);
           return [4
           /*yield*/
           , vega_embed_1.default("#viz", KD.spec)];
@@ -112485,7 +113726,7 @@ function main() {
 }
 
 main();
-},{"vega-embed":"node_modules/vega-embed/build/src/embed.js","./typescript/KnotDiagram":"typescript/KnotDiagram.ts","./typescript/DummyConfig":"typescript/DummyConfig.ts"}],"../../../../../usr/local/lib/node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"vega-embed":"node_modules/vega-embed/build/src/embed.js","./typescript/KnotDiagram":"typescript/KnotDiagram.ts","./typescript/Templates":"typescript/Templates.ts"}],"../../../../../usr/local/lib/node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -112513,7 +113754,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60522" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51433" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

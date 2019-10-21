@@ -2,29 +2,31 @@ from Types import YLayer, XLayer
 import numpy as np
 
 
-def filter(data, config):
+def filterPoints(data, config):
     # filter xs
     data = filterX(data, config)
-    # todo check if Ys comply with the interacteWith filter
-    # data = interactedWith(data, config)
+    # todo check if Ys comply with the interactedWith filter
+    data = interactedWith(data, config)
     # filter ys
-    # data = filterY(data, config)
+    data = filterY(data, config)
     # remove x points without y points
-    # data[0] = data[0].filter(layer= > layer.group.length > 0)
-    # setLifeCycles(data, config)
-    # print('Post Filtering', data)
+    data[0] = list(filter(lambda layer: len(layer.group) > 0, data[0]))
+    setLifeCycles(data, config)
     return data
 
 
 def isInRange(p, obj, key):
     if key in obj:
         range = obj[key]
-        cond = True
-        if range[0] and range[0] == float(range[0]):
-            cond = p >= range[0]
-        if range[1] == float(range[1]) and cond:
-            return p <= range[1]
-        return cond
+        if range:
+            cond = True
+            if range[0] and range[0] == float(range[0]):
+                cond = p >= range[0]
+            if range[1] and range[1] == float(range[1]) and cond:
+                return p <= range[1]
+            return cond
+        else:
+            return True
     else:
         return True
 
@@ -32,74 +34,64 @@ def isInRange(p, obj, key):
 def filterX(data, config):
     ys = {}
     xs = []
-    if 'mustContain' in config and isinstance(config['mustContain'], list):
-      mustContainArr = config['mustContain']
-    else: 
-      mustContainArr = []
+    if isinstance(config['mustContain'], list):
+        mustContainArr = config['mustContain']
+    else:
+        mustContainArr = []
     for x in data[0]:
         contains = set(mustContainArr).issubset(set(x.group))
         if isInRange(len(x.group), config, 'filterGroupSize') and isInRange(x.xValue, config, 'filterXValue') and len(x.group) != 0 and contains:
             xs.append(x)
             for y in x.group:
-              yVal = data[1][y]
-              ys[y] = yVal
+                ys[y] = data[1][y]
         else:
-            x.isHidden =  True
+            x.isHidden = True
     return [xs, ys]
 
 
-""" def interactedWith(data, config):
-    allowedYs: Set<string>
-    if (config.interactedWith && config.interactedWith[0].length) {
-      depth = 0
-      if (config.interactedWith[1]) depth = config.interactedWith[1]
-      allowedYs = new Set(config.interactedWith[0])
-      for (let i = -1; i < depth; i++) {
-        for (let layer of data[0]) {
-          if (Array.from(allowedYs).some(y => layer.group.includes(y))) {
-            layer.group.forEach(y => allowedYs.add(y))
-      Array.from(data[1]).forEach(y => allowedYs.has(y[0]) ? y : y[1].isHidden = true)
+def interactedWith(data, config):
+    if config['interactedWith'] and len(config['interactedWith'][0]):
+        depth = 0
+        if config['interactedWith'][1]:
+            depth = config['interactedWith'][1]
+        allowedYs = set(config['interactedWith'][0])
+        for i in range(-1, depth):
+            for layer in data[0]:
+                if len(allowedYs.intersection(layer.group)) > 0:
+                    allowedYs.add(layer.group)
+        for y, yVal in data[1].items():
+            if not y in allowedYs:
+                yVal.isHidden = True
     return data
 
 
-  def filterY(data, config):
-    Array.from(data[1]).forEach(yMap => {
-      y: YLayer = yMap[1]
-      activeLayers = y.layers ? y.layers.filter(l => !l.isHidden) : []
-      if (
-        // check if y value has an xValue lifetime in the allowed range
-        !this.isInRange(activeLayers[activeLayers.length - 1].xValue - activeLayers[0].xValue, config.filterXValueLifeTime) ||
-        // check if y value has an amount of non-hidden groups in the allowed range
-        !this.isInRange(activeLayers.length, config.filterGroupAmt) ||
-        y.isHidden) {
-        y.isHidden = true
-        y.layers.forEach(l => {
-          l.group = l.group.filter(a => a != y.yID)
-          l.hiddenYs.push(y.yID)
+def filterY(data, config):
+    for y, yVal in data[1].items():
+        activeLayers = list(filter(lambda x: not x.isHidden, yVal.layers))
+        if activeLayers:
+            firstLayer = activeLayers[0]
+            lastLayer = activeLayers[len(activeLayers) - 1]
+            if not (isInRange(lastLayer.xValue - firstLayer.xValue, config, 'filterXValueLifeTime') and isInRange(len(activeLayers), config, 'filterGroupAmt') and not yVal.isHidden):
+                yVal.isHidden = True
+                for layer in yVal.layers:
+                    layer.group = list(filter(lambda yv: yv != y, layer.group))
+                    layer.hiddenYs.append(y)
     return data
-  }
 
-  def setLifeCycles(data, config):
-    data[0].forEach((layer, i) => {
-      if (!layer.isHidden) layer.index = i)
-    Array.from(data[1]).forEach(yMap => {
-      let y: YLayer = yMap[1]
-      let activeLayers = y.layers ? y.layers.filter(l => !l.isHidden) : []
-      if (!y.isHidden) {
-        // check where to add the y-point
-        if (config.continuousStart) {
-          data[0][0].add.push(y.yID)
-        } else {
-          data[0][activeLayers[0].index].add.push(y.yID)
-        }
-        if (config.continuousEnd) {
-          data[0][data[0].length - 1].remove.push(y.yID)
-        } else {
-          data[0][activeLayers[activeLayers.length - \
-              1].index].remove.push(y.yID)
-        }
-      }
-    }
-  }
 
-} """
+def setLifeCycles(data, config):
+    for idx, layer in enumerate(data[0]):
+        if not layer.isHidden:
+            layer.index = idx
+    for y, yVal in data[1].items():
+        activeLayers = list(filter(lambda x: not x.isHidden, yVal.layers))
+        if not yVal.isHidden:
+            if config['continuousStart']:
+                data[0][0].add.append(y)
+            else:
+                data[0][activeLayers[0].index].add.append(y)
+            if config['continuousEnd']:
+                data[0][len(data[0]) - 1].remove.append(y)
+            else:
+                data[0][activeLayers[len(
+                    activeLayers) - 1].index].remove.append(y)
