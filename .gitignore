@@ -61,3 +61,11 @@ typings/
 .next
 
 .chache
+
+.cache/
+
+.vscode/
+
+dist/
+
+*.gitignore

@@ -1,1 +1,0 @@
-from DummyConfig import getConfig2

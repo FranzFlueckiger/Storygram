@@ -1,10 +1,11 @@
 import vega from 'vega-embed';
-import { KnotDiagram } from './typescript/KnotDiagram';
-import {Templates} from './typescript/Templates'
+import { KnotDiagram } from './src/KnotDiagram';
+import {Templates} from './src/Templates'
 
 /**
 * Testing
 * Gui: Highlighting, Stability
+* xScaling
 */
 
 async function main() {

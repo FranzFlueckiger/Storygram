@@ -15,6 +15,6 @@
     "vega-lite": "^3.4.0"
   },
   "devDependencies": {
-    "typescript": "^3.6.3"
+    "typescript": "^3.6.4"
   }
 }
