@@ -1,18 +1,18 @@
 import { Config, XLayer, YLayer, Data, YData, RenderedPoint } from './Types'
-import { Filter } from './Filter'
-import { Optimizer } from './Optimizer'
+import filter from './Filter'
+import { fit } from './Optimizer'
 import { DrawSpec } from './DrawSpec'
 
 export class KnotDiagram {
 
   private processedData: Data
-  private renderedGrid: any[]
+  private renderedGrid: [RenderedPoint[], number, number]
   public spec: any
 
   public constructor(private data: Data, private config: Config) {
     this.checkDefaultConfig()
-    this.processedData = Filter.filter(this.data, config)
-    this.processedData = Optimizer.fit(this.processedData, config)
+    this.processedData = filter(this.data, config)
+    this.processedData = fit(this.processedData, config)
     this.renderedGrid = DrawSpec.draw(this.processedData, config)
     console.log(this.renderedGrid)
     this.spec = DrawSpec.getSpecOld(this.renderedGrid, config)
@@ -26,8 +26,8 @@ export class KnotDiagram {
     if (!this.config.xPadding) this.config.xPadding = 60
     if (!this.config.lineSize) this.config.lineSize = 12
     if (!this.config.xValueScaling) this.config.xValueScaling = 0
-    if (!this.config.generationAmt) this.config.generationAmt = 100
-    if (!this.config.populationSize) this.config.populationSize = 80
+    if (!this.config.generationAmt) this.config.generationAmt = 10
+    if (!this.config.populationSize) this.config.populationSize = 10
     if (!this.config.selectionRate) this.config.selectionRate = 0.125
     if (!this.config.mutationProbability) this.config.mutationProbability = 0.05
     if (this.config.continuousStart == null) this.config.continuousStart = true
