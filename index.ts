@@ -1,7 +1,6 @@
 import vega from 'vega-embed';
 import { KnotDiagram } from './src/KnotDiagram';
-import { Data, Config } from './src/Types'
-import { fromTable } from './src/PreProcessing';
+import { Config } from './src/Types'
 import { DummyData } from './src/DummyData';
 
 /**
@@ -11,7 +10,7 @@ import { DummyData } from './src/DummyData';
 */
 
 async function main() {
-  const template = getTemplate3()
+  const template = getTemplate2()
   const KD = new KnotDiagram(template[1])
   KD.setData(template[0])
   KD.getSpec()

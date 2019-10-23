@@ -1,4 +1,4 @@
-import { Child, Config, Data, GenePool, XLayer } from "./Types";
+import { Child, Config, Data, GenePool, XLayer, Switch } from "./Types";
 import visit from "./Visitor";
 
 function fit(data: Data, config: Config): Data {
@@ -105,12 +105,42 @@ function getLoss(child: [XLayer[], GenePool], config: Config): number {
       if (!child[0][i].add.includes(child[0][i].state[s.prev])) { a += Math.abs(s.target - s.prev); }
       return a;
     }, 0) * config.lengthLoss!;
+    // todo check edit distance
+    // if(i>0) acc += levenshtein(child[0][i].switch, child[0][i-1].switch)
   }
   return acc;
 }
 
 function getRandomGene(): number {
   return Math.pow(Math.random(), 1) * 2 - 1;
+}
+
+// code from https://gist.github.com/leo6104/fb4ff3d2938bd4f9fbbdff9127c810a7
+function levenshtein(a: Switch[], b: Switch[]): number {
+	if (a.length == 0) {
+		return b.length;
+	}
+	if (b.length == 0) {
+		return a.length;
+	}
+	const matrix = new Array<number[]>(b.length + 1);
+	for (let i = 0; i <= b.length; i++) {
+		matrix[i] = new Array<number>(a.length + 1);
+		matrix[i][0] = i;
+	}
+	for (let i = 1; i <= b.length; ++i) {
+		for (let j = 1; j <= a.length; ++j) {
+			matrix[i][j] = (b[i - 1] === a[j - 1]) ? 
+				matrix[i - 1][j - 1] 
+				: 
+				Math.min(
+					matrix[i - 1][j - 1], // substitution
+					matrix[i][j - 1], // insertion
+					matrix[i - 1][j] // deletion
+				) + 1;
+		}
+	}
+	return matrix[b.length][a.length];
 }
 
 export { fit, getRandomGene };
