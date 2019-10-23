@@ -1,119 +1,119 @@
-import { XLayer, Switch, Distance, GenePool, Data, XData } from './Types'
-import { getRandomGene } from './Optimizer'
+import { getRandomGene } from "./Optimizer";
+import { Data, Distance, GenePool, Switch, XData, XLayer } from "./Types";
 
 function visit(data: Data, yEntryPoints: GenePool | undefined): [XData, GenePool] {
-  let visitor: string[] = []
-  yEntryPoints = yEntryPoints ? yEntryPoints : new Map()
-  let prevIndex = 0
-  return [data.xData.reduce((acc, x: XLayer, i: number) => {
+  let visitor: string[] = [];
+  yEntryPoints = yEntryPoints ? yEntryPoints : new Map();
+  let prevIndex = 0;
+  return [data.xData.reduce((acc: XData, x: XLayer, i: number) => {
     // todo remove this as it is redundant check if this x layer is hidden
     if (!x.isHidden) {
       // calculate the center
-      let center = getCenter(x.group, visitor)
-      if (i != 0) data.xData[prevIndex].remove.forEach(a => visitor = remove(a, visitor))
-      x.add.forEach(y => {
-        let yVal = data.yData.get(y)
+      const center = getCenter(x.group, visitor);
+      if (i != 0) { data.xData[prevIndex].remove.forEach((a) => visitor = remove(a, visitor)); }
+      x.add.forEach((y) => {
+        const yVal = data.yData.get(y)!;
         if (!yVal.isHidden) {
-          let entryPoint = yEntryPoints.get(y)
+          const entryPoint = yEntryPoints!.get(y);
           if (!entryPoint) {
-            let entryPoint = getRandomGene()
-            yEntryPoints.set(y, entryPoint)
+            const entryPoint = getRandomGene();
+            yEntryPoints!.set(y, entryPoint);
           }
-          add(y, center, entryPoint, visitor)
+          add(y, center, entryPoint!, visitor);
         }
-      })
-      x.switch = group(x.group, visitor)
-      x.state = [...visitor]
-      prevIndex = i
-      acc.push(x)
+      });
+      x.switch = group(x.group, visitor);
+      x.state = [...visitor];
+      prevIndex = i;
+      acc.push(x);
     }
-    return acc
-  }, []), yEntryPoints]
+    return acc;
+  }, []), yEntryPoints];
 }
 
 function add(a: string, center: number, gene: number, visitor: string[]) {
   // add the new object at the distance from the center indicated by the entryPoint
-  let pos = 0
+  let pos = 0;
   if (visitor.length) {
     if (gene > 0) {
-      pos = Math.round((visitor.length - center) * gene)
+      pos = Math.round((visitor.length - center) * gene);
     } else {
-      pos = Math.round(center * gene)
+      pos = Math.round(center * gene);
     }
   }
-  return visitor.splice(pos, 0, a)
+  return visitor.splice(pos, 0, a);
 }
 
 function switchP(switchY: Switch, visitor: string[]) {
   // move the yObj to the group and shift all the others
-  let temp = visitor.splice(switchY.prev, 1)
-  visitor.splice(switchY.target, 0, ...temp)
+  const temp = visitor.splice(switchY.prev, 1);
+  visitor.splice(switchY.target, 0, ...temp);
 }
 
 function remove(a: string, visitor: string[]) {
   // a contains the yObj
-  return visitor.filter(p => p != a)
+  return visitor.filter((p) => p != a);
 }
 
 function group(group: string[], visitor: string[]): Switch[] {
   // calculate the center
-  let center: number = getCenter(group, visitor)
+  const center: number = getCenter(group, visitor);
   // calculate the distance from the mass center
-  let dists: Distance[] = getDistances(group, center, visitor)
+  const dists: Distance[] = getDistances(group, center, visitor);
   // array containing the switch operations
-  let switches: Switch[] = []
+  const switches: Switch[] = [];
   // array describing the outer boundary of the already-adiacent group elements
-  let edges: [number, number] = [center, center]
+  const edges: [number, number] = [center, center];
   // looping strategies for backward and forward searching
-  let strategies = new Map()
+  const strategies = new Map();
   // first element is the descending edge, the second one the ascending
-  strategies.set(1, { 'init': 1, 'comp': (i: number) => i < visitor.length })
-  strategies.set(-1, { 'init': 0, 'comp': (i: number) => i >= 0 })
+  strategies.set(1, { init: 1, comp: (i: number) => i < visitor.length });
+  strategies.set(-1, { init: 0, comp: (i: number) => i >= 0 });
   // Check for every y that has to be grouped if it is adjacent, else switch
-  dists.forEach(p => {
-    let direction: number = -Math.sign(p.distance)
+  dists.forEach((p) => {
+    const direction: number = -Math.sign(p.distance);
     if (direction != 0) {
-      let strategy = strategies.get(direction)
-      let index: number = visitor.indexOf(p.p)
+      const strategy = strategies.get(direction);
+      const index: number = visitor.indexOf(p.p);
       for (let i = edges[strategy.init]; strategy.comp(i); i += direction) {
         if ((index >= edges[0] && index <= edges[1]) ||
           (edges[1] === 0 && direction === 1) ||
           (edges[0] === visitor.length - 1 && direction === -1)) {
           // if the index of p in the visitor is inside the edges, it is adjacent
-          // if the edges are at the end of the visitor and the direction points 
+          // if the edges are at the end of the visitor and the direction points
           // to it, then p is adjacent
-          break
-        } else if (!dists.some(a => a.p === visitor[i])) {
-          // if the visited y is a non-grouped element, then switch it 
+          break;
+        } else if (!dists.some((a) => a.p === visitor[i])) {
+          // if the visited y is a non-grouped element, then switch it
           // with the current element p
-          let switchY: Switch = { target: i, prev: index }
-          switches.push(switchY)
-          switchP(switchY, visitor)
-          break
+          const switchY: Switch = { target: i, prev: index };
+          switches.push(switchY);
+          switchP(switchY, visitor);
+          break;
         } else {
           // extend adjacent edges
-          edges[strategy.init] += direction
+          edges[strategy.init] += direction;
         }
       }
     }
-  })
-  return switches
+  });
+  return switches;
 }
 
 function getCenter(group: string[], visitor: string[]) {
   return Math.round(visitor.reduce((count: number, y: string, i: number) => {
-    return group.includes(y) ? count + i : count
-  }, 0) / group.length)
+    return group.includes(y) ? count + i : count;
+  }, 0) / group.length);
 }
 
 function getDistances(group: string[], center: number, visitor: string[]) {
   return group
-    .map(p => {
-      let i = visitor.indexOf(p)
-      let distance = center - i
-      return { p, distance }
+    .map((p) => {
+      const i = visitor.indexOf(p);
+      const distance = center - i;
+      return { p, distance };
     })
-    .sort((a, b) => Math.abs(a.distance) - Math.abs(b.distance))
+    .sort((a, b) => Math.abs(a.distance) - Math.abs(b.distance));
 }
 
 export default visit;

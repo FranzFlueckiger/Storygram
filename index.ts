@@ -51,4 +51,4 @@ function getTemplate3(): [Data, Config] {
   return [data, config]
 }
 
-main();
+main()
