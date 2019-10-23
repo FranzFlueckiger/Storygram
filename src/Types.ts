@@ -1,4 +1,18 @@
 export interface Config {
+    // format of your data: 'table', 'array' or 'ranges'
+    dataFormat: 'table' | 'array' | 'ranges';
+    // name of the field containing the x values
+    xField?: string | undefined,
+    // name of the field containing the x values
+    yField?: string | string[] | undefined,
+    // name of the field containing the start of the range
+    startField?: string,
+    // name of the field containing the end of the range
+    endField?: string,
+    // split function for the y fields
+    splitFunction?: ((arg: string) => string[]) | undefined;
+    // function that returns a string describing the selected x
+    xDescription?: (arg: XLayer) => string;
     // the height of the whole chart
     yPadding?: number;
     // the width of the whole chart
@@ -23,8 +37,6 @@ export interface Config {
     centered?: boolean;
     // numeric field that determines the stroke width
     strokeWidth?: (arg: XLayer) => number;
-    // function that returns a string describing the selected x
-    xDescription: (arg: XLayer) => string;
     // function that returns a string describing the y
     tooltipText?: (arg: XLayer) => string;
     // x filter check if the XLayer contains the given YLayer

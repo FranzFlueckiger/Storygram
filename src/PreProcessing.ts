@@ -38,17 +38,26 @@ function fromRanges(data: any[], yField: string, fromField: string, toField: str
 * information of the yLayers except for the id.
 */
 function fromTable(inputData: object[], xField: string, yFields: string[], splitFunction?: (arg: string) => string[]): Data {
+    return processXFirst('table', inputData, xField, yFields, splitFunction)
+}
+
+function fromArray(inputData: object[], xField: string, yField: string, splitFunction?: (arg: string) => string[]): Data {
+    return processXFirst('array', inputData, xField, yField, splitFunction)
+}
+
+function processXFirst(format: 'table' | 'array', inputData: object[], xField: string, yField: string | string[], splitFunction?: ((arg: string) => string[]) | undefined) {
     inputData.sort((a: any, b: any) => a[xField] - b[xField]);
     const yData: YData = new Map();
     const xData: XData = inputData.map((x: object, i: number) => {
         // @ts-ignore
         const xObj: XLayer = new XLayer(x[xField], x);
         xObj.id = i;
-        xObj.group = [...Array.from(yFields.reduce<Set<string>>((acc, y) => {
-            // @ts-ignore
-            if (x[y]) { splitFunction ? splitFunction(x[y]).forEach((p) => { if (p) { acc.add(p); } }) : acc.add(x[y]); }
-            return acc;
-        }, new Set()))];
+        if (format === 'table') {
+            xObj.group = extractYsFromTable(x, yField as string[], splitFunction);
+        }
+        if (format === 'array') {
+            xObj.group = extractYsFromArray(x, yField as string, splitFunction);
+        }
         xObj.group = xObj.group.map((y) => {
             let yObj = yData.get(y);
             if (!yObj) {
@@ -64,4 +73,21 @@ function fromTable(inputData: object[], xField: string, yFields: string[], split
     return { xData, yData };
 }
 
-export { fromTable as fromArray, fromRanges };
+function extractYsFromTable(x: object, yFields: string[], splitFunction: ((arg: string) => string[]) | undefined): string[] {
+    return [...Array.from(yFields.reduce<Set<string>>((acc, y) => {
+        // @ts-ignore
+        if (x[y]) { splitFunction ? splitFunction(x[y]).forEach((p) => { if (p) { acc.add(p); } }) : acc.add(x[y]); }
+        return acc;
+    }, new Set()))];
+}
+
+function extractYsFromArray(x: object, yField: string, splitFunction: ((arg: string) => string[]) | undefined): string[] {
+    // @ts-ignore
+    return [...Array.from(x[yField].reduce<Set<string>>((acc: Set<string>, y: string) => {
+        // @ts-ignore
+        if (y) { splitFunction ? splitFunction(y).forEach((p) => { if (p) { acc.add(p); } }) : acc.add(y); }
+        return acc;
+    }, new Set()))];
+}
+
+export { fromTable, fromRanges, fromArray };

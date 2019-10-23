@@ -1,7 +1,7 @@
 import vega from 'vega-embed';
 import { KnotDiagram } from './src/KnotDiagram';
 import { Data, Config } from './src/Types'
-import { fromArray, fromRanges } from './src/PreProcessing';
+import { fromTable } from './src/PreProcessing';
 import { DummyData } from './src/DummyData';
 
 /**
@@ -12,43 +12,49 @@ import { DummyData } from './src/DummyData';
 
 async function main() {
   const template = getTemplate3()
-  const KD = new KnotDiagram(template[0], template[1])
+  const KD = new KnotDiagram(template[1])
+  KD.setData(template[0])
+  KD.getSpec()
   await vega("#viz", KD.spec);
 }
 
-function getTemplate1(): [Data, Config] {
-  let data: Data = fromArray(DummyData.warData(), 'YEAR', ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'], (d => d ? d.split(', ') : []))
+function getTemplate1(): [any[], Config] {
   let config: Config = {
+    dataFormat: 'table',
+    xField: 'YEAR', 
+    yField: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'], 
+    splitFunction: (d => d ? d.split(', ') : []),
     xDescription: (xLayer) => xLayer.data.YEAR + ', ' + xLayer.data.Location,
-    mustContain: ['India'],
+    mustContain: ['Senegal'],
     filterXValue: [undefined, undefined],
     filterGroupSize: [1, undefined],
-    filterGroupAmt: [2, undefined],
-    xValueScaling: 0.5
+    filterGroupAmt: [2, undefined]
   }
-  return [data, config]
+  return [DummyData.warData(), config]
 }
 
-function getTemplate2(): [Data, Config] {
-  let data: Data = fromArray(DummyData.testData(), 'id', ['a', 'b', 'c', 'd'])
+function getTemplate2(): [any[], Config] {
   let config: Config = {
+    dataFormat: 'array',
+    xField: 'id',
+    yField: 'a',
     xDescription: (xLayer) => String(xLayer.xValue),
     filterGroupAmt: [3, undefined]
   }
-  return [data, config]
+  return [DummyData.testData(), config]
 }
 
-function getTemplate3(): [Data, Config] {
-  let data: Data = fromRanges(DummyData.bundesraete(), 'Name', 'Amtsantritt', 'Amtsende')
+function getTemplate3(): [any[], Config] {
   let config: Config = {
+    dataFormat: 'ranges',
+    yField: 'Name', 
+    startField: 'Amtsantritt', 
+    endField: 'Amtsende',
     xDescription: (xLayer) => 'Wahl im ' + String(xLayer.xValue),
-    xValueScaling: 0.,
     continuousStart: false,
-    continuousEnd: false,
-    generationAmt: 10,
-    populationSize: 10
+    continuousEnd: false
   }
-  return [data, config]
+  return [DummyData.bundesraete(), config]
 }
 
 main()
