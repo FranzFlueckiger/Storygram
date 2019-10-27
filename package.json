@@ -10,13 +10,13 @@
   "author": "Franz Flückiger",
   "license": "BSD-3",
   "dependencies": {
-    "@types/jest": "^24.0.19",
     "edit-distance": "^1.0.2",
     "vega": "^5.6.0",
     "vega-embed": "^5.1.3",
     "vega-lite": "^3.4.0"
   },
   "devDependencies": {
+    "@types/jest": "^24.0.19",
     "jest": "^24.9.0",
     "ts-jest": "^24.1.0",
     "tslint": "^5.20.0",

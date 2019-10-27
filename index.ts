@@ -10,7 +10,7 @@ import { DummyData } from './src/DummyData';
 */
 
 async function main() {
-  const template = getTemplate2()
+  const template = getTemplate3()
   const KD = new KnotDiagram(template[1])
   KD.setData(template[0])
   KD.getSpec()
@@ -24,10 +24,12 @@ function getTemplate1(): [any[], Config] {
     yField: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'], 
     splitFunction: (d => d ? d.split(', ') : []),
     xDescription: (xLayer) => xLayer.data.YEAR + ', ' + xLayer.data.Location,
-    mustContain: ['Senegal'],
-    filterXValue: [undefined, undefined],
+    // mustContain: ['Yugoslavia (Serbia)'],
+    filterXValue: [1992, 1998],
     filterGroupSize: [1, undefined],
-    filterGroupAmt: [2, undefined]
+    filterGroupAmt: [1, undefined],
+    continuousStart: false,
+    continuousEnd: false
   }
   return [DummyData.warData(), config]
 }

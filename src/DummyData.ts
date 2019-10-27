@@ -54,7 +54,7 @@ export class DummyData {
    * Data found on https://de.wikipedia.org/wiki/Liste_der_Schweizer_Fussballnationalspieler
    */
   public static nationalMannschaftCH() {
-    return 
+    return;
   }
 
   /**

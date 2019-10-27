@@ -1,14 +1,14 @@
 export interface Config {
     // format of your data: 'table', 'array' or 'ranges'
-    dataFormat: 'table' | 'array' | 'ranges';
+    dataFormat: "table" | "array" | "ranges";
     // name of the field containing the x values
-    xField?: string | undefined,
+    xField?: string | undefined;
     // name of the field containing the x values
-    yField?: string | string[] | undefined,
+    yField?: string | string[] | undefined;
     // name of the field containing the start of the range
-    startField?: string,
+    startField?: string;
     // name of the field containing the end of the range
-    endField?: string,
+    endField?: string;
     // split function for the y fields
     splitFunction?: ((arg: string) => string[]) | undefined;
     // function that returns a string describing the selected x
@@ -124,7 +124,7 @@ export type XData = XLayer[];
 
 export type YData = Map<string, YLayer>;
 
-export interface Data {xData: XData; yData: YData;}
+export interface Data {xData: XData; yData: YData; }
 
 export class RenderedPoint {
 

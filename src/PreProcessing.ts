@@ -15,7 +15,7 @@ function fromRanges(data: any[], yField: string, fromField: string, toField: str
         yData.set(d[yField], new YLayer(d[yField], d));
     });
     const sortedXs: number[] = Array.from(xs).sort((a, b) => a - b);
-    const xData: XData = sortedXs.map(x => {
+    const xData: XData = sortedXs.map((x) => {
         const xLayer = new XLayer(x, {});
         data.forEach((d) => {
             if ((d[fromField] <= x || !d[fromField]) && (d[toField] >= x || !d[toField])) {
@@ -38,24 +38,24 @@ function fromRanges(data: any[], yField: string, fromField: string, toField: str
 * information of the yLayers except for the id.
 */
 function fromTable(inputData: object[], xField: string, yFields: string[], splitFunction?: (arg: string) => string[]): Data {
-    return processXFirst('table', inputData, xField, yFields, splitFunction)
+    return processXFirst("table", inputData, xField, yFields, splitFunction);
 }
 
 function fromArray(inputData: object[], xField: string, yField: string, splitFunction?: (arg: string) => string[]): Data {
-    return processXFirst('array', inputData, xField, yField, splitFunction)
+    return processXFirst("array", inputData, xField, yField, splitFunction);
 }
 
-function processXFirst(format: 'table' | 'array', inputData: object[], xField: string, yField: string | string[], splitFunction?: ((arg: string) => string[]) | undefined) {
+function processXFirst(format: "table" | "array", inputData: object[], xField: string, yField: string | string[], splitFunction?: ((arg: string) => string[]) | undefined) {
     inputData.sort((a: any, b: any) => a[xField] - b[xField]);
     const yData: YData = new Map();
     const xData: XData = inputData.map((x: object, i: number) => {
         // @ts-ignore
         const xObj: XLayer = new XLayer(x[xField], x);
         xObj.id = i;
-        if (format === 'table') {
+        if (format === "table") {
             xObj.group = extractYsFromTable(x, yField as string[], splitFunction);
         }
-        if (format === 'array') {
+        if (format === "array") {
             xObj.group = extractYsFromArray(x, yField as string, splitFunction);
         }
         xObj.group = xObj.group.map((y) => {

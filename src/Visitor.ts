@@ -116,4 +116,4 @@ function getDistances(group: string[], center: number, visitor: string[]) {
     .sort((a, b) => Math.abs(a.distance) - Math.abs(b.distance));
 }
 
-export default visit;
+export {visit, add, switchP, remove, group, getCenter, getDistances}

@@ -29,9 +29,9 @@ function filterX(data: Data, config: Config): Data {
         return xLayer.group.includes(query);
       });
     }
-    let isCustomXFilter = false
-    if(config.filterCustomX) {
-      isCustomXFilter = !config.filterCustomX(xLayer)
+    let isCustomXFilter = false;
+    if (config.filterCustomX) {
+      isCustomXFilter = !config.filterCustomX(xLayer);
     }
     if (
       !isInRange(xLayer.group.length, config.filterGroupSize) ||
@@ -55,9 +55,9 @@ function filterY(data: Data, config: Config): Data {
   Array.from(data.yData).forEach((yMap) => {
     const yVal: YLayer = yMap[1];
     const activeLayers = yVal.layers ? yVal.layers.filter((l) => !l.isHidden) : [];
-    let isCustomYFilter = false
-    if(config.filterCustomY) {
-      isCustomYFilter = !config.filterCustomY(yVal)
+    let isCustomYFilter = false;
+    if (config.filterCustomY) {
+      isCustomYFilter = !config.filterCustomY(yVal);
     }
     if (
       // check if y value has an xValue lifetime in the allowed range

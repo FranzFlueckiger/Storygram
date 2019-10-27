@@ -24,7 +24,7 @@ export class DrawSpec {
         const strokeWidth: number = config.strokeWidth!(xLayer);
         const xVal: number = xLayer.xValue;
         const xDrawn: number = scaling * xVal + (1 - scaling) * xIndex;
-        const xDescription: string = config.xDescription(xLayer);
+        const xDescription: string = config.xDescription!(xLayer);
         const point: RenderedPoint = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xVal, xDescription);
         result.push(point);
       });
@@ -56,6 +56,7 @@ export class DrawSpec {
   public static getSpecOld(data: [RenderedPoint[], number, number], config: Config): Spec {
     return {
       config: {
+        // @ts-ignore
         view: { width: 400, height: 300, strokeWidth: 0 },
         mark: { tooltip: null },
         axis: {
@@ -269,6 +270,7 @@ export class DrawSpec {
           ],
         },
       ],
+      // @ts-ignore
       data: { name: "data-31a3ca55662c252b94e9791f188d05fe" },
       datasets: {
         "data-31a3ca55662c252b94e9791f188d05fe": data[0],

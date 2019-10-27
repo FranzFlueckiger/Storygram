@@ -1,10 +1,9 @@
+import { Spec } from "vega";
 import { DrawSpec } from "./DrawSpec";
 import filter from "./Filter";
 import { fit } from "./Optimizer";
+import { fromArray, fromRanges, fromTable } from "./PreProcessing";
 import { Config, Data, RenderedPoint } from "./Types";
-import { Spec } from "vega";
-import { DummyData } from "./DummyData";
-import { fromRanges, fromTable, fromArray } from "./PreProcessing";
 
 export class KnotDiagram {
 
@@ -18,21 +17,21 @@ export class KnotDiagram {
   }
 
   public setData(data: any[]): void {
-    if(this.config.dataFormat === 'ranges') {
-      if(!this.config.yField) console.warn('Specify your y field')
-      if(!this.config.startField) console.warn('Specify your start field')
-      if(!this.config.endField) console.warn('Specify your end field')
-      this.data = fromRanges(data, this.config.yField! as string, this.config.startField!, this.config.endField!)
-    } else if (this.config.dataFormat === 'table') {
-      if(!this.config.xField) console.warn('Specify your x field')
-      if(!this.config.yField) console.warn('Specify your y fields')
-      this.data = fromTable(data, this.config.xField!, this.config.yField! as string[], this.config.splitFunction)
-    } else if (this.config.dataFormat === 'array') {
-      if(!this.config.xField) console.warn('Specify your x field')
-      if(!this.config.yField) console.warn('Specify your y-array field')
-      this.data = fromArray(data, this.config.xField!, this.config.yField! as string)
+    if (this.config.dataFormat === "ranges") {
+      if (!this.config.yField) { console.warn("Specify your y field"); }
+      if (!this.config.startField) { console.warn("Specify your start field"); }
+      if (!this.config.endField) { console.warn("Specify your end field"); }
+      this.data = fromRanges(data, this.config.yField! as string, this.config.startField!, this.config.endField!);
+    } else if (this.config.dataFormat === "table") {
+      if (!this.config.xField) { console.warn("Specify your x field"); }
+      if (!this.config.yField) { console.warn("Specify your y fields"); }
+      this.data = fromTable(data, this.config.xField!, this.config.yField! as string[], this.config.splitFunction);
+    } else if (this.config.dataFormat === "array") {
+      if (!this.config.xField) { console.warn("Specify your x field"); }
+      if (!this.config.yField) { console.warn("Specify your y-array field"); }
+      this.data = fromArray(data, this.config.xField!, this.config.yField! as string);
     } else {
-      console.log('Invalid data format')
+      console.log("Invalid data format");
     }
   }
 
@@ -49,7 +48,7 @@ export class KnotDiagram {
    * If undefined, set default values for the config object
    */
   private checkDefaultConfig() {
-    if (!this.config.xDescription) { this.config.xDescription = (l) => String(l['index']); }
+    if (!this.config.xDescription) { this.config.xDescription = (l) => String(l.xValue); }
     if (!this.config.yPadding) { this.config.yPadding = 40; }
     if (!this.config.xPadding) { this.config.xPadding = 60; }
     if (!this.config.lineSize) { this.config.lineSize = 12; }
