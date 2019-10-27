@@ -103,9 +103,9 @@ export class YLayer {
 }
 
 export interface Child {
-    loss: number;
+    score: number;
     gene: GenePool;
-    x: XLayer[];
+    x: XData;
 }
 
 export interface Switch {

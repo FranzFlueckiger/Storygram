@@ -1,4 +1,4 @@
-import { Child, Config, Data, GenePool, Switch, XLayer } from "./Types";
+import { Child, Config, Data, GenePool, Switch, XLayer, XData } from "./Types";
 import { visit } from "./Visitor";
 
 function fit(data: Data, config: Config): Data {
@@ -7,7 +7,7 @@ function fit(data: Data, config: Config): Data {
     newGenes: Array<Map<string, number>> | undefined;
   for (let i = 0; i < config.generationAmt!; i++) {
     population = getGeneration(data, newGenes, config);
-    if (!best || population[0].loss < best.loss) {
+    if (!best || population[0].score > best.score) {
       best = population[0];
       console.log(best);
     }
@@ -24,11 +24,11 @@ function getGeneration(data: Data, yEntryPoints: Array<Map<string, number>> | un
   for (let i = 0; i < config.populationSize!; i++) {
     const entryPoints = yEntryPoints ? yEntryPoints[i] : undefined;
     const result: [XLayer[], GenePool] = visit(data, entryPoints);
-    const loss = getLoss(result, config);
-    const child: Child = { loss, gene: result[1], x: result[0] };
+    const loss = getScore(result, config);
+    const child: Child = { score: loss, gene: result[1], x: result[0] };
     population.push(child);
   }
-  return population.sort((a, b) => a.loss - b.loss);
+  return population.sort((a, b) => b.score - a.score);
 }
 
 function select(population: Child[], config: Config): Child[] {
@@ -83,18 +83,25 @@ function mutate(data: Data, genes: GenePool[], config: Config) {
   return genes;
 }
 
-function getLoss(child: [XLayer[], GenePool], config: Config): number {
+function getScore(child: [XData, GenePool], config: Config): number {
+  let score: number = 0
+  const xLayers: XData = child[0]
+  const maxLen = xLayers.reduce((acc, c) => Math.max(acc, c.state.length), 0)
+  let prevVector = getStateVector(xLayers[0], maxLen, config)
+  for (let i = 1; i < xLayers.length; i++) {
+    let vector = getStateVector(xLayers[i], maxLen, config)
+    for(let j=0; j< maxLen; j++) {
+      if(prevVector[j] === vector[j]) score++
+    }
+    prevVector = vector
+  }
+  const losses: number = getLosses(child, config)
+  return score - losses
+}
+
+function getLosses(child: [XLayer[], GenePool], config: Config): number {
   let acc = 0;
   for (let i = 0; i < child[0].length; i++) {
-    const center = child[0][i].state.length / 2;
-    // Penalty for adding ys in the middle
-    acc += child[0][i].add.reduce((a, s) => {
-      return a + Math.abs(child[1].get(s)! - center);
-    }, 0) * config.centeredAddLoss!;
-    // Penalty for removing ys in the middle
-    acc += child[0][i].remove.reduce((a, s) => {
-      return a + Math.abs(child[1].get(s)! - center);
-    }, 0) * config.centeredRemoveLoss!;
     // Penalty for the amount of switches
     acc += child[0][i].switch.reduce((a, s) => {
       if (!child[0][i].add.includes(child[0][i].state[s.prev])) { a++; }
@@ -111,36 +118,21 @@ function getLoss(child: [XLayer[], GenePool], config: Config): number {
   return acc;
 }
 
-function getRandomGene(): number {
-  return Math.pow(Math.random(), 1) * 2 - 1;
+// todo implement config option isCentered
+function getStateVector(xLayer: XLayer, maxLen: number, config: Config): string[] {
+  let result: string[] = []
+  for (let i = 0; i < maxLen; i++) {
+    let yPoint: string = xLayer.state[i]
+    if (!yPoint) {
+      yPoint = ''
+    }
+    result.push(yPoint)
+  }
+  return result;
 }
 
-// code from https://gist.github.com/leo6104/fb4ff3d2938bd4f9fbbdff9127c810a7
-function levenshtein(a: Switch[], b: Switch[]): number {
-  if (a.length == 0) {
-    return b.length;
-  }
-  if (b.length == 0) {
-    return a.length;
-  }
-  const matrix = new Array<number[]>(b.length + 1);
-  for (let i = 0; i <= b.length; i++) {
-    matrix[i] = new Array<number>(a.length + 1);
-    matrix[i][0] = i;
-  }
-  for (let i = 1; i <= b.length; ++i) {
-    for (let j = 1; j <= a.length; ++j) {
-      matrix[i][j] = (b[i - 1] === a[j - 1]) ?
-        matrix[i - 1][j - 1]
-        :
-        Math.min(
-          matrix[i - 1][j - 1], // substitution
-          matrix[i][j - 1], // insertion
-          matrix[i - 1][j], // deletion
-        ) + 1;
-    }
-  }
-  return matrix[b.length][a.length];
+function getRandomGene(): number {
+  return Math.pow(Math.random(), 1) * 2 - 1;
 }
 
 export { fit, getRandomGene };

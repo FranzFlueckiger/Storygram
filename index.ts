@@ -40,7 +40,7 @@ function getTemplate2(): [any[], Config] {
     xField: 'id',
     yField: 'a',
     xDescription: (xLayer) => String(xLayer.xValue),
-    filterGroupAmt: [3, undefined]
+    filterGroupAmt: [3, undefined],
   }
   return [DummyData.testData(), config]
 }
