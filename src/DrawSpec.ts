@@ -16,7 +16,10 @@ export class DrawSpec {
     const xLen = data.xData.length;
     const scaling = config.xValueScaling!;
     data.xData.forEach((xLayer, xIndex) => {
-      const offset: number = xLayer.state.length % 2 === 0 ? - 0.5 : 0;
+      let offset: number = 0
+      if (config.centered) {
+        offset = xLayer.state.length % 2 === 0 ? - 0.5 : 0;
+      }
       xLayer.state.forEach((yID: string, yIndex: number) => {
         const isGrouped: boolean = xLayer.group.some((a) => a === yID);
         let yDrawn: number = config.centered ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;

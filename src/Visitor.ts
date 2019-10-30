@@ -19,7 +19,7 @@ function visit(data: Data, yEntryPoints: GenePool | undefined): [XData, GenePool
             const entryPoint = getRandomGene();
             yEntryPoints!.set(y, entryPoint);
           }
-          add(y, center, entryPoint!, visitor);
+          visitor = add(y, center, entryPoint!, visitor);
         }
       });
       x.switch = group(x.group, visitor);
@@ -31,7 +31,7 @@ function visit(data: Data, yEntryPoints: GenePool | undefined): [XData, GenePool
   }, []), yEntryPoints];
 }
 
-function add(a: string, center: number, gene: number, visitor: string[]) {
+function add(a: string, center: number, gene: number, visitor: string[]): string[] {
   // add the new object at the distance from the center indicated by the entryPoint
   let pos = 0;
   if (visitor.length) {
@@ -41,16 +41,18 @@ function add(a: string, center: number, gene: number, visitor: string[]) {
       pos = Math.round(center * gene);
     }
   }
-  return visitor.splice(pos, 0, a);
+  visitor.splice(pos, 0, a);
+  return visitor
 }
 
-function switchP(switchY: Switch, visitor: string[]) {
+function switchP(switchY: Switch, visitor: string[]): string[] {
   // move the yObj to the group and shift all the others
   const temp = visitor.splice(switchY.prev, 1);
   visitor.splice(switchY.target, 0, ...temp);
+  return visitor
 }
 
-function remove(a: string, visitor: string[]) {
+function remove(a: string, visitor: string[]): string[] {
   // a contains the yObj
   return visitor.filter((p) => p != a);
 }
@@ -100,13 +102,13 @@ function group(group: string[], visitor: string[]): Switch[] {
   return switches;
 }
 
-function getCenter(group: string[], visitor: string[]) {
+function getCenter(group: string[], visitor: string[]): number {
   return Math.round(visitor.reduce((count: number, y: string, i: number) => {
     return group.includes(y) ? count + i : count;
   }, 0) / group.length);
 }
 
-function getDistances(group: string[], center: number, visitor: string[]) {
+function getDistances(group: string[], center: number, visitor: string[]): Distance[] {
   return group
     .map((p) => {
       const i = visitor.indexOf(p);

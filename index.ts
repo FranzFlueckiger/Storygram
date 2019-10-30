@@ -10,7 +10,7 @@ import { DummyData } from './src/DummyData';
 */
 
 async function main() {
-  const template = getTemplate3()
+  const template = getTemplate1()
   const KD = new KnotDiagram(template[1])
   KD.setData(template[0])
   KD.getSpec()
@@ -26,10 +26,8 @@ function getTemplate1(): [any[], Config] {
     xDescription: (xLayer) => xLayer.data.YEAR + ', ' + xLayer.data.Location,
     // mustContain: ['Yugoslavia (Serbia)'],
     filterXValue: [1992, 1998],
-    filterGroupSize: [1, undefined],
-    filterGroupAmt: [1, undefined],
-    continuousStart: false,
-    continuousEnd: false
+    filterGroupSize: [4, undefined],
+    filterGroupAmt: [4, undefined],
   }
   return [DummyData.warData(), config]
 }
@@ -41,6 +39,9 @@ function getTemplate2(): [any[], Config] {
     yField: 'a',
     xDescription: (xLayer) => String(xLayer.xValue),
     filterGroupAmt: [3, undefined],
+    continuousStart: false,
+    continuousEnd: false,
+    centered: false
   }
   return [DummyData.testData(), config]
 }
@@ -53,7 +54,7 @@ function getTemplate3(): [any[], Config] {
     endField: 'Amtsende',
     xDescription: (xLayer) => 'Wahl im ' + String(xLayer.xValue),
     continuousStart: false,
-    continuousEnd: false
+    continuousEnd: false,
   }
   return [DummyData.bundesraete(), config]
 }
