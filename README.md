@@ -1,2 +1,2 @@
 # Knot Diagram
-Visualize sequentially grouped information
+Visualize sequentially grouped atomic flows 
