@@ -66,6 +66,8 @@ typings/
 
 .vscode/
 
+
+.DS_store
 dist/
 
 *.gitignore
