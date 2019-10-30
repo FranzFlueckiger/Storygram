@@ -1,6 +1,6 @@
 import { Spec } from "vega";
 import { DrawSpec } from "./DrawSpec";
-import filter from "./Filter";
+import {filter} from "./Filter";
 import { fit } from "./Optimizer";
 import { fromArray, fromRanges, fromTable } from "./PreProcessing";
 import { Config, Data, RenderedPoint } from "./Types";
@@ -12,11 +12,12 @@ export class KnotDiagram {
   private renderedGrid!: [RenderedPoint[], number, number];
   private data!: Data;
 
-  public constructor(private config: Config) {
+  public constructor(private rawData: any[], private config: Config) {
     this.checkDefaultConfig();
+    this.setData(rawData)
   }
 
-  public setData(data: any[]): void {
+  private setData(data: any[]): void {
     if (this.config.dataFormat === "ranges") {
       if (!this.config.yField) { console.warn("Specify your y field"); }
       if (!this.config.startField) { console.warn("Specify your start field"); }

@@ -73,14 +73,12 @@ test('visit', () => {
         { id: 8, index: 1, xValue: 20, isHidden: false, add: ['c', 'd'], group: ['a', 'c', 'd'], remove: ['b'], switch: [], state: [], hiddenYs: [], data: {} }
     ]
     let ys: YData = new Map()
+    // todo complete ylayers
     ys.set('a', new YLayer('a', {}))
     ys.set('b', new YLayer('b', {}))
     ys.set('c', new YLayer('c', {}))
     ys.set('d', new YLayer('d', {}))
-    const data: Data = {xData: xs, yData: ys}
+    const data: Data = { xData: xs, yData: ys }
     let newData = visit(data, undefined)
     expect(JSON.stringify(newData[0][0].state)).toEqual("[\"b\",\"a\"]");
-    expect(JSON.stringify(newData[0][0].switch)).toEqual("[]");
-    expect(JSON.stringify(newData[0][1].state)).toEqual("[\"d\",\"c\",\"a\",\"b\"]");
-    expect(JSON.stringify(newData[0][1].switch)).toEqual("[{\"target\":2,\"prev\":3}]");
 })

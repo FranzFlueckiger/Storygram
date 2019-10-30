@@ -1,4 +1,4 @@
-import { Config, Data, XLayer, YLayer } from "./Types";
+import { Config, Data, YLayer } from "./Types";
 
 function filter(data: Data, config: Config): Data {
   console.log("Pre Filtering", data);
@@ -98,4 +98,4 @@ function setLifeCycles(data: Data, config: Config) {
   });
 }
 
-export default filter;
+export { filter, filterX, filterY, isInRange, setLifeCycles };
