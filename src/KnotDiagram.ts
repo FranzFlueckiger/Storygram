@@ -10,7 +10,7 @@ export class KnotDiagram {
   public spec!: Spec;
   private processedData!: Data;
   private renderedGrid!: [RenderedPoint[], number, number];
-  private data!: Data;
+  public data!: Data;
 
   public constructor(private rawData: any[], private config: Config) {
     this.checkDefaultConfig();
