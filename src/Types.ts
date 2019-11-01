@@ -1,6 +1,8 @@
 export interface Config {
     // format of your data: 'table', 'array' or 'ranges'
     dataFormat: "table" | "array" | "ranges";
+    // should information be shown on the console
+    verbose?: boolean;
     // name of the field containing the x values
     xField?: string | undefined;
     // name of the field containing the x values
@@ -51,8 +53,6 @@ export interface Config {
     interactedWith?: [string[], number];
     // y filter (Positive and Negative x value lifetimes possible)
     filterXValueLifeTime?: [number, number];
-    // y filter (Positive index lifetimes only)
-    filterIndexLifeTime?: [number, number];
     // y filter (Positive group amounts only)
     filterGroupAmt?: [number, number];
     // todo y filter for data predicates
@@ -124,7 +124,7 @@ export type XData = XLayer[];
 
 export type YData = Map<string, YLayer>;
 
-export interface Data {xData: XData; yData: YData; }
+export interface Data { xData: XData; yData: YData; }
 
 export class RenderedPoint {
 
@@ -134,11 +134,11 @@ export class RenderedPoint {
     public pointsSize: [] = [];
 
     public constructor(public x: number,
-                       public y: number,
-                       public z: string,
-                       public isGrouped: boolean,
-                       public strokeWidth: number,
-                       public xVal: any,
-                       public xDescription: string,
-    ) {}
+        public y: number,
+        public z: string,
+        public isGrouped: boolean,
+        public strokeWidth: number,
+        public xVal: any,
+        public xDescription: string,
+    ) { }
 }

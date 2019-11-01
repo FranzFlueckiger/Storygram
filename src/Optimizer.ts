@@ -84,38 +84,45 @@ function mutate(data: Data, genes: GenePool[], config: Config) {
 }
 
 function getScore(child: [XData, GenePool], config: Config): number {
+  let score: number = getLinearScore(child, config);
+  score -= getSwitchAmountLoss(child, config)
+  score -= getSwitchDistanceLoss(child, config)
+  return score
+}
+
+function getLinearScore(child: [XData, GenePool], config: Config): number {
   let score: number = 0
   const xLayers: XData = child[0]
   const maxLen = xLayers.reduce((acc, c) => Math.max(acc, c.state.length), 0)
   let prevVector = getStateVector(xLayers[0], maxLen, config)
   for (let i = 1; i < xLayers.length; i++) {
     let vector = getStateVector(xLayers[i], maxLen, config)
-    for(let j=0; j< maxLen; j++) {
-      if(prevVector[j] === vector[j]) score++
+    for (let j = 0; j < maxLen; j++) {
+      if (prevVector[j] === vector[j]) score++
     }
     prevVector = vector
   }
-  const losses: number = getLosses(child, config)
-  return score - losses
+  return score
 }
 
-function getLosses(child: [XLayer[], GenePool], config: Config): number {
-  let acc = 0;
-  for (let i = 0; i < child[0].length; i++) {
+function getSwitchAmountLoss(child: [XData, GenePool], config: Config): number {
+  return child[0].reduce<number>((acc, c, i) => {
     // Penalty for the amount of switches
-    acc += child[0][i].switch.reduce((a, s) => {
+    return acc += child[0][i].switch.reduce((a, s) => {
       if (!child[0][i].add.includes(child[0][i].state[s.prev])) { a++; }
       return a;
-    }, 0) * config.amtLoss!;
-    // Penalty for the size of the switches
-    acc += child[0][i].switch.reduce((a, s) => {
+    }, 0) * config.amtLoss!
+  }, 0);
+}
+
+function getSwitchDistanceLoss(child: [XData, GenePool], config: Config): number {
+  return child[0].reduce<number>((acc, c, i) => {
+    // Penalty for the amount of switches
+    return acc += child[0][i].switch.reduce((a, s) => {
       if (!child[0][i].add.includes(child[0][i].state[s.prev])) { a += Math.abs(s.target - s.prev); }
       return a;
-    }, 0) * config.lengthLoss!;
-    // todo check edit distance
-    // if(i>0) acc += levenshtein(child[0][i].switch, child[0][i-1].switch)
-  }
-  return acc;
+    }, 0) * config.amtLoss!
+  }, 0);
 }
 
 // todo implement config option isCentered
@@ -132,7 +139,7 @@ function getStateVector(xLayer: XLayer, maxLen: number, config: Config): string[
 }
 
 function getRandomGene(): number {
-  return Math.pow(Math.random(), 1) * 2 - 1;
+  return Math.pow(Math.random(), 0.2) * 2 - 1;
 }
 
 export { fit, getRandomGene };

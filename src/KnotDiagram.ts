@@ -1,6 +1,6 @@
 import { Spec } from "vega";
 import { DrawSpec } from "./DrawSpec";
-import {filter} from "./Filter";
+import { filter } from "./Filter";
 import { fit } from "./Optimizer";
 import { fromArray, fromRanges, fromTable } from "./PreProcessing";
 import { Config, Data, RenderedPoint } from "./Types";
@@ -26,11 +26,11 @@ export class KnotDiagram {
     } else if (this.config.dataFormat === "table") {
       if (!this.config.xField) { console.warn("Specify your x field"); }
       if (!this.config.yField) { console.warn("Specify your y fields"); }
-      this.data = fromTable(data, this.config.xField!, this.config.yField! as string[], this.config.splitFunction);
+      this.data = fromTable(data, this.config.yField! as string[], this.config.xField!, this.config.splitFunction);
     } else if (this.config.dataFormat === "array") {
       if (!this.config.xField) { console.warn("Specify your x field"); }
       if (!this.config.yField) { console.warn("Specify your y-array field"); }
-      this.data = fromArray(data, this.config.xField!, this.config.yField! as string);
+      this.data = fromArray(data, this.config.yField! as string, this.config.xField!);
     } else {
       console.log("Invalid data format");
     }
@@ -40,15 +40,15 @@ export class KnotDiagram {
     this.processedData = filter(this.data, this.config);
     this.processedData = fit(this.processedData, this.config);
     this.renderedGrid = DrawSpec.draw(this.processedData, this.config);
-    console.log(this.renderedGrid);
-    this.spec = DrawSpec.getSpecOld(this.renderedGrid, this.config);
-
+    if (this.config.verbose) console.log(this.renderedGrid);
+    return DrawSpec.getSpecOld(this.renderedGrid, this.config);
   }
 
   /**
    * If undefined, set default values for the config object
    */
   private checkDefaultConfig() {
+    if (!this.config.verbose) { this.config.verbose = false; }
     if (!this.config.xDescription) { this.config.xDescription = (l) => String(l.xValue); }
     if (!this.config.yPadding) { this.config.yPadding = 40; }
     if (!this.config.xPadding) { this.config.xPadding = 60; }
@@ -68,7 +68,6 @@ export class KnotDiagram {
     if (!this.config.filterGroupSize) { this.config.filterGroupSize = [0, Number.MAX_SAFE_INTEGER]; }
     if (!this.config.filterCustomX) { this.config.filterCustomX = (xLayer) => true; }
     if (!this.config.filterXValueLifeTime) { this.config.filterXValueLifeTime = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]; }
-    if (!this.config.filterIndexLifeTime) { this.config.filterIndexLifeTime = [0, Number.MAX_SAFE_INTEGER]; }
     if (!this.config.filterGroupAmt) { this.config.filterGroupAmt = [0, Number.MAX_SAFE_INTEGER]; }
     if (!this.config.filterCustomY) { this.config.filterCustomY = (yLayer) => true; }
     if (!this.config.amtLoss) { this.config.amtLoss = 80; }

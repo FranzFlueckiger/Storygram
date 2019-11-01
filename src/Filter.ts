@@ -1,7 +1,7 @@
 import { Config, Data, YLayer } from "./Types";
 
 function filter(data: Data, config: Config): Data {
-  console.log("Pre Filtering", data);
+  if (config.verbose) console.log("Pre Filtering", data);
   // filter xs
   data = filterX(data, config);
   // filter ys
@@ -9,7 +9,7 @@ function filter(data: Data, config: Config): Data {
   // remove x points without y points
   data.xData = data.xData.filter((layer) => layer.group.length > 0);
   setLifeCycles(data, config);
-  console.log("Post Filtering", data);
+  if (config.verbose) console.log("Post Filtering", data);
   return data;
 }
 
