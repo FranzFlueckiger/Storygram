@@ -10,8 +10,8 @@ async function drawKD() {
         yField: ['a', 'b', 'c', 'd'],
         continuousStart: false,
         continuousEnd: false,
-        populationSize: 50,
-        generationAmt: 50
+        generationAmt: 200,
+        populationSize: 200
     }
     const KD = new KnotDiagram(testTableData(), config)
     await vega("#viz", KD.getSpec());

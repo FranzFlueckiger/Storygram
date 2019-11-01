@@ -57,14 +57,12 @@ export interface Config {
     filterGroupAmt?: [number, number];
     // todo y filter for data predicates
     filterCustomY?: (yLayer: YLayer) => boolean;
+    // Penalty for changing y point from previous layer to the next
+    linearLoss?: number;
     // Penalty for the amount of switches
     amtLoss?: number;
     // Penalty for the length of the switches
     lengthLoss?: number;
-    // Penalty for adding yLayers in the middle
-    centeredAddLoss?: number;
-    // Penalty for removing yLayers in the middle
-    centeredRemoveLoss?: number;
 }
 
 export class XLayer {
@@ -103,7 +101,7 @@ export class YLayer {
 }
 
 export interface Child {
-    score: number;
+    loss: number;
     gene: GenePool;
     x: XData;
 }

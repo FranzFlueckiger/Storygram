@@ -56,8 +56,8 @@ export class KnotDiagram {
     if (!this.config.xValueScaling) { this.config.xValueScaling = 0; }
     if (!this.config.generationAmt) { this.config.generationAmt = 10; }
     if (!this.config.populationSize) { this.config.populationSize = 10; }
-    if (!this.config.selectionRate) { this.config.selectionRate = 0.125; }
-    if (!this.config.mutationProbability) { this.config.mutationProbability = 0.05; }
+    if (!this.config.selectionRate) { this.config.selectionRate = 0.25; }
+    if (!this.config.mutationProbability) { this.config.mutationProbability = 0.025; }
     if (this.config.continuousStart == undefined) { this.config.continuousStart = true; }
     if (this.config.continuousEnd == undefined) { this.config.continuousEnd = true; }
     if (this.config.centered == undefined) { this.config.centered = true; }
@@ -70,10 +70,9 @@ export class KnotDiagram {
     if (!this.config.filterXValueLifeTime) { this.config.filterXValueLifeTime = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]; }
     if (!this.config.filterGroupAmt) { this.config.filterGroupAmt = [0, Number.MAX_SAFE_INTEGER]; }
     if (!this.config.filterCustomY) { this.config.filterCustomY = (yLayer) => true; }
-    if (!this.config.amtLoss) { this.config.amtLoss = 80; }
-    if (!this.config.lengthLoss) { this.config.lengthLoss = 4; }
-    if (!this.config.centeredAddLoss) { this.config.centeredAddLoss = 0; }
-    if (!this.config.centeredRemoveLoss) { this.config.centeredRemoveLoss = 0; }
+    if (!this.config.linearLoss) { this.config.linearLoss = 1; }
+    if (!this.config.amtLoss) { this.config.amtLoss = 1; }
+    if (!this.config.lengthLoss) { this.config.lengthLoss = 1; }
   }
 
 }
