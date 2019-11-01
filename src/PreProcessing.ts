@@ -52,7 +52,10 @@ function processXFirst(format: "table" | "array", inputData: object[], xField: s
         let xObj: XLayer
         // @ts-ignore
         if (xField && xField in x) xObj = new XLayer(x[xField], x);
-        else xObj = new XLayer(i, x)
+        else {
+            xObj = new XLayer(i, x)
+            console.warn('xField not found on layer, using index instead.', x)
+        }
         xObj.id = i;
         if (format === "table") {
             xObj.group = extractYsFromTable(x, yField as string[], splitFunction);

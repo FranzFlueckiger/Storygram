@@ -37,7 +37,7 @@ function select(population: Child[], config: Config): Child[] {
   const parents = [];
   const length = population.length * config.selectionRate!;
   for (let i = 0; i < length; i++) {
-    const index = Math.floor(Math.pow(Math.random(), 8) * population.length);
+    const index = Math.floor(Math.pow(Math.random(), config.selectionSeverity!) * population.length);
     const parent = population[index];
     population.splice(index, 1);
     parents.push(parent);

@@ -8,9 +8,9 @@ import { Config, Data, RenderedPoint } from "./Types";
 export class KnotDiagram {
 
   public spec!: Spec;
-  private processedData!: Data;
-  private renderedGrid!: [RenderedPoint[], number, number];
+  public processedData!: Data;
   public data!: Data;
+  private renderedGrid!: [RenderedPoint[], number, number];
 
   public constructor(private rawData: any[], private config: Config) {
     this.checkDefaultConfig();
@@ -32,7 +32,7 @@ export class KnotDiagram {
       if (!this.config.yField) { console.warn("Specify your y-array field"); }
       this.data = fromArray(data, this.config.yField! as string, this.config.xField!);
     } else {
-      console.log("Invalid data format");
+      console.warn("Invalid data format, choose between array, table and ranges");
     }
   }
 
@@ -45,7 +45,7 @@ export class KnotDiagram {
   }
 
   /**
-   * If undefined, set default values for the config object
+   * If not set, set default values for the config object
    */
   private checkDefaultConfig() {
     if (!this.config.verbose) { this.config.verbose = false; }
@@ -57,6 +57,7 @@ export class KnotDiagram {
     if (!this.config.generationAmt) { this.config.generationAmt = 10; }
     if (!this.config.populationSize) { this.config.populationSize = 10; }
     if (!this.config.selectionRate) { this.config.selectionRate = 0.25; }
+    if (!this.config.selectionSeverity) { this.config.selectionSeverity = 8; }
     if (!this.config.mutationProbability) { this.config.mutationProbability = 0.025; }
     if (this.config.continuousStart == undefined) { this.config.continuousStart = true; }
     if (this.config.continuousEnd == undefined) { this.config.continuousEnd = true; }

@@ -1,6 +1,6 @@
 import { KnotDiagram } from '../src/KnotDiagram'
-import { Data, Config, } from '../src/Types'
-import { testArrayData } from './testData'
+import { Config, } from '../src/Types'
+import { testArrayData, testTableData } from './testData'
 
 test('from array', () => {
   let config: Config = {
@@ -26,87 +26,22 @@ test('from table', () => {
     xField: 'id',
     yField: ['a', 'b', 'c', 'd'],
   }
-  let KD = new KnotDiagram(testArrayData(), config)
+  const KD = new KnotDiagram(testTableData(), config)
   expect(KD.data.xData.length).toEqual(10);
   const layer4 = {
     xValue: 4,
-    data: { a: ['zf', 'lf', 'bf'], id: 4 },
+    data: { id: 4, a: 'zf', b: 'lf', c: 'bf' },
     switch: [],
     isHidden: false,
     add: [],
     remove: [],
-    group: [['zf', 'lf', 'bf']],
+    group: ['zf', 'lf', 'bf'],
     state: [],
     hiddenYs: [],
     id: 4
   }
   expect(KD.data.xData[4]).toEqual(layer4);
-  const yFF = {
-    data: {},
-    isHidden: false,
-    layers:
-      [{
-        add: [],
-        data: [Object],
-        group: [Array],
-        hiddenYs: [],
-        id: 1,
-        isHidden: false,
-        remove: [],
-        state: [],
-        switch: [],
-        xValue: 1
-      },
-      {
-        add: [],
-        data: [Object],
-        group: [Array],
-        hiddenYs: [],
-        id: 2,
-        isHidden: false,
-        remove: [],
-        state: [],
-        switch: [],
-        xValue: 2
-      },
-      {
-        add: [],
-        data: [Object],
-        group: [Array],
-        hiddenYs: [],
-        id: 3,
-        isHidden: false,
-        remove: [],
-        state: [],
-        switch: [],
-        xValue: 3
-      },
-      {
-        add: [],
-        data: [Object],
-        group: [Array],
-        hiddenYs: [],
-        id: 7,
-        isHidden: false,
-        remove: [],
-        state: [],
-        switch: [],
-        xValue: 7
-      },
-      {
-        add: [],
-        data: [Object],
-        group: [Array],
-        hiddenYs: [],
-        id: 8,
-        isHidden: false,
-        remove: [],
-        state: [],
-        switch: [],
-        xValue: 8
-      }],
-    yID: 'ff'
-  }
+  const yFF = "{\"yID\":\"ff\",\"data\":{},\"isHidden\":false,\"layers\":[{\"xValue\":1,\"data\":{\"id\":1,\"a\":\"ff\",\"b\":\"ef\",\"c\":\"af\",\"d\":\"zf\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"ef\",\"af\",\"zf\"],\"state\":[],\"hiddenYs\":[],\"id\":1},{\"xValue\":3,\"data\":{\"id\":3,\"a\":\"ff\",\"b\":\"gf\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"gf\"],\"state\":[],\"hiddenYs\":[],\"id\":2},{\"xValue\":3,\"data\":{\"id\":3,\"a\":\"ff\",\"b\":\"ef\",\"c\":\"cf\",\"d\":\"pf\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"ef\",\"cf\",\"pf\"],\"state\":[],\"hiddenYs\":[],\"id\":3},{\"xValue\":7,\"data\":{\"id\":7,\"a\":\"pf\",\"b\":\"ff\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[],\"group\":[\"pf\",\"ff\"],\"state\":[],\"hiddenYs\":[],\"id\":7},{\"xValue\":8,\"data\":{\"id\":8,\"a\":\"ff\",\"b\":\"gf\",\"c\":\"cf\",\"d\":\"af\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"gf\",\"cf\",\"af\"],\"state\":[],\"hiddenYs\":[],\"id\":8}]}"
   expect(KD.data.yData.size).toEqual(10);
-  expect(KD.data.yData.get('ff')).toEqual(yFF);
+  expect(JSON.stringify(KD.data.yData.get('ff'))).toEqual(yFF);
 })

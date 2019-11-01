@@ -29,6 +29,8 @@ export interface Config {
     populationSize?: number;
     // Selection rate for the next generation
     selectionRate?: number;
+    // How much are better scored childs preferred
+    selectionSeverity?: number;
     // probability that a gene mutates (value between 0 and 1)
     mutationProbability?: number;
     // whether the y-points start at the beginning or at the first grouping
