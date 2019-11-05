@@ -3,6 +3,8 @@ export interface Config {
     dataFormat: "table" | "array" | "ranges";
     // should information be shown on the console
     verbose?: boolean;
+    // name of the vega color scheme (more info at https://vega.github.io/vega/docs/schemes/)
+    colorScheme?: 'accent' | 'category10' | 'category20' | 'category20b' | 'category20c' | 'dark2' | 'paired' | 'pastel1' | 'pastel2' | 'set1' | 'set2' | 'set3' | 'tableau10' | 'tableau20' | 'blues' | 'tealblues' | 'teals' | 'greens' | 'browns' | 'oranges' | 'reds' | 'purples' | 'warmgreys' | 'greys' | 'viridis' | 'magma' | 'inferno' | 'plasma' | 'bluegreen' | 'bluepurple' | 'goldgreen' | 'goldorange' | 'goldred' | 'greenblue' | 'orangered' | 'purplebluegreen' | 'purpleblue' | 'purplered' | 'redpurple' | 'yellowgreenblue' | 'yellowgreen' | 'yelloworangebrown' | 'yelloworangered' | 'darkblue' | 'darkgold' | 'darkgreen' | 'darkmulti' | 'darkred' | 'lightgreyred' | 'lightgreyteal' | 'lightmulti' | 'lightorange' | 'lighttealblue' | 'blueorange' | 'brownbluegreen' | 'purplegreen' | 'pinkyellowgreen' | 'purpleorange' | 'redblue' | 'redgrey' | 'redyellowblue' | 'redyellowgreen' | 'spectral' | 'rainbow' | 'sinebow';
     // name of the field containing the x values
     xField?: string | undefined;
     // name of the field containing the x values

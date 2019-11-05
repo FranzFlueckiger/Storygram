@@ -49,6 +49,7 @@ export class KnotDiagram {
    */
   private checkDefaultConfig() {
     if (!this.config.verbose) { this.config.verbose = false; }
+    if (!this.config.colorScheme) { this.config.colorScheme = 'tableau10'; }
     if (!this.config.xDescription) { this.config.xDescription = (l) => String(l.xValue); }
     if (!this.config.yPadding) { this.config.yPadding = 40; }
     if (!this.config.xPadding) { this.config.xPadding = 60; }

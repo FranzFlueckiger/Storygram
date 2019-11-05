@@ -79,7 +79,7 @@ export class DrawSpec {
             strokeCap: "round",
           },
           encoding: {
-            color: { type: "nominal", field: "z", legend: null },
+            color: { type: "nominal", field: "z", legend: null, "scale": { "scheme": config.colorScheme }  },
             opacity: { value: 0.2 },
             x: { type: "quantitative", field: "value" },
             y: { type: "quantitative", field: "y" },

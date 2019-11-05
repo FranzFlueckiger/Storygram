@@ -60,7 +60,7 @@ function remove(a: string, visitor: string[]): string[] {
 function group(group: string[], visitor: string[]): Switch[] {
   // calculate the center
   const center: number = getCenter(group, visitor);
-  // calculate the distance from the mass center
+  // calculate the distance of each yPoint from the mass center
   const dists: Distance[] = getDistances(group, center, visitor);
   // array containing the switch operations
   const switches: Switch[] = [];
@@ -71,7 +71,9 @@ function group(group: string[], visitor: string[]): Switch[] {
   // first element is the descending edge, the second one the ascending
   strategies.set(1, { init: 1, comp: (i: number) => i < visitor.length });
   strategies.set(-1, { init: 0, comp: (i: number) => i >= 0 });
-  // Check for every y that has to be grouped if it is adjacent, else switch
+  // Check for every y that has to be grouped if it is adjacent, else switch.
+  // Since the distances are sorted for their absolute values, begin grouping 
+  // from the nearest to the farthest
   dists.forEach((p) => {
     const direction: number = -Math.sign(p.distance);
     if (direction != 0) {
