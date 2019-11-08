@@ -17,19 +17,19 @@ function fromRanges<T extends Record<string, unknown>>(
   const yData: YData = new Map();
   data.forEach((d, i) => {
     const dFromField = d[fromField];
-    if (dFromField && typeof dFromField === 'number') {
+    if (typeof dFromField === 'number') {
       xs.add(dFromField);
     } else {
       console.warn(`Value of fromField (${d[i]}) of y point nr. ${i} should be of type number.`);
     }
     const dToField = d[toField];
-    if (dToField && typeof dToField === 'number') {
+    if (typeof dToField === 'number') {
       xs.add(dToField);
     } else {
       console.warn(`Value of toField (${d[i]}) of y point nr. ${i} should be of type number.`);
     }
     const dyField = d[yField];
-    if (dyField && typeof dyField === 'string') {
+    if (typeof dyField === 'string') {
       yData.set(dyField, new YLayer(dyField, d));
     } else {
       console.warn(`Value of yField (${d[i]}) of y point nr. ${i} should be of type string.`);

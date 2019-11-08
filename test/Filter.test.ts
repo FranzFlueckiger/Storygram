@@ -1,10 +1,10 @@
 import { filter } from '../src/Filter';
 import KnotDiagram from '../src/KnotDiagram';
-import { Data, ArrayData, BaseConfig } from '../src/Types';
+import { Data, Config } from '../src/Types';
 import { testArrayData } from './testData';
 
 test('filter group size and amt', () => {
-  const config: Partial<BaseConfig> & ArrayData = {
+  const config: Config = {
     dataFormat: 'array',
     xField: 'id',
     yArrayField: 'a',
@@ -201,7 +201,7 @@ test('filter group size and amt', () => {
 });
 
 test('filter XValue and XValue lifetime', () => {
-  const config: Partial<BaseConfig> & ArrayData = {
+  const config: Config = {
     dataFormat: 'array',
     xField: 'id',
     yArrayField: 'a',
@@ -480,11 +480,11 @@ test('filter XValue and XValue lifetime', () => {
 });
 
 test('filter custom X filter', () => {
-  const config: Partial<BaseConfig> & ArrayData = {
+  const config: Config = {
     dataFormat: 'array',
     xField: 'id',
     yArrayField: 'a',
-    filterCustomX: xLayer => xLayer.id % 2 === 0,
+    filterCustomX: xLayer => xLayer.id! % 2 === 0,
   };
   const KD = new KnotDiagram(testArrayData(), config);
   const newData: Data = filter(KD.data, KD.config);
@@ -667,7 +667,7 @@ test('filter custom X filter', () => {
 });
 
 test('filter custom Y filter', () => {
-  const config: Partial<BaseConfig> & ArrayData = {
+  const config: Config = {
     dataFormat: 'array',
     xField: 'id',
     yArrayField: 'a',

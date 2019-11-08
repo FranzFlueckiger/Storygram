@@ -80,9 +80,7 @@ function filterY(data: Data, config: Config): Data {
 
 function setLifeCycles(data: Data, config: Config) {
   data.xData.forEach((xLayer, i) => {
-    if (!xLayer.isHidden) {
       xLayer.index = i;
-    }
   });
   Array.from(data.yData).forEach(yMap => {
     const y: YLayer = yMap[1];
@@ -92,12 +90,12 @@ function setLifeCycles(data: Data, config: Config) {
       if (config.continuousStart) {
         data.xData[0].add.push(y.yID);
       } else {
-        data.xData[activeLayers[0].index].add.push(y.yID);
+        data.xData[activeLayers[0].index!].add.push(y.yID);
       }
       if (config.continuousEnd) {
         data.xData[data.xData.length - 1].remove.push(y.yID);
       } else {
-        data.xData[activeLayers[activeLayers.length - 1].index].remove.push(y.yID);
+        data.xData[activeLayers[activeLayers.length - 1].index!].remove.push(y.yID);
       }
     }
   });
