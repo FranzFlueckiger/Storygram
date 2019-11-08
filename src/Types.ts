@@ -122,17 +122,17 @@ export interface BaseConfig {
   // x filter check if the XLayer contains the given YLayer
   mustContain: string[];
   // x filter (Positive and Negative x-Value ranges possible)
-  filterXValue: [number, number];
+  filterXValue: [number | undefined, number | undefined];
   // x filter (Positive group sizes only)
-  filterGroupSize: [number, number];
+  filterGroupSize: [number | undefined, number | undefined];
   // todo x filter for data predicates
   filterCustomX: (xLayer: XLayer) => boolean;
   // y filter check if the YLayers interacted with the given ones at the specified depth
-  interactedWith: [string[], number];
+  interactedWith: [string[], number | undefined];
   // y filter (Positive and Negative x value lifetimes possible)
-  filterXValueLifeTime: [number, number];
+  filterXValueLifeTime: [number | undefined, number | undefined];
   // y filter (Positive group amounts only)
-  filterGroupAmt: [number, number];
+  filterGroupAmt: [number | undefined, number | undefined];
   // todo y filter for data predicates
   filterCustomY: (yLayer: YLayer) => boolean;
   // Penalty for changing y point from previous layer to the next
