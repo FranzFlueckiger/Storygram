@@ -1,4 +1,4 @@
-import { KnotDiagram } from './KnotDiagram'
-import { Config } from './Types'
+import KnotDiagram from './KnotDiagram';
+import { FullConfig } from './Types';
 
-export { KnotDiagram, Config }
+export { KnotDiagram, FullConfig as Config };
