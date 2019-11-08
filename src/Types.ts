@@ -145,6 +145,8 @@ export interface BaseConfig {
 
 export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
 
+export type FullConfig = BaseConfig & (RangeData | ArrayData | TableData);
+
 export class XLayer {
   public id?: number;
 

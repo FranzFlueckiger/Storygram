@@ -1,10 +1,10 @@
-import { Child, FullConfig, Data, GenePool, Switch, XLayer, XData } from './Types';
+import { Child, FullConfig, Data, GenePool, XLayer, XData } from './Types';
 import { visit } from './Visitor';
 
 function getGeneration(data: Data, yEntryPoints: Array<Map<string, number>> | undefined, config: FullConfig): Child[] {
   const population: Child[] = [];
   // Compute new generation
-  for (let i = 0; i < config.populationSize!; i++) {
+  for (let i = 0; i < config.populationSize; i++) {
     const entryPoints = yEntryPoints ? yEntryPoints[i] : undefined;
     const result: [XLayer[], GenePool] = visit(data, entryPoints);
     const loss = getLoss(result, config);
@@ -33,7 +33,7 @@ function getSwitchAmountLoss(child: [XData, GenePool], config: FullConfig): numb
     child[0].reduce<number>((acc, xLayer) => {
       // Penalty for the amount of switches
       return (acc += xLayer.switch.length);
-    }, 0) * config.amtLoss!
+    }, 0) * config.amtLoss
   );
 }
 
@@ -46,7 +46,7 @@ function getSwitchDistanceLoss(child: [XData, GenePool], config: FullConfig): nu
           a += Math.abs(switches.target - switches.prev);
         }
         return a;
-      }, 0) * config.amtLoss!);
+      }, 0) * config.amtLoss);
   }, 0);
 }
 
@@ -82,11 +82,11 @@ function getLoss(child: [XData, GenePool], config: FullConfig): number {
   score += getSwitchDistanceLoss(child, config);
   return score;
 }
-function fit(data: Data, config: FullConfig): Data {
+function fit(data: Data, config: FullConfig) {
   let best: Child | undefined;
   let population: Child[];
   let newGenes: Array<Map<string, number>> | undefined;
-  for (let i = 0; i < config.generationAmt!; i++) {
+  for (let i = 0; i < config.generationAmt; i++) {
     population = getGeneration(data, newGenes, config);
     for (const child of population) {
       if (!best || child.loss < best.loss) {
@@ -98,14 +98,16 @@ function fit(data: Data, config: FullConfig): Data {
     newGenes = mate(parents, config);
     newGenes = mutate(data, newGenes, config);
   }
-  return { xData: best!.x, yData: data.yData };
+  if (best) {
+    return { xData: best.x, yData: data.yData };
+  }
 }
 
 function select(population: Child[], config: FullConfig): Child[] {
   const parents = [];
-  const length = population.length * config.selectionRate!;
+  const length = population.length * config.selectionRate;
   for (let i = 0; i < length; i++) {
-    const index = Math.floor(Math.random() ** config.selectionSeverity! * population.length);
+    const index = Math.floor(Math.random() ** config.selectionSeverity * population.length);
     const parent = population[index];
     population.splice(index, 1);
     parents.push(parent);
@@ -115,12 +117,12 @@ function select(population: Child[], config: FullConfig): Child[] {
 
 function mate(parents: Child[], config: FullConfig): GenePool[] {
   const genes = [];
-  for (let i = 0; i < parents.length / config.selectionRate!; i++) {
+  for (let i = 0; i < parents.length / config.selectionRate; i++) {
     const index = Math.floor(Math.random() ** 5 * parents.length);
-    const parent1 = parents[index];
-    const parent2 = parents[index];
-    const gene1 = Array.from(parent1!.gene);
-    const gene2 = Array.from(parent2!.gene);
+    const parent1 = parents[index] as Child;
+    const parent2 = parents[index] as Child;
+    const gene1 = Array.from(parent1.gene);
+    const gene2 = Array.from(parent2.gene);
     const newGene = gene1.reduce<GenePool>((map, gene, j) => {
       if (Math.random() < 0.5) {
         gene = gene2[j];
@@ -137,7 +139,7 @@ function mutate(data: Data, genes: GenePool[], config: FullConfig) {
     data.xData.forEach(x => {
       if (!x.isHidden) {
         x.add.forEach(y => {
-          if (Math.random() < config.mutationProbability!) {
+          if (Math.random() < config.mutationProbability) {
             const newY = getRandomGene();
             genes[i].set(y, newY);
           }
