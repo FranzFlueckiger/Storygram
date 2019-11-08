@@ -2,7 +2,7 @@ import DrawSpec from './DrawSpec';
 import { filter } from './Filter';
 import { fit } from './Optimizer';
 import { fromArray, fromRanges, fromTable } from './PreProcessing';
-import { Config, Data, RenderedPoint, BaseConfig } from './Types';
+import { Config, Data, RenderedPoint, BaseConfig, FullConfig } from './Types';
 
 export default class KnotDiagram<T extends {}> {
   public processedData!: Data;
@@ -41,7 +41,7 @@ export default class KnotDiagram<T extends {}> {
     lengthLoss: 1,
   };
 
-  public config: Config;
+  public config: FullConfig;
 
   public constructor(rawData: T[], config: Config) {
     this.config = { ...this.baseConfig, ...config };
@@ -66,7 +66,7 @@ export default class KnotDiagram<T extends {}> {
 
   public getSpec() {
     this.processedData = filter(this.data, this.config);
-    this.processedData = fit(this.processedData, this.config);
+    this.processedData = fit(this.processedData, this.config) as Data;
     this.renderedGrid = DrawSpec.draw(this.processedData, this.config);
     if (this.config.verbose) {
       console.log(this.renderedGrid);
