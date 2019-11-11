@@ -41,4 +41,22 @@ async function drawTableKD() {
   await vega('#viz', KD.getSpec());
 }
 
-drawTableKD();
+async function drawPaperExample() {
+  const data = [
+    { politicians: ['y0', 'y1', 'y2'], election_nr: 0 },
+    { politicians: ['y0', 'y2', 'y3'], election_nr: 1},
+    { politicians: ['y1', 'y2', 'y3'], election_nr: 2 },
+    { politicians: ['y1', 'y3', 'y4'], election_nr: 3 },
+  ];
+  const config: Config = {
+    dataFormat: 'array',
+    yArrayField: 'politicians',
+    xField: 'election_nr',
+    continuousStart: false,
+    continuousEnd: false
+  };
+  const KD = new KnotDiagram(data, config);
+  await vega('#viz', KD.getSpec());
+}
+
+drawPaperExample();
