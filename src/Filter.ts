@@ -14,7 +14,7 @@ function filter(data: Data, config: Config): Data {
 }
 
 // todo test this
-function isInRange(p: number, range: [number, number] | undefined): boolean {
+function isInRange(p: number, range: [number | undefined, number | undefined] | undefined): boolean {
   return range ? (range[0] ? p >= range[0] : true) && (range[1] ? p <= range[1] : true) : true;
 }
 
