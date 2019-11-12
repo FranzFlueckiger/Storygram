@@ -4,6 +4,10 @@ import { fit } from './Optimizer';
 import { fromArray, fromRanges, fromTable } from './PreProcessing';
 import { Config, Data, RenderedPoint, BaseConfig, FullConfig } from './Types';
 
+/**
+ * href
+ */
+
 export default class KnotDiagram<T extends {}> {
   public processedData!: Data;
 
@@ -16,6 +20,7 @@ export default class KnotDiagram<T extends {}> {
     colorScheme: 'tableau10',
     lineSize: 12,
     xDescription: l => String(l.xValue),
+    url: (xLayer, yLayer) => 'https://www.google.ch/search?q=' + String(xLayer.xValue) + ' ' + yLayer.yID,
     xPadding: 60,
     yPadding: 40,
     xValueScaling: 0,

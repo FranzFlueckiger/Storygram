@@ -91,6 +91,8 @@ export interface BaseConfig {
   splitFunction?: ((arg: string) => string[]) | undefined;
   // function that returns a string describing the selected x
   xDescription: (arg: XLayer) => string;
+  // link to a desired url from the group nodes
+  url: (xLayer: XLayer, yLayer: YLayer) => string;
   // the height of the whole chart
   yPadding: number;
   // the width of the whole chart
@@ -230,6 +232,9 @@ export class RenderedPoint {
     public isGrouped: boolean,
     public strokeWidth: number,
     public xVal: number,
-    public xDescription: string
+    public xDescription: string,
+    public url: string,
+    public hiddenYs: string[],
+    public hiddenYsAmt: number
   ) {}
 }

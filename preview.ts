@@ -22,7 +22,8 @@ async function drawArrayKD() {
     yArrayField: 'a',
     xField: 'id',
     continuousStart: false,
-    continuousEnd: false
+    continuousEnd: false,
+    centered: false
   };
   const KD = new KnotDiagram(testArrayData(), config);
   await vega('#viz', KD.getSpec());
@@ -59,4 +60,4 @@ async function drawPaperExample() {
   await vega('#viz', KD.getSpec());
 }
 
-drawPaperExample();
+drawArrayKD();

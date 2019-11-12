@@ -21,6 +21,7 @@ export default class DrawSpec {
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
       xLayer.state.forEach((yID: string, yIndex: number) => {
+        const yVal = data.yData.get(yID)
         const isGrouped = xLayer.group.some(a => a === yID);
         let yDrawn = config.centered ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
         yDrawn += offset;
@@ -28,13 +29,14 @@ export default class DrawSpec {
         const xVal = xLayer.xValue;
         const xDrawn = scaling * xVal + (1 - scaling) * xIndex;
         const xDescription = config.xDescription!(xLayer);
-        const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xVal, xDescription);
+        const url = config.url(xLayer, yVal!)
+        const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xVal, xDescription, url, xLayer.hiddenYs, xLayer.hiddenYs.length);
         result.push(point);
       });
     });
-    // console.log(visitor)
-    // console.log(result)
-    // todo this is ugly and inefficient
+    // todo this is ugly and inefficient, should be resolved inside altair's chart spec
+    // in this first step we gather all the information from the previously rendered
+    // points and group them by their yID (for altair it's the z-value)
     const points = new Map();
     result.forEach(r => {
       const arr = points.get(r.z) ? points.get(r.z) : [];
@@ -42,13 +44,16 @@ export default class DrawSpec {
       points.set(r.z, arr);
     });
     result.map((r: any) => {
-      const point = points.get(r.z);
-      r.pointsX = point.map((g: any) => g.x);
-      r.pointsY = point.map((g: any) => g.y);
-      r.pointsBool = point.map((g: any) => g.bool);
-      r.pointsSize = point.map((g: any) => g.strokeWidth);
+      if (r.isGrouped) {
+        const point = points.get(r.z);
+        r.pointsX = point.map((g: any) => g.x);
+        r.pointsY = point.map((g: any) => g.y);
+        r.pointsBool = point.map((g: any) => g.bool);
+        r.pointsSize = point.map((g: any) => g.strokeWidth);
+      }
       return r;
     });
+    console.log(JSON.stringify(result))
     return [result, maxYLen, xLen];
   }
 
