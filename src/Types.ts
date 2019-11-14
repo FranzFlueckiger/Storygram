@@ -225,6 +225,10 @@ export class RenderedPoint {
 
   public pointsSize: [] = [];
 
+  public hiddenYs: string[] = [];
+
+  public hiddenYsAmt: number = 0;
+
   public constructor(
     public x: number,
     public y: number,
@@ -233,8 +237,6 @@ export class RenderedPoint {
     public strokeWidth: number,
     public xVal: number,
     public xDescription: string,
-    public url: string,
-    public hiddenYs: string[],
-    public hiddenYsAmt: number
+    public url: string
   ) {}
 }

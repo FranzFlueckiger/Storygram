@@ -9,7 +9,6 @@ export default class DrawSpec {
    * set the adaptive tick length
    */
 
-  // todo normalize coordinates
   public static draw(data: Data, config: FullConfig): [RenderedPoint[], number, number] {
     const result: RenderedPoint[] = [];
     const maxYLen = data.xData.reduce((max, layer) => Math.max(max, layer.state.length), 0);
@@ -20,9 +19,13 @@ export default class DrawSpec {
       if (config.centered) {
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
+      let firstGroupedIndex = -1
       xLayer.state.forEach((yID: string, yIndex: number) => {
         const yVal = data.yData.get(yID)
         const isGrouped = xLayer.group.some(a => a === yID);
+        if (isGrouped && firstGroupedIndex === -1) {
+          firstGroupedIndex = yIndex
+        }
         let yDrawn = config.centered ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
         yDrawn += offset;
         const strokeWidth = config.strokeWidth(xLayer);
@@ -30,7 +33,13 @@ export default class DrawSpec {
         const xDrawn = scaling * xVal + (1 - scaling) * xIndex;
         const xDescription = config.xDescription!(xLayer);
         const url = config.url(xLayer, yVal!)
-        const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xVal, xDescription, url, xLayer.hiddenYs, xLayer.hiddenYs.length);
+        const hiddenYs = xLayer.hiddenYs
+        const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xVal, xDescription, url);
+        if (firstGroupedIndex + xLayer.group.length - 1 === yIndex) {
+          console.log('furz!', xLayer)
+          point.hiddenYs = hiddenYs
+          point.hiddenYsAmt = hiddenYs.length
+        }
         result.push(point);
       });
     });
@@ -43,6 +52,7 @@ export default class DrawSpec {
       arr.push({ x: r.x, y: r.y, bool: r.isGrouped, strokeWidth: r.strokeWidth });
       points.set(r.z, arr);
     });
+    // then we insert these 'interaction arrays' in the grouped points
     result.map((r: any) => {
       if (r.isGrouped) {
         const point = points.get(r.z);
@@ -53,6 +63,7 @@ export default class DrawSpec {
       }
       return r;
     });
+    console.log(result)
     console.log(JSON.stringify(result))
     return [result, maxYLen, xLen];
   }
