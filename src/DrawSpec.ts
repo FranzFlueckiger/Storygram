@@ -19,12 +19,12 @@ export default class DrawSpec {
       if (config.centered) {
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
-      let firstGroupedIndex = -1
+      let lastGroupedIndex = Number.MIN_SAFE_INTEGER
       xLayer.state.forEach((yID: string, yIndex: number) => {
         const yVal = data.yData.get(yID)
         const isGrouped = xLayer.group.some(a => a === yID) ? 1 : 0;
-        if (isGrouped && firstGroupedIndex === -1) {
-          firstGroupedIndex = yIndex
+        if (isGrouped) {
+          lastGroupedIndex = yIndex
         }
         let yDrawn = config.centered ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
         yDrawn += offset;
@@ -35,9 +35,10 @@ export default class DrawSpec {
         const url = config.url(xLayer, yVal!)
         const hiddenYs = xLayer.hiddenYs
         const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xVal, xDescription, url);
-        if (firstGroupedIndex + xLayer.group.length - 1 === yIndex) {
+        if ((lastGroupedIndex != yIndex && lastGroupedIndex != Number.MAX_SAFE_INTEGER) || xLayer.state.length - 1 === yIndex) {
           point.hiddenYs = hiddenYs
           point.hiddenYsAmt = hiddenYs.length
+          lastGroupedIndex = Number.MAX_SAFE_INTEGER
         }
         result.push(point);
       });

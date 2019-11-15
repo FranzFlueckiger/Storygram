@@ -37,7 +37,8 @@ async function drawTableKD() {
     xField: 'id',
     continuousStart: false,
     continuousEnd: false,
-    filterGroupAmt: [2, undefined]
+    filterGroupAmt: [4, undefined],
+    centered: false
   };
   const KD = new KnotDiagram(testTableData(), config);
   await vega('#viz', KD.getSpec());

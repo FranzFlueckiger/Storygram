@@ -31,7 +31,7 @@ export default class KnotDiagram<T extends {}> {
     mutationProbability: 0.025,
     continuousStart: true,
     continuousEnd: true,
-    centered: true,
+    centered: false,
     strokeWidth: () => 0,
     mustContain: [],
     interactedWith: [[], 0],
