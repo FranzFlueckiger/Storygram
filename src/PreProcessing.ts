@@ -20,20 +20,19 @@ function fromRanges<T extends Record<string, unknown>>(
     if (typeof dFromField === 'number') {
       xs.add(dFromField);
     } else {
-      console.warn(`Value of fromField (${d[i]}) of y point nr. ${i} should be of type number.`);
+      console.warn(`Value of fromField (${dFromField}) of y point nr. ${i} should be of type number.`);
     }
     const dToField = d[toField];
     if (typeof dToField === 'number') {
       xs.add(dToField);
     } else {
-      console.warn(`Value of toField (${d[i]}) of y point nr. ${i} should be of type number.`);
+      console.warn(`Value of toField (${dToField}) of y point nr. ${i} should be of type number.`);
     }
     const dyField = d[yField];
-    if (typeof dyField === 'string') {
-      yData.set(dyField, new YLayer(dyField, d));
-    } else {
-      console.warn(`Value of yField (${d[i]}) of y point nr. ${i} should be of type string.`);
+    if (typeof dyField != 'string') {
+      console.warn(`Value of yField (${dyField}) of y point nr. ${i} should be of type string.`);
     }
+    yData.set(String(dyField), new YLayer(String(dyField), d));
   });
   const sortedXs: number[] = Array.from(xs).sort((a, b) => a - b);
   const xData: XData = sortedXs.map(x => {

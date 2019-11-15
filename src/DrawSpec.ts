@@ -22,7 +22,7 @@ export default class DrawSpec {
       let firstGroupedIndex = -1
       xLayer.state.forEach((yID: string, yIndex: number) => {
         const yVal = data.yData.get(yID)
-        const isGrouped = xLayer.group.some(a => a === yID);
+        const isGrouped = xLayer.group.some(a => a === yID) ? 1 : 0;
         if (isGrouped && firstGroupedIndex === -1) {
           firstGroupedIndex = yIndex
         }
@@ -36,7 +36,6 @@ export default class DrawSpec {
         const hiddenYs = xLayer.hiddenYs
         const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xVal, xDescription, url);
         if (firstGroupedIndex + xLayer.group.length - 1 === yIndex) {
-          console.log('furz!', xLayer)
           point.hiddenYs = hiddenYs
           point.hiddenYsAmt = hiddenYs.length
         }

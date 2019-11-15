@@ -233,7 +233,7 @@ export class RenderedPoint {
     public x: number,
     public y: number,
     public z: string,
-    public isGrouped: boolean,
+    public isGrouped: number,
     public strokeWidth: number,
     public xVal: number,
     public xDescription: string,

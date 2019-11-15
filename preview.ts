@@ -21,7 +21,7 @@ async function drawArrayKD() {
     dataFormat: 'array',
     yArrayField: 'a',
     xField: 'id',
-    filterGroupAmt: [4, undefined],
+    filterGroupAmt: [3, undefined],
     continuousStart: false,
     continuousEnd: false,
     centered: false
@@ -45,10 +45,10 @@ async function drawTableKD() {
 
 async function drawPaperExample() {
   const data = [
-    { politicians: ['y0', 'y1', 'y2'], election_nr: 0 },
-    { politicians: ['y0', 'y2', 'y3'], election_nr: 1 },
-    { politicians: ['y1', 'y2', 'y3'], election_nr: 2 },
-    { politicians: ['y1', 'y3', 'y4'], election_nr: 3 },
+    { politicians: ['y0', 'y1', 'y2'], election_nr: 1990 },
+    { politicians: ['y0', 'y2', 'y3'], election_nr: 1992 },
+    { politicians: ['y1', 'y2', 'y3'], election_nr: 1994 },
+    { politicians: ['y1', 'y3', 'y4'], election_nr: 1996 },
   ];
   const config: Config = {
     dataFormat: 'array',
@@ -61,4 +61,4 @@ async function drawPaperExample() {
   await vega('#viz', KD.getSpec());
 }
 
-drawArrayKD();
+drawTableKD();
