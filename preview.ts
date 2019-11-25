@@ -80,4 +80,4 @@ async function drawBundesratExample() {
   await vega('#viz', KD.getSpec());
 }
 
-drawBundesratExample();
+drawArrayKD();

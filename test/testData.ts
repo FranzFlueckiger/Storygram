@@ -8,10 +8,10 @@ export function testArrayData() {
     { a: ['ff', 'ef', 'cf', 'pf'], id: 3 },
     { a: ['zf', 'lf', 'bf'], id: 4 },
     { a: ['gf', 'ef', 'af', 'pf'], id: 5 },
-    { a: ['bf', 'gf', 'kf'], id: 6 },
-    { a: ['pf', 'ff'], id: 7 },
-    { a: ['ff', 'gf', 'cf', 'af'], id: 8 },
-    { a: ['ef', 'gf', 'zf'], id: 9 },
+    { a: ['bf', 'gf', 'kf'], id: 5 },
+    { a: ['pf', 'ff'], id: 6 },
+    { a: ['ff', 'gf', 'cf', 'af'], id: 6 },
+    { a: ['ef', 'gf', 'zf'], id: 7 },
   ];
 }
 

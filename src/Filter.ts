@@ -87,13 +87,11 @@ function setLifeCycles(data: Data, config: Config) {
     const activeLayers = y.layers ? y.layers.filter(l => !l.isHidden) : [];
     if (!y.isHidden) {
       // check where to add the y-point
-      // todo check this
       if (config.continuousStart || (config.dataFormat === 'ranges' && !config.startField)) {
         data.xData[0].add.push(y.yID);
       } else {
         data.xData[activeLayers[0].index!].add.push(y.yID);
       }
-      // todo check this
       if (config.continuousEnd || (config.dataFormat === 'ranges' && !config.endField)) {
         data.xData[data.xData.length - 1].remove.push(y.yID);
       } else {

@@ -235,7 +235,7 @@ export class RenderedPoint {
     public z: string,
     public isGrouped: number,
     public strokeWidth: number,
-    public xVal: number,
+    public xVal: number | string,
     public xDescription: string,
     public url: string
   ) {}

@@ -14,6 +14,7 @@ export default class DrawSpec {
     const maxYLen = data.xData.reduce((max, layer) => Math.max(max, layer.state.length), 0);
     const xLen = data.xData.length;
     const scaling = config.xValueScaling;
+    let xVal: number | string = ''
     data.xData.forEach((xLayer, xIndex) => {
       let offset = 0;
       if (config.centered) {
@@ -29,12 +30,18 @@ export default class DrawSpec {
         let yDrawn = config.centered ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
         yDrawn += offset;
         const strokeWidth = config.strokeWidth(xLayer);
-        const xVal = xLayer.xValue;
+        let xValueLegend
+        if (xVal === xLayer.xValue) {
+          xValueLegend = ''
+        } else {
+          xValueLegend = xLayer.xValue
+        }
+        xVal = xLayer.xValue;
         const xDrawn = scaling * xVal + (1 - scaling) * xIndex;
         const xDescription = config.xDescription!(xLayer);
         const url = config.url(xLayer, yVal!)
         const hiddenYs = xLayer.hiddenYs
-        const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xVal, xDescription, url);
+        const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xValueLegend, xDescription, url);
         if (lastGroupedIndex! < yIndex && lastGroupedIndex != undefined) {
           result[result.length-1].hiddenYs = hiddenYs
           result[result.length - 1].hiddenYsAmt = hiddenYs.length
