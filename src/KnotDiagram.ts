@@ -76,6 +76,6 @@ export default class KnotDiagram<T extends {}> {
     if (this.config.verbose) {
       console.log(this.renderedGrid);
     }
-    return DrawSpec.getSpecOld(this.renderedGrid, this.config);
+    return DrawSpec.getSpecNew(this.renderedGrid, this.config);
   }
 }

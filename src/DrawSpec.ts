@@ -72,7 +72,703 @@ export default class DrawSpec {
   }
 
   public static getSpecNew(data: [RenderedPoint[], number, number], config: FullConfig): Spec {
-    return {};
+    return {
+      "$schema": "https://vega.github.io/schema/vega/v5.json",
+      "autosize": "pad",
+      "padding": 5,
+      "width": config.xPadding * data[2],
+      "height": config.yPadding * data[1],
+      "style": "cell",
+      "data": [
+        {
+          "name": "selector091_store",
+          "values": [
+            {
+              "unit": "\"layer_2\"",
+              "fields": [{ "type": "E", "field": "x" }],
+              "values": [0]
+            }
+          ]
+        },
+        {
+          "name": "data-f221015bd2373ebf46cb8f5eb959d40c",
+          "values": data[0]
+        },
+        {
+          "name": "data_0",
+          "source": "data-f221015bd2373ebf46cb8f5eb959d40c",
+          "transform": [
+            { "type": "formula", "expr": "toNumber(datum[\"y\"])", "as": "y" }
+          ]
+        },
+        {
+          "name": "data_2",
+          "source": "data_0",
+          "transform": [
+            // todo easing
+            { "type": "formula", "expr": "(datum.x - 0.01)", "as": "xPre" },
+            { "type": "formula", "expr": "(datum.x + 0.01)", "as": "xPost" },
+            {
+              "type": "fold",
+              "fields": ["x", "xPre", "xPost"],
+              "as": ["key", "value"]
+            }
+          ]
+        },
+        {
+          "name": "data_3",
+          "source": "data_2",
+          "transform": [{ "type": "filter", "expr": "datum.isGrouped" }]
+        },
+        {
+          "name": "data_4",
+          "source": "data_3",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_5",
+          "source": "data_3",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "(vlSelectionTest(\"selector091_store\", datum))"
+            }
+          ]
+        },
+        {
+          "name": "data_6",
+          "source": "data_5",
+          "transform": [
+            { "type": "formula", "expr": "datum.x + 1", "as": "x2" },
+            { "type": "formula", "expr": "datum.y + 1", "as": "y2" },
+            {
+              "type": "filter",
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_7",
+          "source": "data_5",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_8",
+          "source": "data_2",
+          "transform": [
+            {
+              "type": "joinaggregate",
+              "as": ["yHi"],
+              "ops": ["max"],
+              "fields": ["y"]
+            },
+            { "type": "formula", "expr": "datum.yHi + 0.5", "as": "yHigh" },
+            {
+              "type": "filter",
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"yHigh\"] !== null && !isNaN(datum[\"yHigh\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_9",
+          "source": "data_2",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "(vlSelectionTest(\"selector091_store\", datum))"
+            }
+          ]
+        },
+        {
+          "name": "data_10",
+          "source": "data_9",
+          "transform": [
+            {
+              "type": "flatten",
+              "fields": ["pointsX", "pointsY", "pointsBool", "pointsSize"],
+              "as": ["pointX", "pointY", "pointBool", "pointSize"]
+            }
+          ]
+        },
+        {
+          "name": "data_11",
+          "source": "data_10",
+          "transform": [
+            {
+              "type": "lookup",
+              "from": "data_0",
+              "key": "x",
+              "fields": ["x"],
+              "as": ["x_selected"]
+            },
+            { "type": "formula", "expr": "(datum.pointX + 0.01)", "as": "pointXPre" },
+            {
+              "type": "formula",
+              "expr": "(datum.pointX - 0.01)",
+              "as": "pointXPost"
+            },
+            {
+              "type": "fold",
+              "fields": ["pointX", "pointXPre", "pointXPost"],
+              "as": ["key", "value"]
+            },
+            { "type": "filter", "expr": "datum.isGrouped" }
+          ]
+        },
+        {
+          "name": "data_12",
+          "source": "data_10",
+          "transform": [
+            {
+              "type": "lookup",
+              "from": "data_0",
+              "key": "x",
+              "fields": ["x"],
+              "as": ["x_selected"]
+            },
+            { "type": "formula", "expr": "(datum.pointX + 0.01)", "as": "pointXPre" },
+            {
+              "type": "formula",
+              "expr": "(datum.pointX - 0.01)",
+              "as": "pointXPost"
+            },
+            {
+              "type": "fold",
+              "fields": ["pointX", "pointXPre", "pointXPost"],
+              "as": ["key", "value"]
+            },
+            { "type": "filter", "expr": "datum.isGrouped" },
+            {
+              "type": "filter",
+              "expr": "datum[\"pointX\"] !== null && !isNaN(datum[\"pointX\"]) && datum[\"pointY\"] !== null && !isNaN(datum[\"pointY\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_13",
+          "source": "data_9",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_14",
+          "source": "data_2",
+          "transform": [{ "type": "filter", "expr": "(datum.hiddenYsAmt !== 0)" }]
+        },
+        {
+          "name": "data_15",
+          "source": "data_14",
+          "transform": [
+            { "type": "formula", "expr": "(datum.x + 0.2)", "as": "x2" },
+            { "type": "formula", "expr": "(datum.y + 0.2)", "as": "y2" },
+            {
+              "type": "filter",
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_16",
+          "source": "data_14",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_17",
+          "source": "data_0",
+          "transform": [
+            {
+              "type": "aggregate",
+              "groupby": ["xVal", "x"],
+              "ops": ["min"],
+              "fields": ["y"],
+              "as": ["min_y"]
+            },
+            {
+              "type": "filter",
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"])"
+            }
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "name": "unit",
+          "value": {},
+          "on": [
+            { "events": "mousemove", "update": "isTuple(group()) ? group() : unit" }
+          ]
+        },
+        {
+          "name": "selector091",
+          "update": "vlSelectionResolve(\"selector091_store\")"
+        },
+        {
+          "name": "selector091_tuple",
+          "on": [
+            {
+              "events": [{ "source": "scope", "type": "mouseover" }],
+              "update": "datum && item().mark.marktype !== 'group' ? {unit: \"layer_2\", fields: selector091_tuple_fields, values: [(item().isVoronoi ? datum.datum : datum)[\"x\"]]} : null",
+              "force": true
+            },
+            { "events": [{ "source": "scope", "type": "dblclick" }], "update": "null" }
+          ]
+        },
+        {
+          "name": "selector091_tuple_fields",
+          "value": [{ "type": "E", "field": "x" }]
+        },
+        {
+          "name": "selector091_modify",
+          "update": "modify(\"selector091_store\", selector091_tuple, true)"
+        }
+      ],
+      "marks": [
+        {
+          "name": "layer_0_pathgroup",
+          "type": "group",
+          "from": {
+            "facet": {
+              "name": "faceted_path_layer_0_main",
+              "data": "data_2",
+              "groupby": ["z"]
+            }
+          },
+          "encode": {
+            "update": {
+              "width": { "field": { "group": "width" } },
+              "height": { "field": { "group": "height" } }
+            }
+          },
+          "marks": [
+            {
+              "name": "layer_0_marks",
+              "type": "line",
+              "style": ["line"],
+              "sort": { "field": "datum[\"value\"]" },
+              "from": { "data": "faceted_path_layer_0_main" },
+              "encode": {
+                "update": {
+                  "strokeCap": { "value": "round" },
+                  "interpolate": { "value": "monotone" },
+                  "stroke": { "scale": "color", "field": "z" },
+                  "opacity": { "value": 0.2 },
+                  "x": { "scale": "x", "field": "value" },
+                  "y": { "scale": "y", "field": "y" },
+                  "strokeWidth": { "value": 9 },
+                  "defined": {
+                    "signal": "datum[\"value\"] !== null && !isNaN(datum[\"value\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "layer_1_marks",
+          "type": "rect",
+          "style": ["tick"],
+          "from": { "data": "data_4" },
+          "encode": {
+            "update": {
+              "opacity": { "value": 0.2 },
+              "fill": { "value": "black" },
+              "xc": [
+                {
+                  "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "x" }
+              ],
+              "yc": { "scale": "y", "field": "y" },
+              "height": { "value": 40 },
+              "width": { "value": 9 }
+            }
+          }
+        },
+        {
+          "name": "layer_2_marks",
+          "type": "rule",
+          "style": ["rule"],
+          "from": { "data": "data_8" },
+          "encode": {
+            "update": {
+              "strokeCap": { "value": "round" },
+              "stroke": { "value": "black" },
+              "opacity": [
+                {
+                  "test": "(vlSelectionTest(\"selector091_store\", datum))",
+                  "value": 1
+                },
+                { "value": 0 }
+              ],
+              "x": [
+                {
+                  "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "x" }
+              ],
+              "y": { "scale": "y", "field": "yHigh" },
+              "y2": { "scale": "y", "value": 0 },
+              "strokeWidth": { "value": 4 }
+            }
+          }
+        },
+        {
+          "name": "layer_2_voronoi",
+          "type": "path",
+          "from": { "data": "layer_2_marks" },
+          "encode": {
+            "update": {
+              "fill": { "value": "transparent" },
+              "strokeWidth": { "value": 0.35 },
+              "stroke": { "value": "transparent" },
+              "isVoronoi": { "value": true }
+            }
+          },
+          "transform": [
+            {
+              "type": "voronoi",
+              "x": { "expr": "datum.datum.x || 0" },
+              "y": { "expr": "datum.datum.y || 0" },
+              "size": [{ "signal": "width" }, { "signal": "height" }]
+            }
+          ]
+        },
+        {
+          "name": "layer_3_pathgroup",
+          "type": "group",
+          "from": {
+            "facet": {
+              "name": "faceted_path_layer_3_main",
+              "data": "data_11",
+              "groupby": ["z"]
+            }
+          },
+          "encode": {
+            "update": {
+              "width": { "field": { "group": "width" } },
+              "height": { "field": { "group": "height" } }
+            }
+          },
+          "marks": [
+            {
+              "name": "layer_3_marks",
+              "type": "line",
+              "style": ["line"],
+              "sort": { "field": "datum[\"value\"]" },
+              "from": { "data": "faceted_path_layer_3_main" },
+              "encode": {
+                "update": {
+                  "strokeCap": { "value": "round" },
+                  "interpolate": { "value": "monotone" },
+                  "stroke": { "scale": "color", "field": "z" },
+                  "x": { "scale": "x", "field": "value" },
+                  "y": { "scale": "y", "field": "pointY" },
+                  "strokeWidth": { "value": 9 },
+                  "defined": {
+                    "signal": "datum[\"value\"] !== null && !isNaN(datum[\"value\"]) && datum[\"pointY\"] !== null && !isNaN(datum[\"pointY\"])"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "layer_4_marks",
+          "type": "rect",
+          "style": ["tick"],
+          "from": { "data": "data_12" },
+          "encode": {
+            "update": {
+              "opacity": [{ "test": "datum.pointBool", "value": 0.25 }, { "value": 0 }],
+              "cursor": { "value": "pointer" },
+              "fill": { "value": "black" },
+              "href": { "signal": "''+datum[\"url\"]" },
+              "xc": [
+                {
+                  "test": "datum[\"pointX\"] === null || isNaN(datum[\"pointX\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "pointX" }
+              ],
+              "yc": { "scale": "y", "field": "pointY" },
+              "height": { "value": 40 },
+              "width": { "value": 9 }
+            }
+          }
+        },
+        {
+          "name": "layer_5_marks",
+          "type": "text",
+          "style": ["text"],
+          "from": { "data": "data_13" },
+          "encode": {
+            "update": {
+              "align": { "value": "left" },
+              "dx": { "value": 10 },
+              "dy": { "value": -3 },
+              "limit": { "value": 115 },
+              "fill": { "value": "black" },
+              "x": [
+                {
+                  "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "x" }
+              ],
+              "y": { "value": 0 },
+              "text": { "signal": "''+datum[\"xDescription\"]" },
+              "baseline": { "value": "middle" }
+            }
+          }
+        },
+        {
+          "name": "layer_6_marks",
+          "type": "rect",
+          "style": ["rect"],
+          "from": { "data": "data_15" },
+          "encode": {
+            "update": {
+              "cornerRadius": { "value": 4 },
+              "fill": { "value": "red" },
+              "opacity": { "value": 0.2 },
+              "tooltip": { "signal": "''+datum[\"hiddenYs\"]" },
+              "x": [
+                {
+                  "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "x" }
+              ],
+              "x2": [
+                {
+                  "test": "datum[\"x2\"] === null || isNaN(datum[\"x2\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "x2" }
+              ],
+              "y": { "scale": "y", "field": "y" },
+              "y2": { "scale": "y", "field": "y2" }
+            }
+          }
+        },
+        {
+          "name": "layer_7_marks",
+          "type": "text",
+          "style": ["text"],
+          "from": { "data": "data_16" },
+          "encode": {
+            "update": {
+              "dx": { "value": 10 },
+              "dy": { "value": -14.5 },
+              "fill": { "value": "white" },
+              "tooltip": { "signal": "''+datum[\"hiddenYs\"]" },
+              "x": [
+                {
+                  "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "x" }
+              ],
+              "y": { "scale": "y", "field": "y" },
+              "text": { "signal": "''+datum[\"hiddenYsAmt\"]" },
+              "align": { "value": "center" },
+              "baseline": { "value": "middle" }
+            }
+          }
+        },
+        {
+          "name": "layer_8_marks",
+          "type": "rect",
+          "style": ["rect"],
+          "from": { "data": "data_6" },
+          "encode": {
+            "update": {
+              "cursor": { "value": "pointer" },
+              "fill": { "value": "black" },
+              "opacity": { "value": 0.3 },
+              "href": { "signal": "''+datum[\"url\"]" },
+              "x": [
+                {
+                  "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "x" }
+              ],
+              "x2": [
+                {
+                  "test": "datum[\"x2\"] === null || isNaN(datum[\"x2\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "x2" }
+              ],
+              "y": { "scale": "y", "field": "y" },
+              "y2": { "scale": "y", "field": "y2" }
+            }
+          }
+        },
+        {
+          "name": "layer_9_marks",
+          "type": "text",
+          "style": ["text"],
+          "from": { "data": "data_7" },
+          "encode": {
+            "update": {
+              "align": { "value": "left" },
+              "dx": { "value": 10 },
+              "dy": { "value": 1 },
+              "limit": { "value": 115 },
+              "cursor": { "value": "pointer" },
+              "fill": { "value": "black" },
+              "href": { "signal": "''+datum[\"url\"]" },
+              "x": [
+                {
+                  "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "x" }
+              ],
+              "y": { "scale": "y", "field": "y" },
+              "text": { "signal": "''+datum[\"z\"]" },
+              "baseline": { "value": "middle" }
+            }
+          }
+        },
+        {
+          "name": "layer_10_marks",
+          "type": "text",
+          "style": ["text"],
+          "from": { "data": "data_17" },
+          "encode": {
+            "update": {
+              "dy": { "value": 40 },
+              "fill": { "value": "black" },
+              "x": [
+                {
+                  "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
+                  "value": 0
+                },
+                { "scale": "x", "field": "x" }
+              ],
+              "y": { "scale": "y", "field": "min_y" },
+              "text": { "signal": "''+datum[\"xVal\"]" },
+              "align": { "value": "center" },
+              "baseline": { "value": "middle" }
+            }
+          }
+        }
+      ],
+      "scales": [
+        {
+          "name": "x",
+          "type": "linear",
+          "domain": {
+            "fields": [
+              { "data": "data_2", "field": "value" },
+              { "data": "data_4", "field": "x" },
+              { "data": "data_8", "field": "x" },
+              { "data": "data_11", "field": "value" },
+              { "data": "data_12", "field": "pointX" },
+              { "data": "data_13", "field": "x" },
+              { "data": "data_15", "field": "x" },
+              { "data": "data_15", "field": "x2" },
+              { "data": "data_16", "field": "x" },
+              { "data": "data_6", "field": "x" },
+              { "data": "data_6", "field": "x2" },
+              { "data": "data_7", "field": "x" },
+              { "data": "data_17", "field": "x" }
+            ]
+          },
+          "range": [0, { "signal": "width" }],
+          "nice": true,
+          "zero": false
+        },
+        {
+          "name": "y",
+          "type": "linear",
+          "domain": {
+            "fields": [
+              { "data": "data_2", "field": "y" },
+              { "data": "data_4", "field": "y" },
+              { "data": "data_8", "field": "yHigh" },
+              { "data": "data_11", "field": "pointY" },
+              { "data": "data_12", "field": "pointY" },
+              { "data": "data_15", "field": "y" },
+              { "data": "data_15", "field": "y2" },
+              { "data": "data_16", "field": "y" },
+              { "data": "data_6", "field": "y" },
+              { "data": "data_6", "field": "y2" },
+              { "data": "data_7", "field": "y" },
+              { "data": "data_17", "field": "min_y" }
+            ]
+          },
+          "range": [{ "signal": "height" }, 0],
+          "nice": true,
+          "zero": true
+        },
+        {
+          "name": "color",
+          "type": "ordinal",
+          "domain": {
+            "fields": [
+              { "data": "data_2", "field": "z" },
+              { "data": "data_11", "field": "z" }
+            ],
+            "sort": true
+          },
+          "range": "category"
+        }
+      ],
+      "axes": [
+        {
+          "scale": "x",
+          "orient": "bottom",
+          "grid": false,
+          "labelFlush": true,
+          "labelOverlap": true,
+          "tickCount": { "signal": "ceil(width/40)" },
+          "zindex": 1
+        },
+        {
+          "scale": "y",
+          "orient": "left",
+          "grid": false,
+          "labelOverlap": true,
+          "tickCount": { "signal": "ceil(height/40)" },
+          "zindex": 1
+        }
+      ],
+      "config": {
+        "axis": {
+          "domainOpacity": 0,
+          "grid": false,
+          "labelOpacity": 0,
+          "tickOpacity": 0,
+          "title": null
+        },
+        "style": { "cell": { "strokeWidth": 0 } }
+      }
+    }
   }
 
   public static getSpecOld(data: [RenderedPoint[], number, number], config: FullConfig): Spec {

@@ -41,10 +41,8 @@ function fromRanges<T extends Record<string, unknown>>(
       const dFromField = d[fromField];
       const dToField = d[toField];
       if (
-        typeof dFromField === 'number' &&
-        typeof dToField === 'number' &&
-        (dFromField <= x || !dFromField) &&
-        (dToField >= x || !dToField)
+        ((typeof dFromField === 'number' && dFromField <= x) || !dFromField) &&
+        ((typeof dToField === 'number' && dToField >= x) || !dToField)
       ) {
         const yID = d[yField];
         if (typeof yID === 'string') {
