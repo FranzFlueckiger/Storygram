@@ -76,12 +76,12 @@ export default class DrawSpec {
       "$schema": "https://vega.github.io/schema/vega/v5.json",
       "autosize": "pad",
       "padding": 5,
-      "width": config.xPadding * data[2],
-      "height": config.yPadding * data[1],
+      "width": data[2] * config.xPadding,
+      "height": (data[1] + 1) * config.yPadding,
       "style": "cell",
       "data": [
         {
-          "name": "selector091_store",
+          "name": "selector006_store",
           "values": [
             {
               "unit": "\"layer_2\"",
@@ -91,12 +91,12 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data-f221015bd2373ebf46cb8f5eb959d40c",
+          "name": "data-3002a207708f2275c3cad2eaee3bf157",
           "values": data[0]
         },
         {
           "name": "data_0",
-          "source": "data-f221015bd2373ebf46cb8f5eb959d40c",
+          "source": "data-3002a207708f2275c3cad2eaee3bf157",
           "transform": [
             { "type": "formula", "expr": "toNumber(datum[\"y\"])", "as": "y" }
           ]
@@ -105,9 +105,8 @@ export default class DrawSpec {
           "name": "data_2",
           "source": "data_0",
           "transform": [
-            // todo easing
-            { "type": "formula", "expr": "(datum.x - 0.01)", "as": "xPre" },
-            { "type": "formula", "expr": "(datum.x + 0.01)", "as": "xPost" },
+            { "type": "formula", "expr": "(datum.x - 0.001)", "as": "xPre" },
+            { "type": "formula", "expr": "(datum.x + 0.001)", "as": "xPost" },
             {
               "type": "fold",
               "fields": ["x", "xPre", "xPost"],
@@ -136,7 +135,7 @@ export default class DrawSpec {
           "transform": [
             {
               "type": "filter",
-              "expr": "(vlSelectionTest(\"selector091_store\", datum))"
+              "expr": "(vlSelectionTest(\"selector006_store\", datum))"
             }
           ]
         },
@@ -144,11 +143,12 @@ export default class DrawSpec {
           "name": "data_6",
           "source": "data_5",
           "transform": [
-            { "type": "formula", "expr": "datum.x + 1", "as": "x2" },
-            { "type": "formula", "expr": "datum.y + 1", "as": "y2" },
+            { "type": "formula", "expr": "datum.x + 2.5", "as": "x2" },
+            { "type": "formula", "expr": "datum.y - 0.2", "as": "yLo" },
+            { "type": "formula", "expr": "datum.y + 0.2", "as": "yHi" },
             {
               "type": "filter",
-              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"yLo\"] !== null && !isNaN(datum[\"yLo\"])"
             }
           ]
         },
@@ -168,11 +168,12 @@ export default class DrawSpec {
           "transform": [
             {
               "type": "joinaggregate",
-              "as": ["yHi"],
-              "ops": ["max"],
-              "fields": ["y"]
+              "as": ["yHi", "yLo"],
+              "ops": ["max", "min"],
+              "fields": ["y", "y"]
             },
             { "type": "formula", "expr": "datum.yHi + 0.5", "as": "yHigh" },
+            { "type": "formula", "expr": "datum.yLo - 0.5", "as": "yLow" },
             {
               "type": "filter",
               "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"yHigh\"] !== null && !isNaN(datum[\"yHigh\"])"
@@ -185,7 +186,7 @@ export default class DrawSpec {
           "transform": [
             {
               "type": "filter",
-              "expr": "(vlSelectionTest(\"selector091_store\", datum))"
+              "expr": "(vlSelectionTest(\"selector006_store\", datum))"
             }
           ]
         },
@@ -211,10 +212,14 @@ export default class DrawSpec {
               "fields": ["x"],
               "as": ["x_selected"]
             },
-            { "type": "formula", "expr": "(datum.pointX + 0.01)", "as": "pointXPre" },
             {
               "type": "formula",
-              "expr": "(datum.pointX - 0.01)",
+              "expr": "(datum.pointX + 0.001)",
+              "as": "pointXPre"
+            },
+            {
+              "type": "formula",
+              "expr": "(datum.pointX - 0.001)",
               "as": "pointXPost"
             },
             {
@@ -236,10 +241,14 @@ export default class DrawSpec {
               "fields": ["x"],
               "as": ["x_selected"]
             },
-            { "type": "formula", "expr": "(datum.pointX + 0.01)", "as": "pointXPre" },
             {
               "type": "formula",
-              "expr": "(datum.pointX - 0.01)",
+              "expr": "(datum.pointX + 0.001)",
+              "as": "pointXPre"
+            },
+            {
+              "type": "formula",
+              "expr": "(datum.pointX - 0.001)",
               "as": "pointXPost"
             },
             {
@@ -274,10 +283,11 @@ export default class DrawSpec {
           "source": "data_14",
           "transform": [
             { "type": "formula", "expr": "(datum.x + 0.2)", "as": "x2" },
-            { "type": "formula", "expr": "(datum.y + 0.2)", "as": "y2" },
+            { "type": "formula", "expr": "(datum.y + 0.3)", "as": "yLo" },
+            { "type": "formula", "expr": "(datum.y + 0.6)", "as": "yHi" },
             {
               "type": "filter",
-              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"yLo\"] !== null && !isNaN(datum[\"yLo\"])"
             }
           ]
         },
@@ -318,27 +328,27 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "selector091",
-          "update": "vlSelectionResolve(\"selector091_store\")"
+          "name": "selector006",
+          "update": "vlSelectionResolve(\"selector006_store\")"
         },
         {
-          "name": "selector091_tuple",
+          "name": "selector006_tuple",
           "on": [
             {
               "events": [{ "source": "scope", "type": "mouseover" }],
-              "update": "datum && item().mark.marktype !== 'group' ? {unit: \"layer_2\", fields: selector091_tuple_fields, values: [(item().isVoronoi ? datum.datum : datum)[\"x\"]]} : null",
+              "update": "datum && item().mark.marktype !== 'group' ? {unit: \"layer_2\", fields: selector006_tuple_fields, values: [(item().isVoronoi ? datum.datum : datum)[\"x\"]]} : null",
               "force": true
             },
             { "events": [{ "source": "scope", "type": "dblclick" }], "update": "null" }
           ]
         },
         {
-          "name": "selector091_tuple_fields",
+          "name": "selector006_tuple_fields",
           "value": [{ "type": "E", "field": "x" }]
         },
         {
-          "name": "selector091_modify",
-          "update": "modify(\"selector091_store\", selector091_tuple, true)"
+          "name": "selector006_modify",
+          "update": "modify(\"selector006_store\", selector006_tuple, true)"
         }
       ],
       "marks": [
@@ -399,7 +409,7 @@ export default class DrawSpec {
                 { "scale": "x", "field": "x" }
               ],
               "yc": { "scale": "y", "field": "y" },
-              "height": { "value": 40 },
+              "height": { "value": config.yPadding },
               "width": { "value": 9 }
             }
           }
@@ -415,7 +425,7 @@ export default class DrawSpec {
               "stroke": { "value": "black" },
               "opacity": [
                 {
-                  "test": "(vlSelectionTest(\"selector091_store\", datum))",
+                  "test": "(vlSelectionTest(\"selector006_store\", datum))",
                   "value": 1
                 },
                 { "value": 0 }
@@ -428,7 +438,7 @@ export default class DrawSpec {
                 { "scale": "x", "field": "x" }
               ],
               "y": { "scale": "y", "field": "yHigh" },
-              "y2": { "scale": "y", "value": 0 },
+              "y2": { "scale": "y", "field": "yLow" },
               "strokeWidth": { "value": 4 }
             }
           }
@@ -512,7 +522,7 @@ export default class DrawSpec {
                 { "scale": "x", "field": "pointX" }
               ],
               "yc": { "scale": "y", "field": "pointY" },
-              "height": { "value": 40 },
+              "height": { "value": config.yPadding },
               "width": { "value": 9 }
             }
           }
@@ -527,7 +537,7 @@ export default class DrawSpec {
               "align": { "value": "left" },
               "dx": { "value": 10 },
               "dy": { "value": -3 },
-              "limit": { "value": 115 },
+              "fontSize": { "value": 20 },
               "fill": { "value": "black" },
               "x": [
                 {
@@ -551,7 +561,7 @@ export default class DrawSpec {
             "update": {
               "cornerRadius": { "value": 4 },
               "fill": { "value": "red" },
-              "opacity": { "value": 0.2 },
+              "opacity": { "value": 0.35 },
               "tooltip": { "signal": "''+datum[\"hiddenYs\"]" },
               "x": [
                 {
@@ -567,8 +577,8 @@ export default class DrawSpec {
                 },
                 { "scale": "x", "field": "x2" }
               ],
-              "y": { "scale": "y", "field": "y" },
-              "y2": { "scale": "y", "field": "y2" }
+              "y": { "scale": "y", "field": "yLo" },
+              "y2": { "scale": "y", "field": "yHi" }
             }
           }
         },
@@ -579,8 +589,9 @@ export default class DrawSpec {
           "from": { "data": "data_16" },
           "encode": {
             "update": {
-              "dx": { "value": 10 },
-              "dy": { "value": -14.5 },
+              "align": { "value": "center" },
+              "dx": { "value": 5 },
+              "dy": { "value": -17 },
               "fill": { "value": "white" },
               "tooltip": { "signal": "''+datum[\"hiddenYs\"]" },
               "x": [
@@ -592,7 +603,6 @@ export default class DrawSpec {
               ],
               "y": { "scale": "y", "field": "y" },
               "text": { "signal": "''+datum[\"hiddenYsAmt\"]" },
-              "align": { "value": "center" },
               "baseline": { "value": "middle" }
             }
           }
@@ -622,8 +632,8 @@ export default class DrawSpec {
                 },
                 { "scale": "x", "field": "x2" }
               ],
-              "y": { "scale": "y", "field": "y" },
-              "y2": { "scale": "y", "field": "y2" }
+              "y": { "scale": "y", "field": "yLo" },
+              "y2": { "scale": "y", "field": "yHi" }
             }
           }
         },
@@ -636,10 +646,9 @@ export default class DrawSpec {
             "update": {
               "align": { "value": "left" },
               "dx": { "value": 10 },
-              "dy": { "value": 1 },
               "limit": { "value": 115 },
               "cursor": { "value": "pointer" },
-              "fill": { "value": "black" },
+              "fill": { "value": "white" },
               "href": { "signal": "''+datum[\"url\"]" },
               "x": [
                 {
@@ -711,13 +720,14 @@ export default class DrawSpec {
               { "data": "data_2", "field": "y" },
               { "data": "data_4", "field": "y" },
               { "data": "data_8", "field": "yHigh" },
+              { "data": "data_8", "field": "yLow" },
               { "data": "data_11", "field": "pointY" },
               { "data": "data_12", "field": "pointY" },
-              { "data": "data_15", "field": "y" },
-              { "data": "data_15", "field": "y2" },
+              { "data": "data_15", "field": "yLo" },
+              { "data": "data_15", "field": "yHi" },
               { "data": "data_16", "field": "y" },
-              { "data": "data_6", "field": "y" },
-              { "data": "data_6", "field": "y2" },
+              { "data": "data_6", "field": "yLo" },
+              { "data": "data_6", "field": "yHi" },
               { "data": "data_7", "field": "y" },
               { "data": "data_17", "field": "min_y" }
             ]
@@ -763,8 +773,7 @@ export default class DrawSpec {
           "domainOpacity": 0,
           "grid": false,
           "labelOpacity": 0,
-          "tickOpacity": 0,
-          "title": null
+          "tickOpacity": 0
         },
         "style": { "cell": { "strokeWidth": 0 } }
       }

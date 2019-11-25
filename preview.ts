@@ -69,11 +69,11 @@ async function drawBundesratExample() {
     startField: 'Amtsantritt',
     endField: 'Amtsende',
     yField: 'Name',
-    xDescription: (xLayer) => 'Wahl im ' + String(xLayer.xValue),
-    filterGroupAmt: [4, undefined],
+    xDescription: (xLayer) => 'Bundesrat im Jahr ' + String(xLayer.xValue),
+    filterGroupAmt: [0, undefined],
     continuousStart: false,
     continuousEnd: false,
-    generationAmt: 10,
+    generationAmt: 20,
     populationSize: 50
   };
   const KD = new KnotDiagram(data, config);

@@ -13,6 +13,7 @@ function getGeneration(data: Data, yEntryPoints: Array<Map<string, number>> | un
   }
   return population.sort((a, b) => a.loss - b.loss);
 }
+
 function getLinearLoss(child: [XData, GenePool], config: FullConfig): number {
   let score = 0;
   const xLayers: XData = child[0];
@@ -75,6 +76,7 @@ function getStateVector(xLayer: XLayer, maxLen: number, config: FullConfig): str
 function getRandomGene(): number {
   return Math.random() ** 0.2 * 2 - 1;
 }
+
 function getLoss(child: [XData, GenePool], config: FullConfig): number {
   let score = 0;
   score += getLinearLoss(child, config);
@@ -82,6 +84,7 @@ function getLoss(child: [XData, GenePool], config: FullConfig): number {
   score += getSwitchDistanceLoss(child, config);
   return score;
 }
+
 function fit(data: Data, config: FullConfig) {
   let best: Child | undefined;
   let population: Child[];

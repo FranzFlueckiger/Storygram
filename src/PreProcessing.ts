@@ -44,13 +44,11 @@ function fromRanges<T extends Record<string, unknown>>(
         ((typeof dFromField === 'number' && dFromField <= x) || !dFromField) &&
         ((typeof dToField === 'number' && dToField >= x) || !dToField)
       ) {
-        const yID = d[yField];
-        if (typeof yID === 'string') {
+        const yID = String(d[yField]);
           xLayer.group.push(yID);
           const yVal = yData.get(yID) as YLayer;
           yVal.layers.push(xLayer);
           yData.set(yID, yVal);
-        }
       }
     });
     return xLayer;
