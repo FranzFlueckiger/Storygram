@@ -1,51 +1,32 @@
-import { getRandomGene } from './Optimizer';
 import { Data, Distance, GenePool, Switch, XData, XLayer } from './Types';
 
 function visit(data: Data, yEntryPoints: GenePool | undefined): [XData, GenePool] {
-  let visitor: string[] = [];
+  if (!yEntryPoints) {
+    yEntryPoints = new Map()
+    data.yData.forEach(y => {
+      if(!y.isHidden) yEntryPoints!.set(y.yID, Math.random())
+    })
+  }
+  let visitor: string[] = Array.from(yEntryPoints!)
+    .sort((a, b) => a[1] - b[1])
+    .map(y => y[0])
+  //console.log(Array.from(yEntryPoints!))
   yEntryPoints = yEntryPoints ? yEntryPoints : new Map();
-  let prevIndex = 0;
-  return [
-    data.xData.reduce((acc: XData, x: XLayer, i: number) => {
-      // todo remove this as it is redundant check if this x layer is hidden
+  // traverse x Layers
+  let xData = data.xData.reduce((acc: XData, x: XLayer) => {
       if (!x.isHidden) {
-        // calculate the center
-        const center = getCenter(x.group, visitor);
-        if (i != 0) {
-          data.xData[prevIndex].remove.forEach(a => (visitor = remove(a, visitor)));
-        }
-        x.add.forEach(y => {
-          const yVal = data.yData.get(y)!;
-          if (!yVal.isHidden) {
-            const entryPoint = yEntryPoints!.get(y);
-            if (!entryPoint) {
-              const entryPoint = getRandomGene();
-              yEntryPoints!.set(y, entryPoint);
-            }
-            visitor = add(y, center, entryPoint!, visitor);
-          }
-        });
         x.switch = group(x.group, visitor);
         x.state = [...visitor];
-        prevIndex = i;
         acc.push(x);
       }
       return acc;
-    }, []),
-    yEntryPoints,
-  ];
+  }, [])
+  return [xData, yEntryPoints];
 }
 
-function add(a: string, center: number, gene: number, visitor: string[]): string[] {
+function add(a: string, gene: number, visitor: string[]): string[] {
   // add the new object at the distance from the center indicated by the entryPoint
-  let pos = 0;
-  if (visitor.length) {
-    if (gene > 0) {
-      pos = Math.round((visitor.length - center) * gene);
-    } else {
-      pos = Math.round(center * gene);
-    }
-  }
+  let pos = Math.round(visitor.length * gene - 1);
   visitor.splice(pos, 0, a);
   return visitor;
 }
@@ -55,11 +36,6 @@ function switchP(switchY: Switch, visitor: string[]): string[] {
   const temp = visitor.splice(switchY.prev, 1);
   visitor.splice(switchY.target, 0, ...temp);
   return visitor;
-}
-
-function remove(a: string, visitor: string[]): string[] {
-  // a contains the yObj
-  return visitor.filter(p => p != a);
 }
 
 function group(group: string[], visitor: string[]): Switch[] {
@@ -129,4 +105,5 @@ function getDistances(group: string[], center: number, visitor: string[]): Dista
     .sort((a, b) => Math.abs(a.distance) - Math.abs(b.distance));
 }
 
-export { visit, add, switchP, remove, group, getCenter, getDistances };
+
+export { visit, add, switchP, group, getCenter, getDistances };

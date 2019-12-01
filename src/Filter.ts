@@ -13,7 +13,6 @@ function filter(data: Data, config: Config): Data {
   return data;
 }
 
-// todo test this
 function isInRange(p: number, range: [number | undefined, number | undefined] | undefined): boolean {
   return range ? (range[0] ? p >= range[0] : true) && (range[1] ? p <= range[1] : true) : true;
 }
@@ -22,9 +21,13 @@ function filterX(data: Data, config: Config): Data {
   const yData: Map<string, YLayer> = new Map();
   const xData = data.xData.filter(xLayer => {
     let contains = true;
-    // todo initialise this before loop
     if (config.mustContain && config.mustContain.length) {
       contains = config.mustContain.every(query => {
+        return xLayer.group.includes(query);
+      });
+    }
+    if (config.shouldContain && config.shouldContain.length) {
+      contains = config.shouldContain.some(query => {
         return xLayer.group.includes(query);
       });
     }
@@ -78,6 +81,8 @@ function filterY(data: Data, config: Config): Data {
   return data;
 }
 
+
+// TODO remove this
 function setLifeCycles(data: Data, config: Config) {
   data.xData.forEach((xLayer, i) => {
       xLayer.index = i;
@@ -87,12 +92,12 @@ function setLifeCycles(data: Data, config: Config) {
     const activeLayers = y.layers ? y.layers.filter(l => !l.isHidden) : [];
     if (!y.isHidden) {
       // check where to add the y-point
-      if (config.continuousStart || (config.dataFormat === 'ranges' && !config.startField)) {
+      if (config.dataFormat === 'ranges' && !config.startField) {
         data.xData[0].add.push(y.yID);
       } else {
         data.xData[activeLayers[0].index!].add.push(y.yID);
       }
-      if (config.continuousEnd || (config.dataFormat === 'ranges' && !config.endField)) {
+      if (config.dataFormat === 'ranges' && !config.endField) {
         data.xData[data.xData.length - 1].remove.push(y.yID);
       } else {
         data.xData[activeLayers[activeLayers.length - 1].index!].remove.push(y.yID);

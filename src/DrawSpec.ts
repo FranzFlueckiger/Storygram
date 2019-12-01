@@ -1,5 +1,6 @@
 import { Spec } from 'vega';
-import { FullConfig, Data, RenderedPoint } from './Types';
+import { FullConfig, Data, RenderedPoint, YData } from './Types';
+
 
 export default class DrawSpec {
   /**
@@ -10,60 +11,74 @@ export default class DrawSpec {
    */
 
   public static draw(data: Data, config: FullConfig): [RenderedPoint[], number, number] {
-    const result: RenderedPoint[] = [];
+    let result: RenderedPoint[] = [];
     const maxYLen = data.xData.reduce((max, layer) => Math.max(max, layer.state.length), 0);
     const xLen = data.xData.length;
     const scaling = config.xValueScaling;
     let xVal: number | string = ''
+    let active_Ys: Set<string> = new Set()
     data.xData.forEach((xLayer, xIndex) => {
       let offset = 0;
       if (config.centered) {
+        xLayer.state = xLayer.state.filter(y => y !== '')
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
       let lastGroupedIndex: number | undefined = undefined
+      // this is the xValue that is shown at the bottom of the chart
+      // if it changes it will be drawn
+      let xValueLegend: number | string
+      if (xVal === xLayer.xValue) xValueLegend = '-'
+      else xValueLegend = xLayer.xValue
       xLayer.state.forEach((yID: string, yIndex: number) => {
         const yVal = data.yData.get(yID)
         const isGrouped = xLayer.group.some(a => a === yID) ? 1 : 0;
         if (isGrouped) {
+          active_Ys.add(yID)
           lastGroupedIndex = yIndex
         }
-        let yDrawn = config.centered ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
-        yDrawn += offset;
-        const strokeWidth = config.strokeWidth(xLayer);
-        let xValueLegend
-        if (xVal === xLayer.xValue) {
-          xValueLegend = ''
-        } else {
-          xValueLegend = xLayer.xValue
+        if (xIndex != 0 && data.xData[xIndex-1].remove.includes(yID)) {
+          active_Ys.delete(yID)
         }
-        xVal = xLayer.xValue;
-        const xDrawn = scaling * xVal + (1 - scaling) * xIndex;
-        const xDescription = config.xDescription!(xLayer);
-        const url = config.url(xLayer, yVal!)
-        const hiddenYs = xLayer.hiddenYs
-        const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xValueLegend, xDescription, url);
-        if (lastGroupedIndex! < yIndex && lastGroupedIndex != undefined) {
-          result[result.length-1].hiddenYs = hiddenYs
-          result[result.length - 1].hiddenYsAmt = hiddenYs.length
-          lastGroupedIndex = undefined
-        } else if (isGrouped && xLayer.state.length - 1 === yIndex) {
-          point.hiddenYs = hiddenYs
-          point.hiddenYsAmt = hiddenYs.length
+        if (active_Ys.has(yID) || config.continuousStart) {
+          let yDrawn = config.centered ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
+          yDrawn += offset;
+          const strokeWidth = config.strokeWidth(xLayer);
+          xVal = xLayer.xValue;
+          const xDrawn = scaling * xVal + (1 - scaling) * xIndex;
+          const xDescription = config.xDescription!(xLayer);
+          const url = config.url(xLayer, yVal!)
+          const hiddenYs = xLayer.hiddenYs
+          const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xValueLegend, xDescription, url);
+          // this is necessary to show the hidden ys counter
+          if (lastGroupedIndex! < yIndex && lastGroupedIndex != undefined) {
+            result[result.length - 1].hiddenYs = hiddenYs
+            result[result.length - 1].hiddenYsAmt = hiddenYs.length
+            lastGroupedIndex = undefined
+          } else if (isGrouped && xLayer.state.length - 1 === yIndex) {
+            point.hiddenYs = hiddenYs
+            point.hiddenYsAmt = hiddenYs.length
+          }
+          result.push(point);
         }
-        result.push(point);
       });
     });
+    result = this.aggregateGroupArrays(result)
+    // console.log(JSON.stringify(result))
+    return [result, maxYLen, xLen];
+  }
+
+  public static aggregateGroupArrays(renderedPoints: RenderedPoint[]) {
     // todo this is ugly and inefficient, should be resolved inside altair's chart spec
     // in this first step we gather all the information from the previously rendered
     // points and group them by their yID (for altair it's the z-value)
     const points = new Map();
-    result.forEach(r => {
+    renderedPoints.forEach(r => {
       const arr = points.get(r.z) ? points.get(r.z) : [];
       arr.push({ x: r.x, y: r.y, bool: r.isGrouped, strokeWidth: r.strokeWidth });
       points.set(r.z, arr);
     });
     // then we insert these 'interaction arrays' in the grouped points
-    result.map((r: any) => {
+    renderedPoints.map((r: any) => {
       if (r.isGrouped) {
         const point = points.get(r.z);
         r.pointsX = point.map((g: any) => g.x);
@@ -73,9 +88,7 @@ export default class DrawSpec {
       }
       return r;
     });
-    console.log(result)
-    console.log(JSON.stringify(result))
-    return [result, maxYLen, xLen];
+    return renderedPoints
   }
 
   public static getSpecNew(data: [RenderedPoint[], number, number], config: FullConfig): Spec {
@@ -179,7 +192,7 @@ export default class DrawSpec {
               "ops": ["max", "min"],
               "fields": ["y", "y"]
             },
-            { "type": "formula", "expr": "datum.yHi + 0.5", "as": "yHigh" },
+            { "type": "formula", "expr": "datum.yHi + 1", "as": "yHigh" },
             { "type": "formula", "expr": "datum.yLo - 0.5", "as": "yLow" },
             {
               "type": "filter",
@@ -543,7 +556,7 @@ export default class DrawSpec {
             "update": {
               "align": { "value": "left" },
               "dx": { "value": 10 },
-              "dy": { "value": -3 },
+              "dy": { "value": 0 },
               "fontSize": { "value": 20 },
               "fill": { "value": "black" },
               "x": [

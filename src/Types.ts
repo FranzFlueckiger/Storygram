@@ -121,13 +121,15 @@ export interface BaseConfig {
   strokeWidth: (arg: XLayer) => number;
   // function that returns a string describing the y
   tooltipText?: (arg: XLayer) => string;
-  // x filter check if the XLayer contains the given YLayer
+  // x filter check if the XLayer contains all the given YLayers
   mustContain: string[];
+  // x filter check if the XLayer contains one of the given YLayers
+  shouldContain: string[];
   // x filter (Positive and Negative x-Value ranges possible)
   filterXValue: [number | undefined, number | undefined];
   // x filter (Positive group sizes only)
   filterGroupSize: [number | undefined, number | undefined];
-  // todo x filter for data predicates
+  // x filter for boolean predicates
   filterCustomX: (xLayer: XLayer) => boolean;
   // y filter check if the YLayers interacted with the given ones at the specified depth
   interactedWith: [string[], number | undefined];
@@ -135,7 +137,7 @@ export interface BaseConfig {
   filterXValueLifeTime: [number | undefined, number | undefined];
   // y filter (Positive group amounts only)
   filterGroupAmt: [number | undefined, number | undefined];
-  // todo y filter for data predicates
+  // y filter for boolean predicates
   filterCustomY: (yLayer: YLayer) => boolean;
   // Penalty for changing y point from previous layer to the next
   linearLoss: number;
