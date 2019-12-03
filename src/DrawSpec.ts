@@ -42,13 +42,14 @@ export default class DrawSpec {
         if (active_Ys.has(yID) || config.continuousStart) {
           let yDrawn = config.centered ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
           yDrawn += offset;
-          const strokeWidth = config.strokeWidth(xLayer);
+          const strokeWidth = config.strokeWidth(xLayer, yVal!);
+          const strokeColor = config.strokeColor(xLayer, yVal!);
           xVal = xLayer.xValue;
           const xDrawn = scaling * xVal + (1 - scaling) * xIndex;
           const xDescription = config.xDescription!(xLayer);
           const url = config.url(xLayer, yVal!)
           const hiddenYs = xLayer.hiddenYs
-          const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, xValueLegend, xDescription, url);
+          const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, strokeColor, xValueLegend, xDescription, url);
           // this is necessary to show the hidden ys counter
           if (lastGroupedIndex! < yIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenYs = hiddenYs
@@ -63,7 +64,7 @@ export default class DrawSpec {
       });
     });
     result = this.aggregateGroupArrays(result)
-    // console.log(JSON.stringify(result))
+    console.log(JSON.stringify(result))
     return [result, maxYLen, xLen];
   }
 
@@ -74,7 +75,7 @@ export default class DrawSpec {
     const points = new Map();
     renderedPoints.forEach(r => {
       const arr = points.get(r.z) ? points.get(r.z) : [];
-      arr.push({ x: r.x, y: r.y, bool: r.isGrouped, strokeWidth: r.strokeWidth });
+      arr.push({ x: r.x, y: r.y, bool: r.isGrouped, strokeWidth: r.strokeWidth, strokeColor: r.strokeColor });
       points.set(r.z, arr);
     });
     // then we insert these 'interaction arrays' in the grouped points
@@ -85,6 +86,7 @@ export default class DrawSpec {
         r.pointsY = point.map((g: any) => g.y);
         r.pointsBool = point.map((g: any) => g.bool);
         r.pointsSize = point.map((g: any) => g.strokeWidth);
+        r.pointsColor = point.map((g: any) => g.strokeColor);
       }
       return r;
     });

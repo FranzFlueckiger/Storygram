@@ -118,7 +118,9 @@ export interface BaseConfig {
   // whether the graph is centered or not
   centered: boolean;
   // numeric field that determines the stroke width
-  strokeWidth: (arg: XLayer) => number;
+  strokeWidth: (xLayer: XLayer, yLayer: YLayer) => number;
+  // numeric field that determines the stroke width
+  strokeColor: (xLayer: XLayer, yLayer: YLayer) => string | number;
   // function that returns a string describing the y
   tooltipText?: (arg: XLayer) => string;
   // x filter check if the XLayer contains all the given YLayers
@@ -237,6 +239,7 @@ export class RenderedPoint {
     public z: string,
     public isGrouped: number,
     public strokeWidth: number,
+    public strokeColor: number | string,
     public xVal: number | string,
     public xDescription: string,
     public url: string
