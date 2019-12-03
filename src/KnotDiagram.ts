@@ -23,7 +23,7 @@ export default class KnotDiagram<T extends {}> {
     url: (xLayer, yLayer) => 'https://www.google.ch/search?q=' + String(xLayer.xValue) + ' ' + yLayer.yID,
     xPadding: 60,
     yPadding: 40,
-    xValueScaling: 0.5,
+    xValueScaling: 0.625,
     generationAmt: 20,
     populationSize: 50,
     selectionRate: 0.25,
