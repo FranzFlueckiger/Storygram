@@ -1,7 +1,7 @@
 import { Config, Data, YLayer } from './Types';
 
 function filter(data: Data, config: Config): Data {
-  if (config.verbose) console.log('Pre Filtering', data);
+  if (config.verbose) console.log('Before Filtering', data);
   // filter xs
   data = filterX(data, config);
   // filter ys
@@ -9,7 +9,7 @@ function filter(data: Data, config: Config): Data {
   // remove x points without y points
   data.xData = data.xData.filter(layer => layer.group.length > 0);
   setLifeCycles(data, config);
-  if (config.verbose) console.log('Post Filtering', data);
+  if (config.verbose) console.log('After Filtering', data);
   return data;
 }
 
@@ -81,11 +81,9 @@ function filterY(data: Data, config: Config): Data {
   return data;
 }
 
-
-// TODO remove this
 function setLifeCycles(data: Data, config: Config) {
   data.xData.forEach((xLayer, i) => {
-      xLayer.index = i;
+    xLayer.index = i;
   });
   Array.from(data.yData).forEach(yMap => {
     const y: YLayer = yMap[1];

@@ -1,25 +1,47 @@
-import { Data, Distance, GenePool, Switch, XData, XLayer } from './Types';
+import { Data, Distance, GenePool, Switch, XData, XLayer, Config } from './Types';
+import { FILL_CONFIG } from 'vega-lite/build/src/mark';
 
-function visit(data: Data, yEntryPoints: GenePool | undefined): [XData, GenePool] {
-  if (!yEntryPoints) {
-    yEntryPoints = new Map()
+function visit(data: Data, yEntryPoints: GenePool | undefined, config: Config): [XData, GenePool] {
+  yEntryPoints = yEntryPoints ? yEntryPoints : new Map();
+  if (yEntryPoints.size === 0 && !config.centered) {
     data.yData.forEach(y => {
-      if(!y.isHidden) yEntryPoints!.set(y.yID, Math.random())
+      if (!y.isHidden) yEntryPoints!.set(y.yID, Math.random())
     })
   }
-  let visitor: string[] = Array.from(yEntryPoints!)
-    .sort((a, b) => a[1] - b[1])
-    .map(y => y[0])
-  //console.log(Array.from(yEntryPoints!))
-  yEntryPoints = yEntryPoints ? yEntryPoints : new Map();
+  let visitor: string[]
+  let prevIndex: number
+  if (config.centered) {
+    visitor = [];
+    prevIndex = 0;
+  } else {
+    visitor = Array.from(yEntryPoints!)
+      .sort((a, b) => a[1] - b[1])
+      .map(y => y[0])
+  }
   // traverse x Layers
-  let xData = data.xData.reduce((acc: XData, x: XLayer) => {
-      if (!x.isHidden) {
-        x.switch = group(x.group, visitor);
-        x.state = [...visitor];
-        acc.push(x);
+  let xData = data.xData.reduce((acc: XData, x: XLayer, i: number) => {
+    if (!x.isHidden) {
+      if (config.centered) {
+        if (i != 0) {
+          data.xData[prevIndex].remove.forEach(a => (visitor = remove(a, visitor)));
+        }
+        x.add.forEach(y => {
+          const yVal = data.yData.get(y)!;
+          if (!yVal.isHidden) {
+            const entryPoint = yEntryPoints!.get(y);
+            if (!entryPoint) {
+              const entryPoint = Math.random()
+              yEntryPoints!.set(y, entryPoint);
+            }
+            visitor = add(y, entryPoint!, visitor);
+          }
+        });
       }
-      return acc;
+      x.switch = group(x.group, visitor);
+      x.state = [...visitor];
+      acc.push(x);
+    }
+    return acc;
   }, [])
   return [xData, yEntryPoints];
 }
@@ -29,6 +51,11 @@ function add(a: string, gene: number, visitor: string[]): string[] {
   let pos = Math.round(visitor.length * gene - 1);
   visitor.splice(pos, 0, a);
   return visitor;
+}
+
+function remove(a: string, visitor: string[]): string[] {
+  // a contains the yObj
+  return visitor.filter(p => p != a);
 }
 
 function switchP(switchY: Switch, visitor: string[]): string[] {

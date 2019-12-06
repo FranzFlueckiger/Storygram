@@ -11,7 +11,9 @@ function fit(data: Data, config: FullConfig) {
     for (const child of population) {
       if (!best || child.loss < best.loss) {
         best = child;
-        console.log(best);
+        if (config.verbose) {
+          console.log(best);
+        }
       }
     }
     const parents = select(population, config);
@@ -29,7 +31,7 @@ function getGeneration(data: Data, yEntryPoints: Array<Map<string, number>> | un
   // Compute new generation
   for (let i = 0; i < config.populationSize; i++) {
     const entryPoints = yEntryPoints ? yEntryPoints[i] : undefined;
-    const result: [XLayer[], GenePool] = visit(data, entryPoints);
+    const result: [XLayer[], GenePool] = visit(data, entryPoints, config);
     const loss = getLoss(result, config);
     const child: Child = { loss, gene: result[1], x: result[0] };
     population.push(child);
