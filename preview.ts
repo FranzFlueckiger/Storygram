@@ -107,16 +107,20 @@ async function drawMetasonKD() {
     xField: 'year',
     yArrayField: 'participants',
     filterGroupAmt: [2, undefined],
-    filterXValue: [2000, 2006],
+    filterGroupSize: [3, 6],
+    filterXValue: [1988, 1995],
     filterCustomX: (xLayer) => {
       const name: string = xLayer.data.releaseName
       return !name.includes('compilation') &&
-        !name.includes('best of') &&
-        !name.includes('collection') &&
-        !name.includes('greatest hits')
+        !name.toLowerCase().includes('best of') &&
+        !name.toLowerCase().includes('collection') &&
+        !name.toLowerCase().includes('greatest hits') &&
+        !name.toLowerCase().includes('super hits') &&
+        !name.toLowerCase().includes('remaster')
     },
     generationAmt: 100,
-    xDescription: (xLayer) => xLayer.data.releaseName + ", " + xLayer.data.year
+    xValueScaling: 0,
+    xDescription: (xLayer) => xLayer.data.releaseName + ", " + xLayer.data.year,
   }
   const KD = new KnotDiagram(data, config);
   await vega('#viz', KD.getSpec());
