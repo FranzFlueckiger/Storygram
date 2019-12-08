@@ -31,7 +31,8 @@ export default class KnotDiagram<T extends {}> {
     mutationProbability: 0.025,
     continuousStart: false,
     continuousEnd: false,
-    centered: false,
+    compact: false,
+    highlight: [],
     strokeWidth: (xLayer, yLayer) => 0,
     strokeColor: (xLayer, yLayer) => yLayer.yID,
     mustContain: [],
@@ -46,6 +47,7 @@ export default class KnotDiagram<T extends {}> {
     linearLoss: 1,
     amtLoss: 1,
     lengthLoss: 1,
+    yExtentLoss: 0
   };
 
   public config: FullConfig;

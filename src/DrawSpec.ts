@@ -19,7 +19,7 @@ export default class DrawSpec {
     let active_Ys: Set<string> = new Set()
     data.xData.forEach((xLayer, xIndex) => {
       let offset = 0;
-      if (config.centered) {
+      if (config.compact) {
         xLayer.state = xLayer.state.filter(y => y !== '')
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
@@ -40,7 +40,7 @@ export default class DrawSpec {
           active_Ys.delete(yID)
         }
         if (active_Ys.has(yID) || config.continuousStart) {
-          let yDrawn = config.centered ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
+          let yDrawn = config.compact ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(xLayer, yVal!);
           const strokeColor = config.strokeColor(xLayer, yVal!);
@@ -49,7 +49,8 @@ export default class DrawSpec {
           const xDescription = config.xDescription!(xLayer);
           const url = config.url(xLayer, yVal!)
           const hiddenYs = xLayer.hiddenYs
-          const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, strokeColor, xValueLegend, xDescription, url);
+          const isHiglighted = config.highlight.includes(yID) ? 1 : 0
+          const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, strokeColor, xValueLegend, xDescription, url, isHiglighted);
           // this is necessary to show the hidden ys counter
           if (lastGroupedIndex! < yIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenYs = hiddenYs
@@ -64,6 +65,7 @@ export default class DrawSpec {
       });
     });
     result = this.aggregateGroupArrays(result)
+    console.log(result)
     console.log(JSON.stringify(result))
     return [result, maxYLen, xLen];
   }

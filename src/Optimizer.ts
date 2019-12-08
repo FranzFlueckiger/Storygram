@@ -92,20 +92,23 @@ function mutate(data: Data, genes: GenePool[], config: FullConfig) {
 
 function getLoss(child: [XData, GenePool], config: FullConfig): number {
   let score = 0;
-  //score += getLinearLoss(child, config);
   score += getSwitchAmountLoss(child, config);
   score += getSwitchSizeLoss(child, config);
+  if (config.compact) {
+    score += getLinearLoss(child, config)
+  } else {
+    score += getYExtentLoss(child, config)
+  }
   return score;
 }
-
 
 function getSwitchAmountLoss(child: [XData, GenePool], config: FullConfig): number {
   return (
     child[0].reduce<number>((acc, xLayer) => {
       // Penalty for the amount of switches
       return (acc += xLayer.switch.length);
-    }, 0) * config.amtLoss
-  );
+    }, 0)
+  ) * config.amtLoss;
 }
 
 
@@ -118,9 +121,51 @@ function getSwitchSizeLoss(child: [XData, GenePool], config: FullConfig): number
           a += Math.abs(switches.target - switches.prev);
         }
         return a;
-      }, 0) * config.amtLoss);
-  }, 0);
+      }, 0));
+  }, 0) * config.lengthLoss;
 }
 
+function getYExtentLoss(child: [XData, GenePool], config: FullConfig): number {
+  return child[0].reduce((max, x) => {
+    return Math.max(max, x.state.length)
+  }, 0) * config.yExtentLoss
+}
+
+function getLinearLoss(child: [XData, GenePool], config: FullConfig): number {
+  let score = 0;
+  const xLayers: XData = child[0];
+  const maxLen = xLayers.reduce((acc, c) => Math.max(acc, c.state.length), 0);
+  let prevVector = getStateVector(xLayers[0], maxLen, config);
+  for (let i = 1; i < xLayers.length; i++) {
+    const vector = getStateVector(xLayers[i], maxLen, config);
+    for (let j = 0; j < maxLen; j++) {
+      if (prevVector[j] != vector[j]) score++;
+    }
+    prevVector = vector;
+  }
+  return score;
+}
+
+function getStateVector(xLayer: XLayer, maxLen: number, config: FullConfig): string[] {
+  const stateVector: string[] = [];
+  for (let i = 0; i < maxLen; i++) {
+    let yPoint = '';
+    // todo should be config.centered, must be implemented
+    if (config.compact) {
+      const stateLen = xLayer.state.length;
+      const entry = Math.floor((maxLen - stateLen - (stateLen % 2)) / 2);
+      if (i >= entry || i <= maxLen - entry) {
+        yPoint = xLayer.state[i - entry];
+      }
+    } else {
+      yPoint = xLayer.state[i];
+    }
+    if (!yPoint) {
+      yPoint = '';
+    }
+    stateVector.push(yPoint);
+  }
+  return stateVector;
+}
 
 export { fit };

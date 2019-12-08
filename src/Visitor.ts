@@ -3,16 +3,16 @@ import { FILL_CONFIG } from 'vega-lite/build/src/mark';
 
 function visit(data: Data, yEntryPoints: GenePool | undefined, config: Config): [XData, GenePool] {
   yEntryPoints = yEntryPoints ? yEntryPoints : new Map();
-  if (yEntryPoints.size === 0 && !config.centered) {
+  if (yEntryPoints.size === 0 && !config.compact) {
     data.yData.forEach(y => {
       if (!y.isHidden) yEntryPoints!.set(y.yID, Math.random())
     })
   }
   let visitor: string[]
   let prevIndex: number
-  if (config.centered) {
+  if (config.compact) {
     visitor = [];
-    prevIndex = 0;
+    prevIndex = -1;
   } else {
     visitor = Array.from(yEntryPoints!)
       .sort((a, b) => a[1] - b[1])
@@ -21,7 +21,7 @@ function visit(data: Data, yEntryPoints: GenePool | undefined, config: Config): 
   // traverse x Layers
   let xData = data.xData.reduce((acc: XData, x: XLayer, i: number) => {
     if (!x.isHidden) {
-      if (config.centered) {
+      if (config.compact) {
         if (i != 0) {
           data.xData[prevIndex].remove.forEach(a => (visitor = remove(a, visitor)));
         }
@@ -41,6 +41,7 @@ function visit(data: Data, yEntryPoints: GenePool | undefined, config: Config): 
       x.state = [...visitor];
       acc.push(x);
     }
+    prevIndex++
     return acc;
   }, [])
   return [xData, yEntryPoints];

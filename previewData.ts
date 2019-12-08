@@ -1,19 +1,19 @@
 function KurliData() {
     return [
-        { date: 20161000, collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Mischi', 'Lilo'] },
-        { date: 20161200, collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Mischi', 'Lilo', 'Oli'] },
-        { date: 20170200, collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Mischi', 'Lilo', 'Oli', 'Bowie'] },
-        { date: 20170600, collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Mischi', 'Lilo', 'Oli'] },
-        { date: 20170700, collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Basil', 'Lilo', 'Oli'] },
-        { date: 20170900, collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Mischi', 'Lilo', 'Oli', 'Noelia'] },
-        { date: 20171000, collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Sarah', 'Lilo', 'Oli', 'Noelia'] },
-        { date: 20171200, collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Anabel', 'Lilo', 'Oli', 'Noelia'] },
-        { date: 20180200, collocs: ['Anabel', 'Flo', 'Nisi', 'Franz', 'Dave', 'Geraldine'] },
-        { date: 20181100, collocs: ['Anabel', 'Flo', 'Nisi', 'Franz', 'Aziz', 'Geraldine'] },
-        { date: 20181200, collocs: ['Anabel', 'Flo', 'Nisi', 'Franz', 'Aziz', 'Sereina'] },
-        { date: 20190500, collocs: ['Anabel', 'Flo', 'Nisi', 'Franz', 'Selma', 'Sereina'] },
-        { date: 20190700, collocs: ['Fränzi', 'Flo', 'Nisi', 'Franz', 'Selma', 'Sereina'] },
-        { date: 20190705, collocs: ['Fränzi', 'Flo', 'Nisi', 'Franz', 'Selma', 'Sereina', 'Filu', 'Egon'] }
+        { date: "2016-10-00", collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Mischi', 'Lilo'] },
+        { date: "2016-12-00", collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Mischi', 'Lilo', 'Oli'] },
+        { date: "2017-02-00", collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Mischi', 'Lilo', 'Oli', 'Bowie'] },
+        { date: "2017-06-00", collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Mischi', 'Lilo', 'Oli'] },
+        { date: "2017-07-00", collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Basil', 'Lilo', 'Oli'] },
+        { date: "2017-09-00", collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Mischi', 'Lilo', 'Oli', 'Noelia'] },
+        { date: "2017-10-00", collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Sarah', 'Lilo', 'Oli', 'Noelia'] },
+        { date: "2017-12-00", collocs: ['Xenia', 'Flo', 'Nisi', 'Franz', 'Dave', 'Anabel', 'Lilo', 'Oli', 'Noelia'] },
+        { date: "2018-02-00", collocs: ['Anabel', 'Flo', 'Nisi', 'Franz', 'Dave', 'Geraldine'] },
+        { date: "2018-11-00", collocs: ['Anabel', 'Flo', 'Nisi', 'Franz', 'Aziz', 'Geraldine'] },
+        { date: "2018-12-00", collocs: ['Anabel', 'Flo', 'Nisi', 'Franz', 'Aziz', 'Sereina'] },
+        { date: "2019-05-00", collocs: ['Anabel', 'Flo', 'Nisi', 'Franz', 'Selma', 'Sereina'] },
+        { date: "2019-07-00", collocs: ['Fränzi', 'Flo', 'Nisi', 'Franz', 'Selma', 'Sereina'] },
+        { date: "2019-07-05", collocs: ['Fränzi', 'Flo', 'Nisi', 'Franz', 'Selma', 'Sereina', 'Filu', 'Egon'] }
     ]
 }
 

@@ -115,8 +115,10 @@ export interface BaseConfig {
   continuousStart: boolean;
   // whether the y-points go until the end or until the last grouping
   continuousEnd: boolean;
-  // whether the graph is centered or not
-  centered: boolean;
+  // whether the graph is compacted or not
+  compact: boolean;
+  // which actors should be highlighted
+  highlight: string[];
   // numeric field that determines the stroke width
   strokeWidth: (xLayer: XLayer, yLayer: YLayer) => number;
   // numeric field that determines the stroke width
@@ -147,6 +149,8 @@ export interface BaseConfig {
   amtLoss: number;
   // Penalty for the length of the switches
   lengthLoss: number;
+  // Penalty for the y extent of the chart
+  yExtentLoss: number;
 }
 
 export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
@@ -242,6 +246,7 @@ export class RenderedPoint {
     public strokeColor: number | string,
     public xVal: number | string,
     public xDescription: string,
-    public url: string
+    public url: string,
+    public isHighlighted: number
   ) {}
 }

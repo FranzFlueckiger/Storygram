@@ -25,7 +25,7 @@ async function drawArrayKD() {
     filterGroupAmt: [3, undefined],
     continuousStart: false,
     continuousEnd: false,
-    centered: false
+    compact: false
   };
   const KD = new KnotDiagram(testArrayData(), config);
   await vega('#viz', KD.getSpec());
@@ -38,7 +38,7 @@ async function drawTableKD() {
     xField: 'id',
     continuousStart: false,
     continuousEnd: false,
-    centered: false,
+    compact: false,
     filterGroupAmt: [2, undefined]
   };
   const KD = new KnotDiagram(testTableData(), config);
@@ -64,24 +64,6 @@ async function drawPaperExample() {
 }
 
 /**
- * Data found on https://de.wikipedia.org/wiki/Liste_der_Mitglieder_des_Schweizerischen_Bundesrates#Bundesr%C3%A4te
- */
-async function drawBundesratExample() {
-  const data = BundesratData()
-  const config: Config = {
-    dataFormat: 'ranges',
-    startField: 'Amtsantritt',
-    endField: 'Amtsende',
-    yField: 'Name',
-    xDescription: (xLayer) => 'Bundesrat im Jahr ' + String(xLayer.xValue),
-    centered: true,
-    verbose: true
-  };
-  const KD = new KnotDiagram(data, config);
-  await vega('#viz', KD.getSpec());
-}
-
-/**
  * Data found on https://www.prio.org/Data/Armed-Conflict/
  */
 async function drawWarData() {
@@ -92,7 +74,6 @@ async function drawWarData() {
     yFields: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'],
     xDescription: (xLayer) => 'War in ' + xLayer.data.Location + ', ' + String(xLayer.xValue),
     filterGroupAmt: [2, undefined],
-    //filterCustomX: (xLayer) => xLayer.data.Int > 8,
     splitFunction: (ys) => ys.split(', '),
     shouldContain: ['Russia (Soviet Union)'],
     generationAmt: 100,
@@ -109,8 +90,8 @@ async function drawMetasonKD() {
     xField: 'year',
     yArrayField: 'participants',
     filterGroupAmt: [2, undefined],
-    filterGroupSize: [3, 6],
-    filterXValue: [1988, 1995],
+    filterGroupSize: [3, undefined],
+    filterXValue: [1988, 1993],
     filterCustomX: (xLayer) => {
       const name: string = xLayer.data.releaseName
       return !name.includes('compilation') &&
@@ -121,7 +102,9 @@ async function drawMetasonKD() {
         !name.toLowerCase().includes('remaster')
     },
     generationAmt: 100,
+    populationSize: 100,
     xValueScaling: 0,
+    verbose: true,
     xDescription: (xLayer) => xLayer.data.releaseName + ", " + xLayer.data.year,
   }
   const KD = new KnotDiagram(data, config);
@@ -134,11 +117,32 @@ async function drawKurliKD() {
     dataFormat: 'array',
     xField: 'date',
     yArrayField: 'collocs',
-    xValueScaling: 0,
-    verbose: true
+    verbose: true,
+    compact: true
   }
   const KD = new KnotDiagram(data, config);
   await vega('#viz', KD.getSpec());
 }
 
-drawKurliKD();
+/**
+ * Data found on https://de.wikipedia.org/wiki/Liste_der_Mitglieder_des_Schweizerischen_Bundesrates#Bundesr%C3%A4te
+ */
+async function drawBundesratExample() {
+  const data = BundesratData()
+  const config: Config = {
+    dataFormat: 'ranges',
+    startField: 'Amtsantritt',
+    endField: 'Amtsende',
+    yField: 'Name',
+    filterXValue: [1990, undefined],
+    xDescription: (xLayer) => 'Bundesrat im Jahr ' + String(xLayer.xValue),
+    strokeColor: (x, y) => y.data.Partei,
+    highlight: ['Viola Amherd', 'Moritz Leuenberger'],
+    compact: true,
+    verbose: true,
+  };
+  const KD = new KnotDiagram(data, config);
+  await vega('#viz', KD.getSpec());
+}
+
+drawBundesratExample();
