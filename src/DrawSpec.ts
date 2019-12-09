@@ -12,12 +12,12 @@ export default class DrawSpec {
 
   public static draw(data: Data, config: FullConfig): [RenderedPoint[], number, number] {
     let result: RenderedPoint[] = [];
-    const maxYLen = data.xData.reduce((max, layer) => Math.max(max, layer.state.length), 0);
-    const xLen = data.xData.length;
-    const scaling = config.xValueScaling;
+    const maxYLen = data.events.reduce((max, layer) => Math.max(max, layer.state.length), 0);
+    const xLen = data.events.length;
+    const scaling = config.eventValueScaling;
     let xVal: number | string = ''
     let active_Ys: Set<string> = new Set()
-    data.xData.forEach((xLayer, xIndex) => {
+    data.events.forEach((xLayer, xIndex) => {
       let offset = 0;
       if (config.compact) {
         xLayer.state = xLayer.state.filter(y => y !== '')
@@ -27,16 +27,16 @@ export default class DrawSpec {
       // this is the xValue that is shown at the bottom of the chart
       // if it changes it will be drawn
       let xValueLegend: number | string
-      if (xVal === xLayer.xValue) xValueLegend = '-'
-      else xValueLegend = xLayer.xValue
+      if (xVal === xLayer.eventValue) xValueLegend = '-'
+      else xValueLegend = xLayer.eventValue
       xLayer.state.forEach((yID: string, yIndex: number) => {
-        const yVal = data.yData.get(yID)
+        const yVal = data.actors.get(yID)
         const isGrouped = xLayer.group.some(a => a === yID) ? 1 : 0;
         if (isGrouped) {
           active_Ys.add(yID)
           lastGroupedIndex = yIndex
         }
-        if (xIndex != 0 && data.xData[xIndex - 1].remove.includes(yID)) {
+        if (xIndex != 0 && data.events[xIndex - 1].remove.includes(yID)) {
           active_Ys.delete(yID)
         }
         if (active_Ys.has(yID) || config.continuousStart) {
@@ -44,11 +44,11 @@ export default class DrawSpec {
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(xLayer, yVal!);
           const strokeColor = config.strokeColor(xLayer, yVal!);
-          xVal = xLayer.xValue;
+          xVal = xLayer.eventValue;
           const xDrawn = scaling * xVal + (1 - scaling) * xIndex;
-          const xDescription = config.xDescription!(xLayer);
+          const xDescription = config.eventDescription!(xLayer);
           const url = config.url(xLayer, yVal!)
-          const hiddenYs = xLayer.hiddenYs
+          const hiddenYs = xLayer.hiddenActors
           const isHiglighted = config.highlight.includes(yID) ? 1 : 0
           const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, strokeColor, xValueLegend, xDescription, url, isHiglighted);
           // this is necessary to show the hidden ys counter
@@ -100,27 +100,27 @@ export default class DrawSpec {
       "$schema": "https://vega.github.io/schema/vega/v5.json",
       "autosize": "pad",
       "padding": 5,
-      "width": data[2] * config.xPadding,
-      "height": data[1] * config.yPadding,
+      "width": data[2] * config.eventPadding,
+      "height": data[1] * config.actorPadding,
       "style": "cell",
       "data": [
         {
-          "name": "selector063_store",
+          "name": "selector010_store",
           "values": [
             {
-              "unit": "\"layer_3\"",
+              "unit": "\"layer_4\"",
               "fields": [{ "type": "E", "field": "x" }],
               "values": [0]
             }
           ]
         },
         {
-          "name": "data-e29822218f4b17b396cb06d2f5a0436e",
+          "name": "data-62aa173cefa189ca06419e6e93ca30c4",
           "values": data[0]
         },
         {
           "name": "data_0",
-          "source": "data-e29822218f4b17b396cb06d2f5a0436e",
+          "source": "data-62aa173cefa189ca06419e6e93ca30c4",
           "transform": [
             { "type": "formula", "expr": "toNumber(datum[\"y\"])", "as": "y" }
           ]
@@ -141,6 +141,11 @@ export default class DrawSpec {
         {
           "name": "data_3",
           "source": "data_2",
+          "transform": [{ "type": "filter", "expr": "datum.isHighlighted" }]
+        },
+        {
+          "name": "data_4",
+          "source": "data_2",
           "transform": [
             {
               "type": "joinaggregate",
@@ -153,18 +158,8 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data_4",
-          "source": "data_3",
-          "transform": [
-            {
-              "type": "filter",
-              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"yHigh\"] !== null && !isNaN(datum[\"yHigh\"])"
-            }
-          ]
-        },
-        {
           "name": "data_5",
-          "source": "data_3",
+          "source": "data_4",
           "transform": [
             {
               "type": "filter",
@@ -174,17 +169,27 @@ export default class DrawSpec {
         },
         {
           "name": "data_6",
-          "source": "data_2",
+          "source": "data_4",
           "transform": [
             {
               "type": "filter",
-              "expr": "(vlSelectionTest(\"selector063_store\", datum))"
+              "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"yHigh\"] !== null && !isNaN(datum[\"yHigh\"])"
             }
           ]
         },
         {
           "name": "data_7",
-          "source": "data_6",
+          "source": "data_2",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "(vlSelectionTest(\"selector010_store\", datum))"
+            }
+          ]
+        },
+        {
+          "name": "data_8",
+          "source": "data_7",
           "transform": [
             {
               "type": "flatten",
@@ -194,8 +199,8 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data_8",
-          "source": "data_7",
+          "name": "data_9",
+          "source": "data_8",
           "transform": [
             {
               "type": "lookup",
@@ -223,8 +228,38 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data_9",
-          "source": "data_7",
+          "name": "data_10",
+          "source": "data_8",
+          "transform": [
+            {
+              "type": "lookup",
+              "from": "data_0",
+              "key": "x",
+              "fields": ["x"],
+              "as": ["x_selected"]
+            },
+            {
+              "type": "formula",
+              "expr": "(datum.pointX + 0.001)",
+              "as": "pointXPre"
+            },
+            {
+              "type": "formula",
+              "expr": "(datum.pointX - 0.001)",
+              "as": "pointXPost"
+            },
+            {
+              "type": "fold",
+              "fields": ["pointX", "pointXPre", "pointXPost"],
+              "as": ["key", "value"]
+            },
+            { "type": "filter", "expr": "datum.isGrouped" },
+            { "type": "filter", "expr": "datum.isHighlighted" }
+          ]
+        },
+        {
+          "name": "data_11",
+          "source": "data_8",
           "transform": [
             {
               "type": "lookup",
@@ -256,8 +291,8 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data_10",
-          "source": "data_6",
+          "name": "data_12",
+          "source": "data_7",
           "transform": [
             {
               "type": "filter",
@@ -266,13 +301,13 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data_11",
+          "name": "data_13",
           "source": "data_2",
           "transform": [{ "type": "filter", "expr": "(datum.hiddenYsAmt !== 0)" }]
         },
         {
-          "name": "data_12",
-          "source": "data_11",
+          "name": "data_14",
+          "source": "data_13",
           "transform": [
             { "type": "formula", "expr": "(datum.x + 0.2)", "as": "x2" },
             { "type": "formula", "expr": "(datum.y + 0.3)", "as": "yLo" },
@@ -284,8 +319,8 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data_13",
-          "source": "data_11",
+          "name": "data_15",
+          "source": "data_13",
           "transform": [
             {
               "type": "filter",
@@ -294,23 +329,23 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data_14",
+          "name": "data_16",
           "source": "data_2",
           "transform": [{ "type": "filter", "expr": "datum.isGrouped" }]
         },
         {
-          "name": "data_15",
-          "source": "data_14",
+          "name": "data_17",
+          "source": "data_16",
           "transform": [
             {
               "type": "filter",
-              "expr": "(vlSelectionTest(\"selector063_store\", datum))"
+              "expr": "(vlSelectionTest(\"selector010_store\", datum))"
             }
           ]
         },
         {
-          "name": "data_16",
-          "source": "data_15",
+          "name": "data_18",
+          "source": "data_17",
           "transform": [
             { "type": "formula", "expr": "datum.x + 2.5", "as": "x2" },
             { "type": "formula", "expr": "datum.y - 0.2", "as": "yLo" },
@@ -322,8 +357,8 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data_17",
-          "source": "data_15",
+          "name": "data_19",
+          "source": "data_17",
           "transform": [
             {
               "type": "filter",
@@ -332,8 +367,8 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data_18",
-          "source": "data_14",
+          "name": "data_20",
+          "source": "data_16",
           "transform": [
             {
               "type": "aggregate",
@@ -349,7 +384,7 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "data_19",
+          "name": "data_21",
           "source": "data_0",
           "transform": [
             {
@@ -374,27 +409,27 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "selector063",
-          "update": "vlSelectionResolve(\"selector063_store\")"
+          "name": "selector010",
+          "update": "vlSelectionResolve(\"selector010_store\")"
         },
         {
-          "name": "selector063_tuple",
+          "name": "selector010_tuple",
           "on": [
             {
               "events": [{ "source": "scope", "type": "mouseover" }],
-              "update": "datum && item().mark.marktype !== 'group' ? {unit: \"layer_3\", fields: selector063_tuple_fields, values: [(item().isVoronoi ? datum.datum : datum)[\"x\"]]} : null",
+              "update": "datum && item().mark.marktype !== 'group' ? {unit: \"layer_4\", fields: selector010_tuple_fields, values: [(item().isVoronoi ? datum.datum : datum)[\"x\"]]} : null",
               "force": true
             },
             { "events": [{ "source": "scope", "type": "dblclick" }], "update": "null" }
           ]
         },
         {
-          "name": "selector063_tuple_fields",
+          "name": "selector010_tuple_fields",
           "value": [{ "type": "E", "field": "x" }]
         },
         {
-          "name": "selector063_modify",
-          "update": "modify(\"selector063_store\", selector063_tuple, true)"
+          "name": "selector010_modify",
+          "update": "modify(\"selector010_store\", selector010_tuple, true)"
         }
       ],
       "marks": [
@@ -405,7 +440,7 @@ export default class DrawSpec {
             "facet": {
               "name": "faceted_path_layer_0_main",
               "data": "data_2",
-              "groupby": ["strokeColor"]
+              "groupby": ["strokeColor", "z"]
             }
           },
           "encode": {
@@ -439,10 +474,50 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "layer_1_marks",
+          "name": "layer_1_pathgroup",
+          "type": "group",
+          "from": {
+            "facet": {
+              "name": "faceted_path_layer_1_main",
+              "data": "data_3",
+              "groupby": ["z"]
+            }
+          },
+          "encode": {
+            "update": {
+              "width": { "field": { "group": "width" } },
+              "height": { "field": { "group": "height" } }
+            }
+          },
+          "marks": [
+            {
+              "name": "layer_1_marks",
+              "type": "line",
+              "style": ["line"],
+              "sort": { "field": "datum[\"value\"]" },
+              "from": { "data": "faceted_path_layer_1_main" },
+              "encode": {
+                "update": {
+                  "strokeDash": { "value": [5, 5] },
+                  "interpolate": { "value": "monotone" },
+                  "stroke": { "value": "black" },
+                  "opacity": { "value": 0.2 },
+                  "x": { "scale": "x", "field": "value" },
+                  "y": { "scale": "y", "field": "y" },
+                  "strokeWidth": { "value": 4.5 },
+                  "defined": {
+                    "signal": "datum[\"value\"] !== null && !isNaN(datum[\"value\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "layer_2_marks",
           "type": "rule",
           "style": ["rule"],
-          "from": { "data": "data_18" },
+          "from": { "data": "data_20" },
           "encode": {
             "update": {
               "strokeCap": { "value": "round" },
@@ -462,10 +537,10 @@ export default class DrawSpec {
           }
         },
         {
-          "name": "layer_2_marks",
+          "name": "layer_3_marks",
           "type": "rule",
           "style": ["rule"],
-          "from": { "data": "data_4" },
+          "from": { "data": "data_5" },
           "encode": {
             "update": {
               "strokeDash": { "value": [5, 5] },
@@ -484,17 +559,17 @@ export default class DrawSpec {
           }
         },
         {
-          "name": "layer_3_marks",
+          "name": "layer_4_marks",
           "type": "rule",
           "style": ["rule"],
-          "from": { "data": "data_5" },
+          "from": { "data": "data_6" },
           "encode": {
             "update": {
               "strokeCap": { "value": "round" },
               "stroke": { "value": "black" },
               "opacity": [
                 {
-                  "test": "(vlSelectionTest(\"selector063_store\", datum))",
+                  "test": "(vlSelectionTest(\"selector010_store\", datum))",
                   "value": 1
                 },
                 { "value": 0 }
@@ -513,9 +588,9 @@ export default class DrawSpec {
           }
         },
         {
-          "name": "layer_3_voronoi",
+          "name": "layer_4_voronoi",
           "type": "path",
-          "from": { "data": "layer_3_marks" },
+          "from": { "data": "layer_4_marks" },
           "encode": {
             "update": {
               "fill": { "value": "transparent" },
@@ -534,13 +609,13 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "layer_4_pathgroup",
+          "name": "layer_5_pathgroup",
           "type": "group",
           "from": {
             "facet": {
-              "name": "faceted_path_layer_4_main",
-              "data": "data_8",
-              "groupby": ["strokeColor"]
+              "name": "faceted_path_layer_5_main",
+              "data": "data_9",
+              "groupby": ["strokeColor", "z"]
             }
           },
           "encode": {
@@ -551,11 +626,11 @@ export default class DrawSpec {
           },
           "marks": [
             {
-              "name": "layer_4_marks",
+              "name": "layer_5_marks",
               "type": "line",
               "style": ["line"],
               "sort": { "field": "datum[\"value\"]" },
-              "from": { "data": "faceted_path_layer_4_main" },
+              "from": { "data": "faceted_path_layer_5_main" },
               "encode": {
                 "update": {
                   "strokeCap": { "value": "round" },
@@ -573,10 +648,49 @@ export default class DrawSpec {
           ]
         },
         {
-          "name": "layer_5_marks",
+          "name": "layer_6_pathgroup",
+          "type": "group",
+          "from": {
+            "facet": {
+              "name": "faceted_path_layer_6_main",
+              "data": "data_10",
+              "groupby": ["z"]
+            }
+          },
+          "encode": {
+            "update": {
+              "width": { "field": { "group": "width" } },
+              "height": { "field": { "group": "height" } }
+            }
+          },
+          "marks": [
+            {
+              "name": "layer_6_marks",
+              "type": "line",
+              "style": ["line"],
+              "sort": { "field": "datum[\"value\"]" },
+              "from": { "data": "faceted_path_layer_6_main" },
+              "encode": {
+                "update": {
+                  "strokeDash": { "value": [5, 5] },
+                  "interpolate": { "value": "monotone" },
+                  "stroke": { "value": "black" },
+                  "x": { "scale": "x", "field": "value" },
+                  "y": { "scale": "y", "field": "pointY" },
+                  "strokeWidth": { "value": 4.5 },
+                  "defined": {
+                    "signal": "datum[\"value\"] !== null && !isNaN(datum[\"value\"]) && datum[\"pointY\"] !== null && !isNaN(datum[\"pointY\"])"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "layer_7_marks",
           "type": "rect",
           "style": ["tick"],
-          "from": { "data": "data_9" },
+          "from": { "data": "data_11" },
           "encode": {
             "update": {
               "opacity": [{ "test": "datum.pointBool", "value": 0.25 }, { "value": 0 }],
@@ -597,15 +711,14 @@ export default class DrawSpec {
           }
         },
         {
-          "name": "layer_6_marks",
+          "name": "layer_8_marks",
           "type": "text",
           "style": ["text"],
-          "from": { "data": "data_10" },
+          "from": { "data": "data_12" },
           "encode": {
             "update": {
               "align": { "value": "left" },
               "dx": { "value": 10 },
-              "dy": { "value": 5 },
               "fontSize": { "value": 20 },
               "fill": { "value": "black" },
               "x": [
@@ -622,10 +735,10 @@ export default class DrawSpec {
           }
         },
         {
-          "name": "layer_7_marks",
+          "name": "layer_9_marks",
           "type": "rect",
           "style": ["rect"],
-          "from": { "data": "data_12" },
+          "from": { "data": "data_14" },
           "encode": {
             "update": {
               "cornerRadius": { "value": 4 },
@@ -652,10 +765,10 @@ export default class DrawSpec {
           }
         },
         {
-          "name": "layer_8_marks",
+          "name": "layer_10_marks",
           "type": "text",
           "style": ["text"],
-          "from": { "data": "data_13" },
+          "from": { "data": "data_15" },
           "encode": {
             "update": {
               "align": { "value": "center" },
@@ -677,10 +790,10 @@ export default class DrawSpec {
           }
         },
         {
-          "name": "layer_9_marks",
+          "name": "layer_11_marks",
           "type": "rect",
           "style": ["rect"],
-          "from": { "data": "data_16" },
+          "from": { "data": "data_18" },
           "encode": {
             "update": {
               "cursor": { "value": "pointer" },
@@ -707,10 +820,10 @@ export default class DrawSpec {
           }
         },
         {
-          "name": "layer_10_marks",
+          "name": "layer_12_marks",
           "type": "text",
           "style": ["text"],
-          "from": { "data": "data_17" },
+          "from": { "data": "data_19" },
           "encode": {
             "update": {
               "align": { "value": "left" },
@@ -733,10 +846,10 @@ export default class DrawSpec {
           }
         },
         {
-          "name": "layer_11_marks",
+          "name": "layer_13_marks",
           "type": "text",
           "style": ["text"],
-          "from": { "data": "data_19" },
+          "from": { "data": "data_21" },
           "encode": {
             "update": {
               "dy": { "value": 40 },
@@ -763,19 +876,21 @@ export default class DrawSpec {
           "domain": {
             "fields": [
               { "data": "data_2", "field": "value" },
-              { "data": "data_18", "field": "x" },
-              { "data": "data_4", "field": "x" },
+              { "data": "data_3", "field": "value" },
+              { "data": "data_20", "field": "x" },
               { "data": "data_5", "field": "x" },
-              { "data": "data_8", "field": "value" },
-              { "data": "data_9", "field": "pointX" },
-              { "data": "data_10", "field": "x" },
+              { "data": "data_6", "field": "x" },
+              { "data": "data_9", "field": "value" },
+              { "data": "data_10", "field": "value" },
+              { "data": "data_11", "field": "pointX" },
               { "data": "data_12", "field": "x" },
-              { "data": "data_12", "field": "x2" },
-              { "data": "data_13", "field": "x" },
-              { "data": "data_16", "field": "x" },
-              { "data": "data_16", "field": "x2" },
-              { "data": "data_17", "field": "x" },
-              { "data": "data_19", "field": "x" }
+              { "data": "data_14", "field": "x" },
+              { "data": "data_14", "field": "x2" },
+              { "data": "data_15", "field": "x" },
+              { "data": "data_18", "field": "x" },
+              { "data": "data_18", "field": "x2" },
+              { "data": "data_19", "field": "x" },
+              { "data": "data_21", "field": "x" }
             ]
           },
           "range": [0, { "signal": "width" }],
@@ -788,21 +903,23 @@ export default class DrawSpec {
           "domain": {
             "fields": [
               { "data": "data_2", "field": "y" },
-              { "data": "data_18", "field": "min_y" },
-              { "data": "data_18", "field": "max_y" },
-              { "data": "data_4", "field": "yHigh" },
-              { "data": "data_4", "field": "yLow" },
+              { "data": "data_3", "field": "y" },
+              { "data": "data_20", "field": "min_y" },
+              { "data": "data_20", "field": "max_y" },
               { "data": "data_5", "field": "yHigh" },
               { "data": "data_5", "field": "yLow" },
-              { "data": "data_8", "field": "pointY" },
+              { "data": "data_6", "field": "yHigh" },
+              { "data": "data_6", "field": "yLow" },
               { "data": "data_9", "field": "pointY" },
-              { "data": "data_12", "field": "yLo" },
-              { "data": "data_12", "field": "yHi" },
-              { "data": "data_13", "field": "y" },
-              { "data": "data_16", "field": "yLo" },
-              { "data": "data_16", "field": "yHi" },
-              { "data": "data_17", "field": "y" },
-              { "data": "data_19", "field": "yLo" }
+              { "data": "data_10", "field": "pointY" },
+              { "data": "data_11", "field": "pointY" },
+              { "data": "data_14", "field": "yLo" },
+              { "data": "data_14", "field": "yHi" },
+              { "data": "data_15", "field": "y" },
+              { "data": "data_18", "field": "yLo" },
+              { "data": "data_18", "field": "yHi" },
+              { "data": "data_19", "field": "y" },
+              { "data": "data_21", "field": "yLo" }
             ]
           },
           "range": [{ "signal": "height" }, 0],
@@ -815,7 +932,7 @@ export default class DrawSpec {
           "domain": {
             "fields": [
               { "data": "data_2", "field": "strokeColor" },
-              { "data": "data_8", "field": "strokeColor" }
+              { "data": "data_9", "field": "strokeColor" }
             ],
             "sort": true
           },
@@ -841,12 +958,20 @@ export default class DrawSpec {
           "zindex": 1
         }
       ],
+      "legends": [
+        {
+          "stroke": "color",
+          "gradientLength": { "signal": "clamp(height, 64, 200)" },
+          "symbolType": "stroke",
+          "title": "Color:"
+        }
+      ],
       "config": {
         "axis": {
           "domainOpacity": 0,
           "grid": false,
           "labelOpacity": 0,
-          "tickOpacity": 0
+          "tickOpacity": 0,
         },
         "style": { "cell": { "strokeWidth": 0 } }
       }

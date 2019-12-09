@@ -1,20 +1,20 @@
 export interface RangeData {
   dataFormat: 'ranges';
-  yField: string;
+  actorField: string;
   startField: string;
   endField: string;
 }
 
 export interface TableData {
   dataFormat: 'table';
-  yFields: string[];
-  xField?: string;
+  actorFields: string[];
+  eventField?: string;
 }
 
 export interface ArrayData {
   dataFormat: 'array';
-  xField?: string;
-  yArrayField: string;
+  eventField?: string;
+  actorArrayField: string;
 }
 
 export interface BaseConfig {
@@ -87,20 +87,20 @@ export interface BaseConfig {
     | 'spectral'
     | 'rainbow'
     | 'sinebow';
-  // split function for the y fields
-  splitFunction?: ((arg: string) => string[]) | undefined;
-  // function that returns a string describing the selected x
-  xDescription: (arg: XLayer) => string;
+  // split function for the actor fields, is useful when one string contains e.g. many actors separated by a string
+  actorSplitFunction?: ((arg: string) => string[]) | undefined;
+  // function that returns a string describing the selected event
+  eventDescription: (arg: Event) => string;
   // link to a desired url from the group nodes
-  url: (xLayer: XLayer, yLayer: YLayer) => string;
-  // the height of the whole chart
-  yPadding: number;
-  // the width of the whole chart
-  xPadding: number;
+  url: (event: Event, actor: Actor) => string;
+  // padding between the actors
+  actorPadding: number;
+  // padding between the events
+  eventPadding: number;
   // the line size of the lines and ticks
   lineSize: number;
-  // x Value scaling factor (0 has no effect, 1 has 100% effect)
-  xValueScaling: number;
+  // event value scaling factor (0 has no effect, 1 has 100% effect)
+  eventValueScaling: number;
   // amount of consecutive Generations to be evaluated
   generationAmt: number;
   // Size of one generation
@@ -120,30 +120,30 @@ export interface BaseConfig {
   // which actors should be highlighted
   highlight: string[];
   // numeric field that determines the stroke width
-  strokeWidth: (xLayer: XLayer, yLayer: YLayer) => number;
+  strokeWidth: (event: Event, actor: Actor) => number;
   // numeric field that determines the stroke width
-  strokeColor: (xLayer: XLayer, yLayer: YLayer) => string | number;
-  // function that returns a string describing the y
-  tooltipText?: (arg: XLayer) => string;
-  // x filter check if the XLayer contains all the given YLayers
+  strokeColor: (event: Event, actor: Actor) => string | number;
+  // function that returns a string describing the actor
+  tooltipText?: (arg: Event) => string;
+  // check if the event contains all the given actors
   mustContain: string[];
-  // x filter check if the XLayer contains one of the given YLayers
+  // check if the event contains one of the given actors
   shouldContain: string[];
-  // x filter (Positive and Negative x-Value ranges possible)
-  filterXValue: [number | undefined, number | undefined];
-  // x filter (Positive group sizes only)
+  // event filter (positive and Negative event ranges possible)
+  filterEventValue: [number | undefined, number | undefined];
+  // event filter (positive group sizes only)
   filterGroupSize: [number | undefined, number | undefined];
-  // x filter for boolean predicates
-  filterCustomX: (xLayer: XLayer) => boolean;
-  // y filter check if the YLayers interacted with the given ones at the specified depth
+  // event filter for boolean predicates
+  filterEventCustom: (event: Event) => boolean;
+  // check if the actors interacted with the given ones at the specified depth
   interactedWith: [string[], number | undefined];
-  // y filter (Positive and Negative x value lifetimes possible)
-  filterXValueLifeTime: [number | undefined, number | undefined];
-  // y filter (Positive group amounts only)
+  // actor filter (Positive and Negative event value lifetimes possible)
+  filterEventValueLifeTime: [number | undefined, number | undefined];
+  // actor filter (Positive group amounts only)
   filterGroupAmt: [number | undefined, number | undefined];
-  // y filter for boolean predicates
-  filterCustomY: (yLayer: YLayer) => boolean;
-  // Penalty for changing y point from previous layer to the next
+  // actor filter for boolean predicates
+  filterActorCustom: (actor: Actor) => boolean;
+  // Penalty for changing actor's position from one layer to the other
   linearLoss: number;
   // Penalty for the amount of switches
   amtLoss: number;
@@ -157,7 +157,7 @@ export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
 
 export type FullConfig = BaseConfig & (RangeData | ArrayData | TableData);
 
-export class XLayer {
+export class Event {
   public id?: number;
 
   public index?: number;
@@ -174,24 +174,24 @@ export class XLayer {
 
   public switch: Switch[] = [];
 
-  public hiddenYs: string[];
+  public hiddenActors: string[];
 
-  public constructor(public xValue: number, public data: Record<string, unknown>) {
+  public constructor(public eventValue: number, public data: Record<string, unknown>) {
     this.isHidden = false;
     this.add = [];
     this.remove = [];
     this.group = [];
     this.state = [];
-    this.hiddenYs = [];
+    this.hiddenActors = [];
   }
 }
 
-export class YLayer {
-  public layers: XLayer[];
+export class Actor {
+  public layers: Event[];
 
   public isHidden: boolean;
 
-  public constructor(public yID: string, public data: Record<string, unknown>) {
+  public constructor(public actorID: string, public data: Record<string, unknown>) {
     this.isHidden = false;
     this.layers = [];
   }
@@ -200,7 +200,7 @@ export class YLayer {
 export interface Child {
   loss: number;
   gene: GenePool;
-  x: XData;
+  events: EventData;
 }
 
 export interface Switch {
@@ -215,13 +215,13 @@ export interface Distance {
 
 export type GenePool = Map<string, number>;
 
-export type XData = XLayer[];
+export type EventData = Event[];
 
-export type YData = Map<string, YLayer>;
+export type YData = Map<string, Actor>;
 
 export interface Data {
-  xData: XData;
-  yData: YData;
+  events: EventData;
+  actors: YData;
 }
 
 export class RenderedPoint {
@@ -244,8 +244,8 @@ export class RenderedPoint {
     public isGrouped: number,
     public strokeWidth: number,
     public strokeColor: number | string,
-    public xVal: number | string,
-    public xDescription: string,
+    public eventValue: number | string,
+    public eventDescription: string,
     public url: string,
     public isHighlighted: number
   ) {}

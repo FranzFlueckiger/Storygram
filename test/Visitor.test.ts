@@ -1,5 +1,5 @@
 import { remove, add, switchP, getCenter, getDistances, group, visit } from '../src/Visitor';
-import { Switch, XData, YData, Data, YLayer } from '../src/Types';
+import { Switch, EventData, YData, Data, Actor } from '../src/Types';
 
 test('remove', () => {
   let visitor: string[] = ['hallo', 'world', 'wie', 'gehts'];
@@ -67,40 +67,40 @@ test('group', () => {
 });
 
 test('visit', () => {
-  const xs: XData = [
+  const xs: EventData = [
     {
       id: 4,
       index: 0,
-      xValue: 10,
+      eventValue: 10,
       isHidden: false,
       add: ['a', 'b'],
       group: ['a', 'b'],
       remove: [],
       switch: [],
       state: [],
-      hiddenYs: [],
+      hiddenActors: [],
       data: {},
     },
     {
       id: 8,
       index: 1,
-      xValue: 20,
+      eventValue: 20,
       isHidden: false,
       add: ['c', 'd'],
       group: ['a', 'c', 'd'],
       remove: ['b'],
       switch: [],
       state: [],
-      hiddenYs: [],
+      hiddenActors: [],
       data: {},
     },
   ];
   const ys: YData = new Map();
   // todo complete ylayers
-  ys.set('a', new YLayer('a', {}));
-  ys.set('b', new YLayer('b', {}));
-  ys.set('c', new YLayer('c', {}));
-  ys.set('d', new YLayer('d', {}));
+  ys.set('a', new Actor('a', {}));
+  ys.set('b', new Actor('b', {}));
+  ys.set('c', new Actor('c', {}));
+  ys.set('d', new Actor('d', {}));
   const data: Data = { xData: xs, yData: ys };
   const newData = visit(data, undefined);
   expect(JSON.stringify(newData[0][0].state)).toEqual('["b","a"]');

@@ -5,8 +5,8 @@ import { testArrayData, testTableData, testRangeData } from './testData';
 test('from array', () => {
   const config: Config = {
     dataFormat: 'array',
-    xField: 'id',
-    yArrayField: 'a',
+    eventField: 'id',
+    actorArrayField: 'a',
   };
   const KD = new KnotDiagram(testArrayData(), config);
   expect(KD.data.xData.length).toEqual(10);
@@ -22,8 +22,8 @@ test('from array', () => {
 test('from table', () => {
   const config: Config = {
     dataFormat: 'table',
-    xField: 'id',
-    yFields: ['a', 'b', 'c', 'd'],
+    eventField: 'id',
+    actorFields: ['a', 'b', 'c', 'd'],
   };
   const KD = new KnotDiagram(testTableData(), config);
   expect(KD.data.xData.length).toEqual(10);
@@ -37,7 +37,7 @@ test('from table', () => {
 test('from ranges', () => {
   const config: Config = {
     dataFormat: 'ranges',
-    yField: 'id',
+    actorField: 'id',
     startField: 'from',
     endField: 'to',
   };

@@ -6,8 +6,8 @@ import { testArrayData } from './testData';
 test('filter group size and amt', () => {
   const config: Config = {
     dataFormat: 'array',
-    xField: 'id',
-    yArrayField: 'a',
+    eventField: 'id',
+    actorArrayField: 'a',
     filterGroupSize: [0, 2],
     filterGroupAmt: [2, 2],
   };
@@ -28,10 +28,10 @@ test('filter group size and amt', () => {
 test('filter XValue and XValue lifetime', () => {
   const config: Config = {
     dataFormat: 'array',
-    xField: 'id',
-    yArrayField: 'a',
-    filterXValueLifeTime: [1, 3],
-    filterXValue: [2, 4],
+    eventField: 'id',
+    actorArrayField: 'a',
+    filterEventValueLifeTime: [1, 3],
+    filterEventValue: [2, 4],
   };
   const KD = new KnotDiagram(testArrayData(), config);
   const newData = filter(KD.data, KD.config);
@@ -56,9 +56,9 @@ test('filter XValue and XValue lifetime', () => {
 test('filter custom X filter', () => {
   const config: Config = {
     dataFormat: 'array',
-    xField: 'id',
-    yArrayField: 'a',
-    filterCustomX: xLayer => xLayer.id! % 2 === 0,
+    eventField: 'id',
+    actorArrayField: 'a',
+    filterEventCustom: xLayer => xLayer.id! % 2 === 0,
   };
   const KD = new KnotDiagram(testArrayData(), config);
   const newData: Data = filter(KD.data, KD.config);
@@ -77,9 +77,9 @@ test('filter custom X filter', () => {
 test('filter custom Y filter', () => {
   const config: Config = {
     dataFormat: 'array',
-    xField: 'id',
-    yArrayField: 'a',
-    filterCustomY: yLayer => yLayer.layers.some(l => l.id === 0),
+    eventField: 'id',
+    actorArrayField: 'a',
+    filterActorCustom: yLayer => yLayer.layers.some(l => l.id === 0),
   };
   const KD = new KnotDiagram(testArrayData(), config);
   const newData: Data = filter(KD.data, KD.config);

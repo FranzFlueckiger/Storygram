@@ -7,42 +7,42 @@ import { MetasonData, KurliData, WarData, BundesratData } from './previewData'
 async function drawRangeKD() {
   const config: Config = {
     dataFormat: 'ranges',
-    yField: 'id',
+    actorField: 'id',
     startField: 'from',
     endField: 'to',
     continuousStart: false,
     continuousEnd: false
   };
   const KD = new KnotDiagram(testRangeData(), config);
-  await vega('#viz', KD.getSpec());
+  KD.draw()
 }
 
 async function drawArrayKD() {
   const config: Config = {
     dataFormat: 'array',
-    yArrayField: 'a',
-    xField: 'id',
+    actorArrayField: 'a',
+    eventField: 'id',
     filterGroupAmt: [3, undefined],
     continuousStart: false,
     continuousEnd: false,
     compact: false
   };
   const KD = new KnotDiagram(testArrayData(), config);
-  await vega('#viz', KD.getSpec());
+  KD.draw()
 }
 
 async function drawTableKD() {
   const config: Config = {
     dataFormat: 'table',
-    yFields: ['a', 'b', 'c', 'd'],
-    xField: 'id',
+    actorFields: ['a', 'b', 'c', 'd'],
+    eventField: 'id',
     continuousStart: false,
     continuousEnd: false,
     compact: false,
     filterGroupAmt: [2, undefined]
   };
   const KD = new KnotDiagram(testTableData(), config);
-  await vega('#viz', KD.getSpec());
+  KD.draw()
 }
 
 async function drawPaperExample() {
@@ -54,13 +54,13 @@ async function drawPaperExample() {
   ];
   const config: Config = {
     dataFormat: 'array',
-    yArrayField: 'politicians',
-    xField: 'election_nr',
+    actorArrayField: 'politicians',
+    eventField: 'election_nr',
     continuousStart: false,
     continuousEnd: false
   };
   const KD = new KnotDiagram(data, config);
-  await vega('#viz', KD.getSpec());
+  KD.draw()
 }
 
 /**
@@ -70,29 +70,30 @@ async function drawWarData() {
   const data = WarData()
   const config: Config = {
     dataFormat: 'table',
-    xField: 'YEAR',
-    yFields: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'],
-    xDescription: (xLayer) => 'War in ' + xLayer.data.Location + ', ' + String(xLayer.xValue),
+    eventField: 'YEAR',
+    actorFields: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'],
+    eventDescription: (xLayer) => 'War in ' + xLayer.data.Location + ', ' + String(xLayer.eventValue),
     filterGroupAmt: [2, undefined],
-    splitFunction: (ys) => ys.split(', '),
+    actorSplitFunction: (ys) => ys.split(', '),
     shouldContain: ['Russia (Soviet Union)'],
+    highlight: ['Afghanistan', 'Russia (Soviet Union)'],
     generationAmt: 100,
     populationSize: 100
   };
   const KD = new KnotDiagram(data, config);
-  await vega('#viz', KD.getSpec());
+  KD.draw()
 }
 
 async function drawMetasonKD() {
   const data = MetasonData()
   const config: Config = {
     dataFormat: 'array',
-    xField: 'year',
-    yArrayField: 'participants',
+    eventField: 'year',
+    actorArrayField: 'participants',
     filterGroupAmt: [2, undefined],
     filterGroupSize: [3, undefined],
-    filterXValue: [1988, 1993],
-    filterCustomX: (xLayer) => {
+    filterEventValue: [1988, 1993],
+    filterEventCustom: (xLayer) => {
       const name: string = xLayer.data.releaseName
       return !name.includes('compilation') &&
         !name.toLowerCase().includes('best of') &&
@@ -103,25 +104,25 @@ async function drawMetasonKD() {
     },
     generationAmt: 100,
     populationSize: 100,
-    xValueScaling: 0,
+    eventValueScaling: 0,
     verbose: true,
-    xDescription: (xLayer) => xLayer.data.releaseName + ", " + xLayer.data.year,
+    eventDescription: (xLayer) => xLayer.data.releaseName + ", " + xLayer.data.year,
   }
   const KD = new KnotDiagram(data, config);
-  await vega('#viz', KD.getSpec());
+  KD.draw()
 }
 
 async function drawKurliKD() {
   const data = KurliData()
   const config: Config = {
     dataFormat: 'array',
-    xField: 'date',
-    yArrayField: 'collocs',
+    eventField: 'date',
+    actorArrayField: 'collocs',
     verbose: true,
     compact: true
   }
   const KD = new KnotDiagram(data, config);
-  await vega('#viz', KD.getSpec());
+  KD.draw()
 }
 
 /**
@@ -133,16 +134,13 @@ async function drawBundesratExample() {
     dataFormat: 'ranges',
     startField: 'Amtsantritt',
     endField: 'Amtsende',
-    yField: 'Name',
-    filterXValue: [1990, undefined],
-    xDescription: (xLayer) => 'Bundesrat im Jahr ' + String(xLayer.xValue),
+    actorField: 'Name',
+    eventDescription: (xLayer) => 'Bundesrat im Jahr ' + String(xLayer.eventValue),
     strokeColor: (x, y) => y.data.Partei,
-    highlight: ['Viola Amherd', 'Moritz Leuenberger'],
     compact: true,
-    verbose: true,
   };
   const KD = new KnotDiagram(data, config);
-  await vega('#viz', KD.getSpec());
+  KD.draw()
 }
 
 drawBundesratExample();

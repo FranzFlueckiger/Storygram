@@ -1,13 +1,13 @@
-import { Config, Data, YLayer } from './Types';
+import { Config, Data, Actor } from './Types';
 
 function filter(data: Data, config: Config): Data {
   if (config.verbose) console.log('Before Filtering', data);
   // filter xs
-  data = filterX(data, config);
+  data = filterEvents(data, config);
   // filter ys
-  data = filterY(data, config);
+  data = filterActors(data, config);
   // remove x points without y points
-  data.xData = data.xData.filter(layer => layer.group.length > 0);
+  data.events = data.events.filter(layer => layer.group.length > 0);
   setLifeCycles(data, config);
   if (config.verbose) console.log('After Filtering', data);
   return data;
@@ -17,64 +17,64 @@ function isInRange(p: number, range: [number | undefined, number | undefined] | 
   return range ? (range[0] ? p >= range[0] : true) && (range[1] ? p <= range[1] : true) : true;
 }
 
-function filterX(data: Data, config: Config): Data {
-  const yData: Map<string, YLayer> = new Map();
-  const xData = data.xData.filter(xLayer => {
+function filterEvents(data: Data, config: Config): Data {
+  const actors: Map<string, Actor> = new Map();
+  const events = data.events.filter(event => {
     let contains = true;
     if (config.mustContain && config.mustContain.length) {
       contains = config.mustContain.every(query => {
-        return xLayer.group.includes(query);
+        return event.group.includes(query);
       });
     }
     if (config.shouldContain && config.shouldContain.length) {
       contains = config.shouldContain.some(query => {
-        return xLayer.group.includes(query);
+        return event.group.includes(query);
       });
     }
-    let isCustomXFilter = false;
-    if (config.filterCustomX) {
-      isCustomXFilter = !config.filterCustomX(xLayer);
+    let isCustomEventFilter = false;
+    if (config.filterEventCustom) {
+      isCustomEventFilter = !config.filterEventCustom(event);
     }
     if (
-      !isInRange(xLayer.group.length, config.filterGroupSize) ||
-      !isInRange(xLayer.xValue, config.filterXValue) ||
-      xLayer.group.length == 0 ||
+      !isInRange(event.group.length, config.filterGroupSize) ||
+      !isInRange(event.eventValue, config.filterEventValue) ||
+      event.group.length == 0 ||
       !contains ||
-      isCustomXFilter
+      isCustomEventFilter
     ) {
-      xLayer.isHidden = true;
+      event.isHidden = true;
       return false;
     } else {
-      xLayer.group.forEach(y => {
-        const yVal = data.yData.get(y)!;
-        yData.set(y, yVal);
+      event.group.forEach(actorID => {
+        const actor = data.actors.get(actorID)!;
+        actors.set(actorID, actor);
       });
       return true;
     }
   });
-  return { xData, yData };
+  return { events, actors };
 }
 
-function filterY(data: Data, config: Config): Data {
-  Array.from(data.yData).forEach(yMap => {
-    const yVal: YLayer = yMap[1];
-    const activeLayers = yVal.layers ? yVal.layers.filter(l => !l.isHidden) : [];
-    let isCustomYFilter = false;
-    if (config.filterCustomY) {
-      isCustomYFilter = !config.filterCustomY(yVal);
+function filterActors(data: Data, config: Config): Data {
+  Array.from(data.actors).forEach(actorMap => {
+    const actor: Actor = actorMap[1];
+    const visibleEvents = actor.layers ? actor.layers.filter(event => !event.isHidden) : [];
+    let isCustomActorFilter = false;
+    if (config.filterActorCustom) {
+      isCustomActorFilter = !config.filterActorCustom(actor);
     }
     if (
       // check if y value has an xValue lifetime in the allowed range
-      !isInRange(activeLayers[activeLayers.length - 1].xValue - activeLayers[0].xValue, config.filterXValueLifeTime) ||
+      !isInRange(visibleEvents[visibleEvents.length - 1].eventValue - visibleEvents[0].eventValue, config.filterEventValueLifeTime) ||
       // check if y value has an amount of non-hidden groups in the allowed range
-      !isInRange(activeLayers.length, config.filterGroupAmt) ||
-      yVal.isHidden ||
-      isCustomYFilter
+      !isInRange(visibleEvents.length, config.filterGroupAmt) ||
+      actor.isHidden ||
+      isCustomActorFilter
     ) {
-      yVal.isHidden = true;
-      yVal.layers.forEach(l => {
-        l.group = l.group.filter(a => a != yVal.yID);
-        l.hiddenYs.push(yVal.yID);
+      actor.isHidden = true;
+      actor.layers.forEach(l => {
+        l.group = l.group.filter(a => a != actor.actorID);
+        l.hiddenActors.push(actor.actorID);
       });
     }
   });
@@ -82,26 +82,26 @@ function filterY(data: Data, config: Config): Data {
 }
 
 function setLifeCycles(data: Data, config: Config) {
-  data.xData.forEach((xLayer, i) => {
+  data.events.forEach((xLayer, i) => {
     xLayer.index = i;
   });
-  Array.from(data.yData).forEach(yMap => {
-    const y: YLayer = yMap[1];
+  Array.from(data.actors).forEach(yMap => {
+    const y: Actor = yMap[1];
     const activeLayers = y.layers ? y.layers.filter(l => !l.isHidden) : [];
     if (!y.isHidden) {
       // check where to add the y-point
       if (config.dataFormat === 'ranges' && !config.startField) {
-        data.xData[0].add.push(y.yID);
+        data.events[0].add.push(y.actorID);
       } else {
-        data.xData[activeLayers[0].index!].add.push(y.yID);
+        data.events[activeLayers[0].index!].add.push(y.actorID);
       }
       if (config.dataFormat === 'ranges' && !config.endField) {
-        data.xData[data.xData.length - 1].remove.push(y.yID);
+        data.events[data.xData.length - 1].remove.push(y.actorID);
       } else {
-        data.xData[activeLayers[activeLayers.length - 1].index!].remove.push(y.yID);
+        data.events[activeLayers[activeLayers.length - 1].index!].remove.push(y.actorID);
       }
     }
   });
 }
 
-export { filter, filterX, filterY, isInRange, setLifeCycles };
+export { filter, filterEvents as filterX, filterActors as filterY, isInRange, setLifeCycles };

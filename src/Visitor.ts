@@ -1,11 +1,11 @@
-import { Data, Distance, GenePool, Switch, XData, XLayer, Config } from './Types';
+import { Data, Distance, GenePool, Switch, EventData, Event, Config, Actor } from './Types';
 import { FILL_CONFIG } from 'vega-lite/build/src/mark';
 
-function visit(data: Data, yEntryPoints: GenePool | undefined, config: Config): [XData, GenePool] {
-  yEntryPoints = yEntryPoints ? yEntryPoints : new Map();
-  if (yEntryPoints.size === 0 && !config.compact) {
-    data.yData.forEach(y => {
-      if (!y.isHidden) yEntryPoints!.set(y.yID, Math.random())
+function visit(data: Data, actorEntryPoints: GenePool | undefined, config: Config): [EventData, GenePool] {
+  actorEntryPoints = actorEntryPoints ? actorEntryPoints : new Map();
+  if (actorEntryPoints.size === 0 && !config.compact) {
+    data.actors.forEach(y => {
+      if (!y.isHidden) actorEntryPoints!.set(y.actorID, Math.random())
     })
   }
   let visitor: string[]
@@ -14,37 +14,37 @@ function visit(data: Data, yEntryPoints: GenePool | undefined, config: Config): 
     visitor = [];
     prevIndex = -1;
   } else {
-    visitor = Array.from(yEntryPoints!)
+    visitor = Array.from(actorEntryPoints!)
       .sort((a, b) => a[1] - b[1])
       .map(y => y[0])
   }
-  // traverse x Layers
-  let xData = data.xData.reduce((acc: XData, x: XLayer, i: number) => {
-    if (!x.isHidden) {
+  // traverse events
+  let events = data.events.reduce((acc: EventData, event: Event, i: number) => {
+    if (!event.isHidden) {
       if (config.compact) {
         if (i != 0) {
-          data.xData[prevIndex].remove.forEach(a => (visitor = remove(a, visitor)));
+          data.events[prevIndex].remove.forEach(a => (visitor = remove(a, visitor)));
         }
-        x.add.forEach(y => {
-          const yVal = data.yData.get(y)!;
-          if (!yVal.isHidden) {
-            const entryPoint = yEntryPoints!.get(y);
+        event.add.forEach(actorID => {
+          const actor: Actor = data.actors.get(actorID)!;
+          if (!actor.isHidden) {
+            const entryPoint = actorEntryPoints!.get(actorID);
             if (!entryPoint) {
               const entryPoint = Math.random()
-              yEntryPoints!.set(y, entryPoint);
+              actorEntryPoints!.set(actorID, entryPoint);
             }
-            visitor = add(y, entryPoint!, visitor);
+            visitor = add(actorID, entryPoint!, visitor);
           }
         });
       }
-      x.switch = group(x.group, visitor);
-      x.state = [...visitor];
-      acc.push(x);
+      event.switch = group(event.group, visitor);
+      event.state = [...visitor];
+      acc.push(event);
     }
     prevIndex++
     return acc;
   }, [])
-  return [xData, yEntryPoints];
+  return [events, actorEntryPoints];
 }
 
 function add(a: string, gene: number, visitor: string[]): string[] {
@@ -59,10 +59,10 @@ function remove(a: string, visitor: string[]): string[] {
   return visitor.filter(p => p != a);
 }
 
-function switchP(switchY: Switch, visitor: string[]): string[] {
+function switchP(switchActors: Switch, visitor: string[]): string[] {
   // move the yObj to the group and shift all the others
-  const temp = visitor.splice(switchY.prev, 1);
-  visitor.splice(switchY.target, 0, ...temp);
+  const temp = visitor.splice(switchActors.prev, 1);
+  visitor.splice(switchActors.target, 0, ...temp);
   return visitor;
 }
 

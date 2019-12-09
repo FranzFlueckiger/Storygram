@@ -1,4 +1,4 @@
-import { Child, FullConfig, Data, GenePool, XLayer, XData } from './Types';
+import { Child, FullConfig, Data, GenePool, Event, EventData } from './Types';
 import { visit } from './Visitor';
 
 
@@ -21,7 +21,7 @@ function fit(data: Data, config: FullConfig) {
     newGenes = mutate(data, newGenes, config);
   }
   if (best) {
-    return { xData: best.x, yData: data.yData };
+    return { events: best.events, actors: data.actors };
   }
 }
 
@@ -31,9 +31,9 @@ function getGeneration(data: Data, yEntryPoints: Array<Map<string, number>> | un
   // Compute new generation
   for (let i = 0; i < config.populationSize; i++) {
     const entryPoints = yEntryPoints ? yEntryPoints[i] : undefined;
-    const result: [XLayer[], GenePool] = visit(data, entryPoints, config);
+    const result: [Event[], GenePool] = visit(data, entryPoints, config);
     const loss = getLoss(result, config);
-    const child: Child = { loss, gene: result[1], x: result[0] };
+    const child: Child = { loss, gene: result[1], events: result[0] };
     population.push(child);
   }
   return population.sort((a, b) => a.loss - b.loss);
@@ -90,7 +90,7 @@ function mutate(data: Data, genes: GenePool[], config: FullConfig) {
 }
 
 
-function getLoss(child: [XData, GenePool], config: FullConfig): number {
+function getLoss(child: [EventData, GenePool], config: FullConfig): number {
   let score = 0;
   score += getSwitchAmountLoss(child, config);
   score += getSwitchSizeLoss(child, config);
@@ -102,7 +102,7 @@ function getLoss(child: [XData, GenePool], config: FullConfig): number {
   return score;
 }
 
-function getSwitchAmountLoss(child: [XData, GenePool], config: FullConfig): number {
+function getSwitchAmountLoss(child: [EventData, GenePool], config: FullConfig): number {
   return (
     child[0].reduce<number>((acc, xLayer) => {
       // Penalty for the amount of switches
@@ -112,7 +112,7 @@ function getSwitchAmountLoss(child: [XData, GenePool], config: FullConfig): numb
 }
 
 
-function getSwitchSizeLoss(child: [XData, GenePool], config: FullConfig): number {
+function getSwitchSizeLoss(child: [EventData, GenePool], config: FullConfig): number {
   return child[0].reduce<number>((acc, xLayer) => {
     // Penalty for the amount of switches
     return (acc +=
@@ -125,15 +125,15 @@ function getSwitchSizeLoss(child: [XData, GenePool], config: FullConfig): number
   }, 0) * config.lengthLoss;
 }
 
-function getYExtentLoss(child: [XData, GenePool], config: FullConfig): number {
+function getYExtentLoss(child: [EventData, GenePool], config: FullConfig): number {
   return child[0].reduce((max, x) => {
     return Math.max(max, x.state.length)
   }, 0) * config.yExtentLoss
 }
 
-function getLinearLoss(child: [XData, GenePool], config: FullConfig): number {
+function getLinearLoss(child: [EventData, GenePool], config: FullConfig): number {
   let score = 0;
-  const xLayers: XData = child[0];
+  const xLayers: EventData = child[0];
   const maxLen = xLayers.reduce((acc, c) => Math.max(acc, c.state.length), 0);
   let prevVector = getStateVector(xLayers[0], maxLen, config);
   for (let i = 1; i < xLayers.length; i++) {
@@ -146,7 +146,7 @@ function getLinearLoss(child: [XData, GenePool], config: FullConfig): number {
   return score;
 }
 
-function getStateVector(xLayer: XLayer, maxLen: number, config: FullConfig): string[] {
+function getStateVector(xLayer: Event, maxLen: number, config: FullConfig): string[] {
   const stateVector: string[] = [];
   for (let i = 0; i < maxLen; i++) {
     let yPoint = '';
