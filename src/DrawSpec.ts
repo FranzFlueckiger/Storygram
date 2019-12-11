@@ -15,7 +15,7 @@ export default class DrawSpec {
     const maxYLen = data.events.reduce((max, layer) => Math.max(max, layer.state.length), 0);
     const xLen = data.events.length;
     const scaling = config.eventValueScaling;
-    let xVal: number | string = ''
+    let eventValue: number | string = ''
     let active_Ys: Set<string> = new Set()
     data.events.forEach((xLayer, xIndex) => {
       let offset = 0;
@@ -24,11 +24,11 @@ export default class DrawSpec {
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
       let lastGroupedIndex: number | undefined = undefined
-      // this is the xValue that is shown at the bottom of the chart
+      // this is the eventValueue that is shown at the bottom of the chart
       // if it changes it will be drawn
-      let xValueLegend: number | string
-      if (xVal === xLayer.eventValue) xValueLegend = '-'
-      else xValueLegend = xLayer.eventValue
+      let eventValueueLegend: number | string
+      if (eventValue === xLayer.eventValue) eventValueueLegend = '-'
+      else eventValueueLegend = xLayer.eventValue
       xLayer.state.forEach((yID: string, yIndex: number) => {
         const yVal = data.actors.get(yID)
         const isGrouped = xLayer.group.some(a => a === yID) ? 1 : 0;
@@ -44,13 +44,13 @@ export default class DrawSpec {
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(xLayer, yVal!);
           const strokeColor = config.strokeColor(xLayer, yVal!);
-          xVal = xLayer.eventValue;
-          const xDrawn = scaling * xVal + (1 - scaling) * xIndex;
-          const xDescription = config.eventDescription!(xLayer);
+          eventValue = xLayer.eventValue;
+          const xDrawn = scaling * eventValue + (1 - scaling) * xIndex;
+          const eventDescription = config.eventDescription!(xLayer);
           const url = config.url(xLayer, yVal!)
           const hiddenYs = xLayer.hiddenActors
           const isHiglighted = config.highlight.includes(yID) ? 1 : 0
-          const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, strokeColor, xValueLegend, xDescription, url, isHiglighted);
+          const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, strokeColor, eventValueueLegend, eventDescription, url, isHiglighted);
           // this is necessary to show the hidden ys counter
           if (lastGroupedIndex! < yIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenYs = hiddenYs
@@ -545,7 +545,7 @@ export default class DrawSpec {
             "update": {
               "strokeDash": { "value": [5, 5] },
               "stroke": { "value": "#8c8c8c" },
-              "opacity": [{ "test": "datum.xVal === '-'", "value": 0 }, { "value": 1 }],
+              "opacity": [{ "test": "datum.eventValue === '-'", "value": 0 }, { "value": 1 }],
               "x": [
                 {
                   "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
@@ -729,7 +729,7 @@ export default class DrawSpec {
                 { "scale": "x", "field": "x" }
               ],
               "y": { "value": 0 },
-              "text": { "signal": "''+datum[\"xDescription\"]" },
+              "text": { "signal": "''+datum[\"eventDescription\"]" },
               "baseline": { "value": "middle" }
             }
           }
@@ -862,7 +862,7 @@ export default class DrawSpec {
                 { "scale": "x", "field": "x" }
               ],
               "y": { "scale": "y", "field": "yLo" },
-              "text": { "signal": "''+datum[\"xVal\"]" },
+              "text": { "signal": "''+datum[\"eventValue\"]" },
               "align": { "value": "center" },
               "baseline": { "value": "middle" }
             }

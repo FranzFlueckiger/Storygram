@@ -93,6 +93,7 @@ async function drawMetasonKD() {
     filterGroupAmt: [2, undefined],
     filterGroupSize: [3, undefined],
     filterEventValue: [1988, 1993],
+    eventDescription: (xLayer) => xLayer.data.releaseName + ", " + xLayer.data.year,
     filterEventCustom: (xLayer) => {
       const name: string = xLayer.data.releaseName
       return !name.includes('compilation') &&
@@ -102,11 +103,9 @@ async function drawMetasonKD() {
         !name.toLowerCase().includes('super hits') &&
         !name.toLowerCase().includes('remaster')
     },
-    generationAmt: 100,
-    populationSize: 100,
-    eventValueScaling: 0,
     verbose: true,
-    eventDescription: (xLayer) => xLayer.data.releaseName + ", " + xLayer.data.year,
+    generationAmt: 100,
+    populationSize: 100
   }
   const KD = new KnotDiagram(data, config);
   KD.draw()
@@ -143,4 +142,4 @@ async function drawBundesratExample() {
   KD.draw()
 }
 
-drawBundesratExample();
+drawMetasonKD();

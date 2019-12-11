@@ -75,7 +75,7 @@ function mate(parents: Child[], config: FullConfig): GenePool[] {
 
 function mutate(data: Data, genes: GenePool[], config: FullConfig) {
   genes.forEach((_, i) => {
-    data.xData.forEach(x => {
+    data.events.forEach(x => {
       if (!x.isHidden) {
         x.add.forEach(y => {
           if (Math.random() < config.mutationProbability) {
