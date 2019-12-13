@@ -49,10 +49,10 @@ function fromRanges<T extends Record<string, unknown>>(
         ((typeof dToField === 'number' && dToField >= rawEvent) || !dToField)
       ) {
         const actorID = String(d[actorField]);
-          event.group.push(actorID);
+        event.group.push(actorID);
         const actor = actors.get(actorID) as Actor;
-          actor.layers.push(event);
-          actors.set(actorID, actor);
+        actor.layers.push(event);
+        actors.set(actorID, actor);
       }
     });
     return event;

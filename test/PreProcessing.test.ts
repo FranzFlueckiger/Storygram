@@ -1,4 +1,4 @@
-import KnotDiagram from '../src/KnotDiagram';
+import Storygram from '../src/Storygram';
 import { ArrayData, Config, TableData, RangeData } from '../src/Types';
 import { testArrayData, testTableData, testRangeData } from './testData';
 
@@ -8,7 +8,7 @@ test('from array', () => {
     eventField: 'id',
     actorArrayField: 'a',
   };
-  const KD = new KnotDiagram(testArrayData(), config);
+  const KD = new Storygram(testArrayData(), config);
   expect(KD.data.xData.length).toEqual(10);
   const layer4 =
     '{"xValue":4,"data":{"a":["zf","lf","bf"],"id":4},"switch":[],"isHidden":false,"add":[],"remove":[],"group":["zf","lf","bf"],"state":[],"hiddenYs":[],"id":4}';
@@ -25,7 +25,7 @@ test('from table', () => {
     eventField: 'id',
     actorFields: ['a', 'b', 'c', 'd'],
   };
-  const KD = new KnotDiagram(testTableData(), config);
+  const KD = new Storygram(testTableData(), config);
   expect(KD.data.xData.length).toEqual(10);
   const layer4 = "{\"xValue\":14,\"data\":{\"id\":14,\"a\":\"zf\",\"b\":\"lf\",\"c\":\"bf\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[],\"group\":[\"zf\",\"lf\",\"bf\"],\"state\":[],\"hiddenYs\":[],\"id\":4}"
   expect(JSON.stringify(KD.data.xData[4])).toEqual(layer4);
@@ -41,7 +41,7 @@ test('from ranges', () => {
     startField: 'from',
     endField: 'to',
   };
-  const KD = new KnotDiagram(testRangeData(), config);
+  const KD = new Storygram(testRangeData(), config);
   expect(KD.data.xData.length).toEqual(10);
   const layer4 = "{\"xValue\":4,\"data\":{},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[],\"group\":[\"1\",\"2\",\"3\",\"4\",\"6\"],\"state\":[],\"hiddenYs\":[]}"
   expect(JSON.stringify(KD.data.xData[4])).toEqual(layer4);

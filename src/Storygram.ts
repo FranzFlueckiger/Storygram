@@ -9,7 +9,7 @@ import vega from 'vega-embed';
  * href
  */
 
-export default class KnotDiagram<T extends {}> {
+export default class Storygram<T extends {}> {
   public processedData!: Data;
 
   public data!: Data;

@@ -1,5 +1,5 @@
 import vega from 'vega-embed';
-import { KnotDiagram } from './src/index';
+import { Storygram } from './src/index';
 import { testRangeData, testArrayData, testTableData } from './test/testData';
 import { Config } from './src/Types';
 import { MetasonData, KurliData, WarData, BundesratData } from './previewData'
@@ -13,7 +13,7 @@ async function drawRangeKD() {
     continuousStart: false,
     continuousEnd: false
   };
-  const KD = new KnotDiagram(testRangeData(), config);
+  const KD = new Storygram(testRangeData(), config);
   KD.draw()
 }
 
@@ -27,7 +27,7 @@ async function drawArrayKD() {
     continuousEnd: false,
     compact: false
   };
-  const KD = new KnotDiagram(testArrayData(), config);
+  const KD = new Storygram(testArrayData(), config);
   KD.draw()
 }
 
@@ -41,7 +41,7 @@ async function drawTableKD() {
     compact: false,
     filterGroupAmt: [2, undefined]
   };
-  const KD = new KnotDiagram(testTableData(), config);
+  const KD = new Storygram(testTableData(), config);
   KD.draw()
 }
 
@@ -59,7 +59,7 @@ async function drawPaperExample() {
     continuousStart: false,
     continuousEnd: false
   };
-  const KD = new KnotDiagram(data, config);
+  const KD = new Storygram(data, config);
   KD.draw()
 }
 
@@ -80,7 +80,7 @@ async function drawWarData() {
     generationAmt: 100,
     populationSize: 100
   };
-  const KD = new KnotDiagram(data, config);
+  const KD = new Storygram(data, config);
   KD.draw()
 }
 
@@ -104,10 +104,11 @@ async function drawMetasonKD() {
         !name.toLowerCase().includes('remaster')
     },
     verbose: true,
+    eventValueScaling: 0,
     generationAmt: 100,
     populationSize: 100
   }
-  const KD = new KnotDiagram(data, config);
+  const KD = new Storygram(data, config);
   KD.draw()
 }
 
@@ -120,7 +121,7 @@ async function drawKurliKD() {
     verbose: true,
     compact: true
   }
-  const KD = new KnotDiagram(data, config);
+  const KD = new Storygram(data, config);
   KD.draw()
 }
 
@@ -138,7 +139,7 @@ async function drawBundesratExample() {
     strokeColor: (x, y) => y.data.Partei,
     compact: true,
   };
-  const KD = new KnotDiagram(data, config);
+  const KD = new Storygram(data, config);
   KD.draw()
 }
 

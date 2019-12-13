@@ -1,2 +1,2 @@
-# Knot Diagram
+# Storygram
 Visualize sequentially grouped atomic flows 

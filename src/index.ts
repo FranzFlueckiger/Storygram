@@ -1,4 +1,4 @@
-import KnotDiagram from './KnotDiagram';
+import Storygram from './Storygram';
 import { Config } from './Types';
 
-export { KnotDiagram, Config };
+export { Storygram, Config };
