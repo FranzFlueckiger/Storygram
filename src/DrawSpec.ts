@@ -26,9 +26,9 @@ export default class DrawSpec {
       let lastGroupedIndex: number | undefined = undefined
       // this is the eventValueue that is shown at the bottom of the chart
       // if it changes it will be drawn
-      let eventValueueLegend: number | string
-      if (eventValue === xLayer.eventValue) eventValueueLegend = '-'
-      else eventValueueLegend = xLayer.eventValue
+      let eventValueLegend: number | string
+      if (eventValue === xLayer.eventValue) eventValueLegend = '-'
+      else eventValueLegend = xLayer.eventValue
       xLayer.state.forEach((yID: string, yIndex: number) => {
         const yVal = data.actors.get(yID)
         const isGrouped = xLayer.group.some(a => a === yID) ? 1 : 0;
@@ -50,7 +50,7 @@ export default class DrawSpec {
           const url = config.url(xLayer, yVal!)
           const hiddenYs = xLayer.hiddenActors
           const isHiglighted = config.highlight.includes(yID) ? 1 : 0
-          const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, strokeColor, eventValueueLegend, eventDescription, url, isHiglighted);
+          const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, isHiglighted);
           // this is necessary to show the hidden ys counter
           if (lastGroupedIndex! < yIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenYs = hiddenYs
