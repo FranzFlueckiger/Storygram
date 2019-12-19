@@ -1,5 +1,5 @@
 import { remove, add, switchP, getCenter, getDistances, group, visit } from '../src/Visitor';
-import { Switch, EventData, YData, Data, Actor } from '../src/Types';
+import { Switch, EventData, ActorData, Data, Actor } from '../src/Types';
 
 test('remove', () => {
   let visitor: string[] = ['hallo', 'world', 'wie', 'gehts'];
@@ -95,7 +95,7 @@ test('visit', () => {
       data: {},
     },
   ];
-  const ys: YData = new Map();
+  const ys: ActorData = new Map();
   // todo complete ylayers
   ys.set('a', new Actor('a', {}));
   ys.set('b', new Actor('b', {}));

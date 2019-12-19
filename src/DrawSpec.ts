@@ -1,6 +1,13 @@
 import { Spec } from 'vega';
-import { FullConfig, Data, RenderedPoint, YData } from './Types';
+import { FullConfig, Data, RenderedPoint, ActorData } from './Types';
+import d3 = require('d3');
 
+
+interface Binned {
+  key: string
+  values: RenderedPoint[],
+  value: any
+}
 
 export default class DrawSpec {
   /**
@@ -24,7 +31,7 @@ export default class DrawSpec {
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
       let lastGroupedIndex: number | undefined = undefined
-      // this is the eventValueue that is shown at the bottom of the chart
+      // this is the eventValue that is shown at the bottom of the chart
       // if it changes it will be drawn
       let eventValueLegend: number | string
       if (eventValue === xLayer.eventValue) eventValueLegend = '-'
@@ -67,7 +74,7 @@ export default class DrawSpec {
     result = this.aggregateGroupArrays(result)
     console.log(result)
     console.log(JSON.stringify(result))
-    return [result, maxYLen, xLen];
+    return [result, xLen, maxYLen];
   }
 
   public static aggregateGroupArrays(renderedPoints: RenderedPoint[]) {
@@ -95,13 +102,82 @@ export default class DrawSpec {
     return renderedPoints
   }
 
+  public static drawD3(data: [RenderedPoint[], number, number], config: FullConfig) {
+    let margin = { top: 50, right: 50, bottom: 50, left: 50 }
+    let width = data[1] * config.eventPadding;
+    let height = data[2] * config.actorPadding;
+
+    let sumstat: Binned[] = d3.nest()
+      .key(d => d instanceof RenderedPoint ? d.z : '')
+      .entries(data[0])
+
+    var res = sumstat.map(function (d) { return d.key })
+    var color = d3.scaleOrdinal()
+      .domain(res)
+      .range(d3.schemePastel1)
+
+    let xScale = d3.scaleLinear()
+      .domain([d3.min(data[0].map(d => d.x))!, d3.max(data[0].map(d => d.x))!])
+      .range([0, width]);
+
+    let yScale = d3.scaleLinear()
+      .domain([d3.min(data[0].map(d => d.y))!, d3.max(data[0].map(d => d.y))!])
+      .range([height, 0]);
+
+    let svg = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + (20 + height) + ")")
+      .call(d3.axisBottom(xScale));
+
+    let linebase = svg.selectAll(".line")
+      .data(sumstat)
+
+    linebase.enter()
+      .append("path")
+      .attr("stroke", d => color(d.key))
+      .attr("stroke-width", 10)
+      .attr('stroke-linecap', 'round')
+      .attr('opacity', 0.5)
+      .attr("fill", "none")
+      .attr("d", (d: Binned) => {
+        return d3.line()
+          .x(p => xScale(p[0]))
+          .y(p => yScale(p[1]))
+          .curve(d3.curveMonotoneX)
+          (d.values.map<[number, number]>(p => [p.x, p.y]))
+      })
+      .on("mouseover", handleActorHover)
+      .on("mouseout", handleActorNotHover)
+
+    function handleActorHover(d: RenderedPoint, i: number) {
+      d3.select(this).transition()
+        .duration(300)
+        .ease(d3.easeLinear)
+        .attr('opacity', 1);
+    }
+
+    function handleActorNotHover(d: RenderedPoint, i: number) {
+      d3.select(this).transition()
+        .duration(300)
+        .ease(d3.easeLinear)
+        .attr('opacity', 0.5);
+    }
+
+  }
+
   public static getSpecNew(data: [RenderedPoint[], number, number], config: FullConfig): Spec {
     return {
       "$schema": "https://vega.github.io/schema/vega/v5.json",
       "autosize": "pad",
-      "padding": 5,
-      "width": data[2] * config.eventPadding,
-      "height": data[1] * config.actorPadding,
+      "padding": 15,
+      "width": data[1] * config.eventPadding,
+      "height": data[2] * config.actorPadding,
       "style": "cell",
       "data": [
         {

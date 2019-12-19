@@ -109,4 +109,14 @@ export default class Storygram<T extends {}> {
     );
   }
 
+  public async newDraw() {
+    if (!this.isCalculated) {
+      this.calculate()
+    }
+    if (!this.isRendered) {
+      this.render()
+    }
+    DrawSpec.drawD3(this.renderedGrid, this.config)
+  }
+
 }
