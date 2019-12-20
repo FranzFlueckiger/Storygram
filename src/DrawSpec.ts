@@ -107,8 +107,11 @@ export default class DrawSpec {
     let width = data[1] * config.eventPadding;
     let height = data[2] * config.actorPadding;
 
-    let selectedEvent: string
-    const transitionSpeed = 100
+    let selectedEvent: number = data[0][0].x
+    const selectedOpacity = 1
+    const unSelectedOpacity = 0.2
+    const transitionSpeed = 75
+    const xPadding = 0.01
 
     let actorBin: Binned[] = d3.nest()
       .key(d => d instanceof RenderedPoint ? d.z : '')
@@ -172,17 +175,23 @@ export default class DrawSpec {
       .attr("stroke", d => color(d.key))
       .attr("stroke-width", 10)
       .attr('stroke-linecap', 'round')
-      .attr('opacity', 0.5)
+      .attr('opacity', (d: Binned) => {
+        if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
+        else return unSelectedOpacity
+      })
       .attr("fill", "none")
       .attr("d", (d: Binned) => {
         return d3.line()
           .x(p => xScale(p[0]))
           .y(p => yScale(p[1]))
           .curve(d3.curveMonotoneX)
-          (d.values.map<[number, number]>(p => [p.x, p.y]))
+          (d.values.reduce<[number, number]>((arr, p) => {
+            arr.push([p.x, p.y])
+            arr.push([p.x - xPadding, p.y])
+            arr.push([p.x + xPadding, p.y])
+            return arr
+          }, []))
       })
-      .on("mouseover", handleActorHover)
-      .on("mouseout", handleActorNotHover)
 
     // group lines
     let groups = svg.selectAll(".groups")
@@ -192,7 +201,7 @@ export default class DrawSpec {
       .attr("stroke-width", 10)
       .attr('stroke-linecap', 'round')
       .attr("fill", "none")
-      .attr('opacity', 0.5)
+      .attr('opacity', unSelectedOpacity)
       .attr("d", (d) => {
         return d3.line()
           .x(p => xScale(p[0]))
@@ -201,38 +210,78 @@ export default class DrawSpec {
           ([[Number(d.key), d.value.min], [Number(d.key), d.value.max]])
       })
 
-    function handleActorHover(d: RenderedPoint, i: number) {
-      d3.select(this)
-        .transition()
-        .duration(transitionSpeed)
-        .ease(d3.easeLinear)
-        .attr("stroke-width", 11)
-        .attr('opacity', 1);
-    }
+    // event ruler
+    let rule = svg.selectAll(".rule")
+      .data(groupBin).enter()
+      .append("path")
+      .attr("stroke", "black")
+      .attr("stroke-width", 5)
+      .attr("fill", "none")
+      .attr("d", (d) => {
+        return d3.line()
+          .x(p => xScale(p[0]))
+          .y(p => yScale(p[1]))
+          .curve(d3.curveMonotoneX)
+          ([[selectedEvent, yScale(d3.min(data[0], d => d.y)!)], [selectedEvent, yScale(d3.max(data[0], d => d.y)!)]])
+      })
 
-    function handleActorNotHover(d: RenderedPoint, i: number) {
-      d3.select(this)
-        .transition()
-        .duration(transitionSpeed)
-        .ease(d3.easeLinear)
-        .attr("stroke-width", 10)
-        .attr('opacity', 0.5);
-    }
+    // event description
+    let event_desc = svg.selectAll(".event_desc")
+      .data(groupBin).enter()
+      .append("text")
+      .attr("x", selectedEvent + 10)
+      .attr("y", -15)
+      .text((d) => {
+        if (Number(d.key) === selectedEvent)
+          return d.value.event[0].eventDescription
+      })
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "20px")
 
     function mousemove() {
       // recover coordinate we need
       var x0 = xScale.invert(d3.mouse(this)[0]);
       var i = bisect(data[0], x0, 1);
-      selectedEvent = String(data[0][i].x)
+      var d0 = data[0][i - 1].x
+      var d1 = data[0][i].x
+      var d = x0 - d0 > d1 - x0 ? d1 : d0;
+      selectedEvent = d
       groups
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
         .attr('opacity', (d: Binned) => {
-          if (d.key === selectedEvent) return 1
-          else return 0.5
+          if (Number(d.key) === selectedEvent) return selectedOpacity
+          else return unSelectedOpacity
         })
       actors
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
         .attr('opacity', (d: Binned) => {
-          if (d.values.some(v => String(v.x) === selectedEvent && v.isGrouped)) return 1
-          else return 0.5
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
+          else return unSelectedOpacity
+        })
+      rule
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("d", (d) => {
+          return d3.line()
+            .x(p => xScale(p[0]))
+            .y(p => yScale(p[1]))
+            .curve(d3.curveMonotoneX)
+            ([[selectedEvent, 0], [selectedEvent, height]])
+        })
+      event_desc
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("x", xScale(selectedEvent) + 10)
+        .attr("y", -15)
+        .text((d) => {
+          if (Number(d.key) === selectedEvent)
+            return d.value.event[0].eventDescription
         })
     }
 
