@@ -143,7 +143,7 @@ async function drawPaperExample() {
     continuousEnd: false
   };
   const SD = new Storygram(data, config);
-  SD.newDraw()
+  SD.draw()
 }
 
-drawPaperExample();
+drawMetasonSD();

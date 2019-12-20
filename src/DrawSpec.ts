@@ -72,8 +72,8 @@ export default class DrawSpec {
       });
     });
     result = this.aggregateGroupArrays(result)
-    console.log(result)
-    console.log(JSON.stringify(result))
+    //console.log(result)
+    //console.log(JSON.stringify(result))
     return [result, xLen, maxYLen];
   }
 
@@ -107,14 +107,35 @@ export default class DrawSpec {
     let width = data[1] * config.eventPadding;
     let height = data[2] * config.actorPadding;
 
-    let sumstat: Binned[] = d3.nest()
+    let selectedEvent: string
+    const transitionSpeed = 100
+
+    let actorBin: Binned[] = d3.nest()
       .key(d => d instanceof RenderedPoint ? d.z : '')
       .entries(data[0])
 
-    var res = sumstat.map(function (d) { return d.key })
+    let groupBin: Binned[] = d3.nest()
+      //Todo this 'casting' is ugly, numeric key?
+      .key(d => d instanceof RenderedPoint ? String(d.x) : '')
+      .rollup(p => {
+        if (Array.isArray(p) && p.every(d => d instanceof RenderedPoint)) {
+          return {
+            min: d3.min(p, (d: RenderedPoint) => d.y),
+            max: d3.max(p, (d: RenderedPoint) => d.y),
+            event: d3.values(p)
+          }
+        }
+        return { min: 0, max: 0 }
+      })
+      .entries(data[0].filter(d => d.isGrouped))
+
+    var res = actorBin.map(d => d.key)
+
+    var bisect = d3.bisector((d: RenderedPoint) => d.x).left;
+
     var color = d3.scaleOrdinal()
       .domain(res)
-      .range(d3.schemePastel1)
+      .range(d3.schemePaired)
 
     let xScale = d3.scaleLinear()
       .domain([d3.min(data[0].map(d => d.x))!, d3.max(data[0].map(d => d.x))!])
@@ -130,15 +151,23 @@ export default class DrawSpec {
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    // Create a rect on top of the svg area: this rectangle recovers mouse position
+    svg
+      .append('rect')
+      .style("fill", "none")
+      .style("pointer-events", "all")
+      .attr('width', width)
+      .attr('height', height)
+      .on('mousemove', mousemove)
+
     svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + (20 + height) + ")")
       .call(d3.axisBottom(xScale));
 
-    let linebase = svg.selectAll(".line")
-      .data(sumstat)
-
-    linebase.enter()
+    // actor lines
+    let actors = svg.selectAll(".actors")
+      .data(actorBin).enter()
       .append("path")
       .attr("stroke", d => color(d.key))
       .attr("stroke-width", 10)
@@ -155,18 +184,56 @@ export default class DrawSpec {
       .on("mouseover", handleActorHover)
       .on("mouseout", handleActorNotHover)
 
+    // group lines
+    let groups = svg.selectAll(".groups")
+      .data(groupBin).enter()
+      .append("path")
+      .attr("stroke", "black")
+      .attr("stroke-width", 10)
+      .attr('stroke-linecap', 'round')
+      .attr("fill", "none")
+      .attr('opacity', 0.5)
+      .attr("d", (d) => {
+        return d3.line()
+          .x(p => xScale(p[0]))
+          .y(p => yScale(p[1]))
+          .curve(d3.curveMonotoneX)
+          ([[Number(d.key), d.value.min], [Number(d.key), d.value.max]])
+      })
+
     function handleActorHover(d: RenderedPoint, i: number) {
-      d3.select(this).transition()
-        .duration(300)
+      d3.select(this)
+        .transition()
+        .duration(transitionSpeed)
         .ease(d3.easeLinear)
+        .attr("stroke-width", 11)
         .attr('opacity', 1);
     }
 
     function handleActorNotHover(d: RenderedPoint, i: number) {
-      d3.select(this).transition()
-        .duration(300)
+      d3.select(this)
+        .transition()
+        .duration(transitionSpeed)
         .ease(d3.easeLinear)
+        .attr("stroke-width", 10)
         .attr('opacity', 0.5);
+    }
+
+    function mousemove() {
+      // recover coordinate we need
+      var x0 = xScale.invert(d3.mouse(this)[0]);
+      var i = bisect(data[0], x0, 1);
+      selectedEvent = String(data[0][i].x)
+      groups
+        .attr('opacity', (d: Binned) => {
+          if (d.key === selectedEvent) return 1
+          else return 0.5
+        })
+      actors
+        .attr('opacity', (d: Binned) => {
+          if (d.values.some(v => String(v.x) === selectedEvent && v.isGrouped)) return 1
+          else return 0.5
+        })
     }
 
   }
@@ -1053,4 +1120,5 @@ export default class DrawSpec {
       }
     }
   }
+
 }
