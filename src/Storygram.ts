@@ -14,7 +14,7 @@ export default class Storygram<T extends {}> {
 
   public data!: Data;
 
-  private renderedGrid!: [RenderedPoint[], number, number];
+  private renderedGrid!: [ RenderedPoint[], number, number ];
 
   private isCalculated: boolean = false;
 
@@ -24,8 +24,8 @@ export default class Storygram<T extends {}> {
     verbose: false,
     colorScheme: 'tableau10',
     lineSize: 12,
-    eventDescription: l => String(l.eventValue),
-    url: (xLayer, yLayer) => 'https://www.google.ch/search?q=' + String(xLayer.eventValue) + ' ' + yLayer.actorID,
+    eventDescription: l => String( l.eventValue ),
+    url: ( xLayer, yLayer ) => 'https://www.google.ch/search?q=' + String( xLayer.eventValue ) + ' ' + yLayer.actorID,
     eventPadding: 60,
     actorPadding: 40,
     eventValueScaling: 0.625,
@@ -38,17 +38,17 @@ export default class Storygram<T extends {}> {
     continuousEnd: false,
     compact: false,
     highlight: [],
-    strokeWidth: (xLayer, yLayer) => 0,
-    strokeColor: (xLayer, yLayer) => yLayer.actorID,
+    strokeWidth: ( xLayer, yLayer ) => 0,
+    strokeColor: ( xLayer, yLayer ) => yLayer.actorID,
     mustContain: [],
     shouldContain: [],
-    interactedWith: [[], 0],
-    filterEventValue: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
-    filterGroupSize: [0, Number.MAX_SAFE_INTEGER],
+    interactedWith: [ [], 0 ],
+    filterEventValue: [ Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER ],
+    filterGroupSize: [ 0, Number.MAX_SAFE_INTEGER ],
     filterEventCustom: () => true,
     filterActorCustom: () => true,
-    filterEventValueLifeTime: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
-    filterGroupAmt: [0, Number.MAX_SAFE_INTEGER],
+    filterEventValueLifeTime: [ Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER ],
+    filterGroupAmt: [ 0, Number.MAX_SAFE_INTEGER ],
     linearLoss: 1,
     amtLoss: 1,
     lengthLoss: 1,
@@ -57,54 +57,54 @@ export default class Storygram<T extends {}> {
 
   public config: FullConfig;
 
-  public constructor(rawData: T[], config: Config) {
+  public constructor ( rawData: T[], config: Config ) {
     this.config = { ...this.baseConfig, ...config };
-    this.setData(rawData);
+    this.setData( rawData );
   }
 
-  private setData(data: T[]): void {
-    switch (this.config.dataFormat) {
+  private setData ( data: T[] ): void {
+    switch ( this.config.dataFormat ) {
       case 'ranges':
-        this.data = fromRanges(data, this.config.actorField, this.config.startField, this.config.endField);
+        this.data = fromRanges( data, this.config.actorField, this.config.startField, this.config.endField );
         break;
       case 'table':
-        this.data = fromTable(data, this.config.actorFields, this.config.eventField, this.config.actorSplitFunction);
+        this.data = fromTable( data, this.config.actorFields, this.config.eventField, this.config.actorSplitFunction );
         break;
       case 'array':
-        this.data = fromArray(data, this.config.actorArrayField, this.config.eventField);
+        this.data = fromArray( data, this.config.actorArrayField, this.config.eventField );
         break;
       default:
-        console.error('Please specify a data format of type ranges, table or array');
+        console.error( 'Please specify a data format of type ranges, table or array' );
     }
   }
 
-  public calculate() {
-    this.processedData = filter(this.data, this.config);
-    this.processedData = fit(this.processedData, this.config) as Data;
+  public calculate () {
+    this.processedData = filter( this.data, this.config );
+    this.processedData = fit( this.processedData, this.config ) as Data;
     this.isCalculated = true
   }
 
-  public render() {
-    if (!this.isCalculated) {
+  public render () {
+    if ( !this.isCalculated ) {
       this.calculate()
     }
-    this.renderedGrid = DrawSpec.draw(this.processedData, this.config);
-    if (this.config.verbose) {
-      console.log(this.renderedGrid);
+    this.renderedGrid = DrawSpec.draw( this.processedData, this.config );
+    if ( this.config.verbose ) {
+      console.log( this.renderedGrid );
     }
     this.isRendered = true
   }
 
-  public async draw() {
-    if (!this.isCalculated) {
+  public async draw () {
+    if ( !this.isCalculated ) {
       this.calculate()
     }
-    if (!this.isRendered) {
+    if ( !this.isRendered ) {
       this.render()
     }
     await vega(
       '#viz',
-      DrawSpec.getSpecNew(this.renderedGrid, this.config),
+      DrawSpec.getSpecNew( this.renderedGrid, this.config ),
       { renderer: 'svg' }
     );
   }
