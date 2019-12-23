@@ -102,11 +102,14 @@ export default class Storygram<T extends {}> {
     if ( !this.isRendered ) {
       this.render()
     }
+    DrawSpec.drawD3(this.renderedGrid, this.config)
+    /** 
     await vega(
       '#viz',
       DrawSpec.getSpecNew( this.renderedGrid, this.config ),
       { renderer: 'svg' }
     );
+    */
   }
 
 }

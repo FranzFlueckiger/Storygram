@@ -217,11 +217,11 @@ export type GenePool = Map<string, number>;
 
 export type EventData = Event[];
 
-export type YData = Map<string, Actor>;
+export type ActorData = Map<string, Actor>;
 
 export interface Data {
   events: EventData;
-  actors: YData;
+  actors: ActorData;
 }
 
 export class RenderedPoint {
@@ -237,7 +237,9 @@ export class RenderedPoint {
 
   public hiddenYsAmt: number = 0;
 
-  public constructor (
+  public bbox: any
+
+  public constructor(
     public x: number,
     public y: number,
     public z: string,

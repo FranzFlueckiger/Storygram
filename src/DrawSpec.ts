@@ -1,15 +1,23 @@
-import { Spec } from 'vega';
-import { FullConfig, Data, RenderedPoint, YData } from './Types';
+import { Spec, stringValue } from 'vega';
+import { FullConfig, Data, RenderedPoint, ActorData } from './Types';
+import d3 = require('d3');
 
+
+interface Binned {
+  key: string
+  values: RenderedPoint[],
+  value: any,
+  bbox?: any
+}
 
 export default class DrawSpec {
+
   /**
    * After pasting a new Chart Spec do the following:
    * set the height, width
    * set all line and tick sizes
    * set the adaptive tick length
    */
-
   public static draw(data: Data, config: FullConfig): [RenderedPoint[], number, number] {
     let result: RenderedPoint[] = [];
     const maxYLen = data.events.reduce((max, layer) => Math.max(max, layer.state.length), 0);
@@ -24,7 +32,7 @@ export default class DrawSpec {
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
       let lastGroupedIndex: number | undefined = undefined
-      // this is the eventValueue that is shown at the bottom of the chart
+      // this is the eventValue that is shown at the bottom of the chart
       // if it changes it will be drawn
       let eventValueLegend: number | string
       if (eventValue === xLayer.eventValue) eventValueLegend = '-'
@@ -65,9 +73,9 @@ export default class DrawSpec {
       });
     });
     result = this.aggregateGroupArrays(result)
-    console.log(result)
-    console.log(JSON.stringify(result))
-    return [result, maxYLen, xLen];
+    //console.log(result)
+    //console.log(JSON.stringify(result))
+    return [result, xLen, maxYLen];
   }
 
   public static aggregateGroupArrays(renderedPoints: RenderedPoint[]) {
@@ -95,13 +103,270 @@ export default class DrawSpec {
     return renderedPoints
   }
 
+  public static drawD3(data: [RenderedPoint[], number, number], config: FullConfig) {
+    let margin = { top: 50, right: 50, bottom: 50, left: 50 }
+    let width = data[1] * config.eventPadding;
+    let height = data[2] * config.actorPadding;
+
+    let selectedEvent: number = data[0][0].x
+    const selectedOpacity = 1
+    const unSelectedOpacity = 0.2
+    const selectedLineSize = 12
+    const unSelectedLineSize = 10
+    const transitionSpeed = 75
+    const xPadding = 0.01
+
+    let actorBin: Binned[] = d3.nest()
+      .key(d => d instanceof RenderedPoint ? d.z : '')
+      .entries(data[0])
+
+    let groupBin: Binned[] = d3.nest()
+      //Todo this 'casting' is ugly, numeric key?
+      .key(d => d instanceof RenderedPoint ? String(d.x) : '')
+      .rollup((p: Binned) => {
+        if (Array.isArray(p) && p.every(d => d instanceof RenderedPoint)) {
+          return {
+            min: d3.min(p, (d: RenderedPoint) => d.y),
+            max: d3.max(p, (d: RenderedPoint) => d.y),
+            event: d3.values(p)
+          }
+        }
+        return { min: null, max: null }
+      })
+      .entries(data[0].filter(d => d.isGrouped))
+
+    var res = actorBin.map(d => d.key)
+
+    var bisect = d3.bisector((d: RenderedPoint) => d.x).left;
+
+    var color = d3.scaleOrdinal()
+      .domain(res)
+      .range(d3.schemePaired)
+
+    let xScale = d3.scaleLinear()
+      .domain([d3.min(data[0].map(d => d.x))!, d3.max(data[0].map(d => d.x))!])
+      .range([0, width]);
+
+    let yScale = d3.scaleLinear()
+      .domain([d3.min(data[0].map(d => d.y))!, d3.max(data[0].map(d => d.y))!])
+      .range([height, 0]);
+
+    let svg = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    //xAxis description background
+    let xAxisLines = svg.selectAll(".xAxisLine")
+      .data(groupBin.filter((d: Binned) => {
+        if (d.value.event[0].eventValue != '-') return true
+      }))
+      .join("line")
+      .attr("class", "xAxisLine")
+      .attr("stroke", "black")
+      .attr("stroke-width", 2)
+      .attr("stroke-opacity", 0.3)
+      .style("stroke-dasharray", ("3, 3"))
+
+    // actor lines
+    let actors = svg.selectAll(".actors")
+      .data(actorBin).enter()
+      .append("path")
+      .attr("class", "actor")
+      .attr('stroke-linecap', 'round')
+      .attr("fill", "none")
+      .attr("stroke-width", unSelectedLineSize)
+
+    // group lines
+    let groups = svg.selectAll(".groups")
+      .data(groupBin).enter()
+      .append("path")
+      .attr("class", "group")
+      .attr("stroke", "black")
+      .attr("stroke-width", unSelectedLineSize)
+      .attr('stroke-linecap', 'round')
+      .attr("fill", "none")
+
+    // event ruler
+    let rule = svg.selectAll(".rule")
+      .data(groupBin.filter(d => Number(d.key) === selectedEvent))
+      .enter()
+      .append("line")
+      .attr("class", "rule")
+      .attr("stroke", "black")
+      .attr("stroke-width", 5)
+      .attr("fill", "none")
+
+    // event description
+    let event_desc = svg.selectAll(".event_desc")
+      .data(groupBin.filter(d => Number(d.key) === selectedEvent))
+      .enter()
+      .append("text")
+      .attr("class", "event_desc")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "20px")
+
+    // actor description
+    let actor_desc = svg.selectAll(".actor_desc")
+      .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event)
+      .join('text')
+      .attr("class", "actor_desc")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "15px")
+
+    //Actor events
+    let actor_events = svg.selectAll(".actor_events")
+      .data(groupBin.filter((d: Binned) => {
+        if (d.value.event[0].eventValue != '-') return true
+      }))
+      .join("line")
+      .attr("class", "actor_events")
+      .attr("stroke", "black")
+      .attr("stroke-width", selectedLineSize)
+
+    //xAxis description
+    let xAxis = svg.selectAll(".xAxis")
+      .data(groupBin)
+      .join("text")
+      .attr("class", "xAxis")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "15px")
+      .attr('text-anchor', 'middle')
+
+    // Create a rect on top of the svg area: this rectangle recovers mouse position
+    svg
+      .append('rect')
+      .style("fill", "none")
+      .style("pointer-events", "all")
+      .attr("class", "rect_pointerID")
+      .attr('width', width)
+      .attr('height', height)
+      .on('mousemove', mousemove)
+
+    drawAll()
+
+    function mousemove() {
+      // recover coordinate we need
+      var x0 = xScale.invert(d3.mouse(d3.event.currentTarget)[0]);
+      var i = bisect(data[0], x0, 1);
+      var d0 = data[0][i - 1].x
+      var d1 = data[0][i].x
+      var d = x0 - d0 > d1 - x0 ? d1 : d0;
+      selectedEvent = d
+      drawAll()
+    }
+
+    function drawAll() {
+      groups
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr('opacity', (d: Binned) => {
+          if (Number(d.key) === selectedEvent) return selectedOpacity
+          else return unSelectedOpacity
+        })
+        .attr("d", (d) => {
+          return d3.line()
+            .x(p => xScale(p[0]))
+            .y(p => yScale(p[1]))
+            .curve(d3.curveMonotoneX)
+            ([[Number(d.key), d.value.min], [Number(d.key), d.value.max]])
+        })
+
+      actors
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("stroke", d => color(d.key) as string)
+        .attr('opacity', (d: Binned) => {
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
+          else return unSelectedOpacity
+        })
+        .attr("d", (d: Binned) => {
+          return d3.line()
+            .x(p => xScale(p[0]))
+            .y(p => yScale(p[1]))
+            .curve(d3.curveMonotoneX)
+            (d.values.reduce((arr, p) => {
+              arr.push([p.x - xPadding, p.y])
+              arr.push([p.x, p.y])
+              arr.push([p.x + xPadding, p.y])
+              return arr
+            }, []))
+        })
+
+      rule
+        .data(groupBin.filter(d => Number(d.key) === selectedEvent))
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr('x1', xScale(selectedEvent))
+        .attr('y1', 0)
+        .attr('x2', xScale(selectedEvent))
+        .attr('y2', height)
+
+      event_desc
+        .data(groupBin.filter(d => Number(d.key) === selectedEvent))
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("x", xScale(selectedEvent) + 10)
+        .attr("y", -25)
+        .text((d) => {
+          if (Number(d.key) === selectedEvent)
+            return d.value.event[0].eventDescription
+        })
+
+      xAxis
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("x", (d: Binned) => xScale(d.value.event[0].x))
+        .attr("y", height + 25)
+        .text((d: Binned) => d.value.event[0].eventValue)
+
+      xAxisLines
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr('x1', d => xScale(Number(d.key)))
+        .attr('y1', 0)
+        .attr('x2', d => xScale(Number(d.key)))
+        .attr('y2', height)
+
+      actor_desc
+        .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event)
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("x", xScale(selectedEvent) + 10)
+        .attr("y", (d) => yScale(d.y) - 5)
+        .text((d) => d.z)
+        .call(getTextBox)
+
+      actor_desc.insert("rect", "text")
+        .attr("x", d => { if (d.bbox) return d.bbox.x })
+        .attr("y", d => { if (d.bbox) return d.bbox.y })
+        .attr("width", d => { if (d.bbox) return d.bbox.width })
+        .attr("height", d => { if (d.bbox) return d.bbox.height })
+        .style("fill", "black");
+
+      function getTextBox(selection) {
+        selection.each(function (d) { d.bbox = this.getBBox(); })
+      }
+
+    }
+
+  }
+
   public static getSpecNew(data: [RenderedPoint[], number, number], config: FullConfig): Spec {
     return {
       "$schema": "https://vega.github.io/schema/vega/v5.json",
       "autosize": "pad",
-      "padding": 5,
-      "width": data[2] * config.eventPadding,
-      "height": data[1] * config.actorPadding,
+      "padding": 15,
+      "width": data[1] * config.eventPadding,
+      "height": data[2] * config.actorPadding,
       "style": "cell",
       "data": [
         {
@@ -977,4 +1242,5 @@ export default class DrawSpec {
       }
     }
   }
+
 }
