@@ -110,7 +110,7 @@ export default class DrawSpec {
 
     let selectedEvent: number = data[0][0].x
     const selectedOpacity = 1
-    const unSelectedOpacity = 0.2
+    const unSelectedOpacity = 0.1
     const selectedLineSize = 12
     const unSelectedLineSize = 10
     const transitionSpeed = 75
@@ -167,7 +167,7 @@ export default class DrawSpec {
       .attr("stroke", "black")
       .attr("stroke-width", 2)
       .attr("stroke-opacity", 0.3)
-      .style("stroke-dasharray", ("3, 3"))
+      .style("stroke-dasharray", ("4, 4"))
 
     // actor lines
     let actors = svg.selectAll(".actors")
@@ -217,9 +217,7 @@ export default class DrawSpec {
 
     //Actor events
     let actor_events = svg.selectAll(".actor_events")
-      .data(groupBin.filter((d: Binned) => {
-        if (d.value.event[0].eventValue != '-') return true
-      }))
+      .data(actorBin)
       .join("line")
       .attr("class", "actor_events")
       .attr("stroke", "black")
@@ -351,6 +349,23 @@ export default class DrawSpec {
         .attr("width", d => { if (d.bbox) return d.bbox.width })
         .attr("height", d => { if (d.bbox) return d.bbox.height })
         .style("fill", "black");
+
+      actor_events
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("stroke", "black")
+        .attr("d", (d: Binned) => {
+          return d3.line()
+            .x(p => xScale(p[0]))
+            .y(p => yScale(p[1]))
+            .curve(d3.curveMonotoneX)
+            (d.values.reduce((arr, p) => {
+              arr.push([p.x - config.actorPadding / 2, p.y])
+              arr.push([p.x + config.actorPadding / 2, p.y])
+              return arr
+            }, []))
+        })
 
       function getTextBox(selection) {
         selection.each(function (d) { d.bbox = this.getBBox(); })
