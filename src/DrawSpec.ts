@@ -1,4 +1,4 @@
-import { Spec } from 'vega';
+import { Spec, stringValue } from 'vega';
 import { FullConfig, Data, RenderedPoint, ActorData } from './Types';
 import d3 = require('d3');
 
@@ -6,17 +6,18 @@ import d3 = require('d3');
 interface Binned {
   key: string
   values: RenderedPoint[],
-  value: any
+  value: any,
+  bbox?: any
 }
 
 export default class DrawSpec {
+
   /**
    * After pasting a new Chart Spec do the following:
    * set the height, width
    * set all line and tick sizes
    * set the adaptive tick length
    */
-
   public static draw(data: Data, config: FullConfig): [RenderedPoint[], number, number] {
     let result: RenderedPoint[] = [];
     const maxYLen = data.events.reduce((max, layer) => Math.max(max, layer.state.length), 0);
@@ -110,6 +111,8 @@ export default class DrawSpec {
     let selectedEvent: number = data[0][0].x
     const selectedOpacity = 1
     const unSelectedOpacity = 0.2
+    const selectedLineSize = 12
+    const unSelectedLineSize = 10
     const transitionSpeed = 75
     const xPadding = 0.01
 
@@ -120,7 +123,7 @@ export default class DrawSpec {
     let groupBin: Binned[] = d3.nest()
       //Todo this 'casting' is ugly, numeric key?
       .key(d => d instanceof RenderedPoint ? String(d.x) : '')
-      .rollup(p => {
+      .rollup((p: Binned) => {
         if (Array.isArray(p) && p.every(d => d instanceof RenderedPoint)) {
           return {
             min: d3.min(p, (d: RenderedPoint) => d.y),
@@ -128,7 +131,7 @@ export default class DrawSpec {
             event: d3.values(p)
           }
         }
-        return { min: 0, max: 0 }
+        return { min: null, max: null }
       })
       .entries(data[0].filter(d => d.isGrouped))
 
@@ -159,93 +162,89 @@ export default class DrawSpec {
       .append('rect')
       .style("fill", "none")
       .style("pointer-events", "all")
+      .attr("class", "rect_pointerID")
       .attr('width', width)
       .attr('height', height)
       .on('mousemove', mousemove)
-
-    svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + (20 + height) + ")")
-      .call(d3.axisBottom(xScale));
 
     // actor lines
     let actors = svg.selectAll(".actors")
       .data(actorBin).enter()
       .append("path")
-      .attr("stroke", d => color(d.key))
-      .attr("stroke-width", 10)
+      .attr("class", "actor")
       .attr('stroke-linecap', 'round')
-      .attr('opacity', (d: Binned) => {
-        if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
-        else return unSelectedOpacity
-      })
       .attr("fill", "none")
-      .attr("d", (d: Binned) => {
-        return d3.line()
-          .x(p => xScale(p[0]))
-          .y(p => yScale(p[1]))
-          .curve(d3.curveMonotoneX)
-          (d.values.reduce<[number, number]>((arr, p) => {
-            arr.push([p.x, p.y])
-            arr.push([p.x - xPadding, p.y])
-            arr.push([p.x + xPadding, p.y])
-            return arr
-          }, []))
-      })
+      .attr("stroke-width", unSelectedLineSize)
 
     // group lines
     let groups = svg.selectAll(".groups")
       .data(groupBin).enter()
       .append("path")
+      .attr("class", "group")
       .attr("stroke", "black")
-      .attr("stroke-width", 10)
+      .attr("stroke-width", unSelectedLineSize)
       .attr('stroke-linecap', 'round')
       .attr("fill", "none")
-      .attr('opacity', unSelectedOpacity)
-      .attr("d", (d) => {
-        return d3.line()
-          .x(p => xScale(p[0]))
-          .y(p => yScale(p[1]))
-          .curve(d3.curveMonotoneX)
-          ([[Number(d.key), d.value.min], [Number(d.key), d.value.max]])
-      })
 
     // event ruler
     let rule = svg.selectAll(".rule")
       .data(groupBin).enter()
       .append("path")
+      .attr("class", "rule")
       .attr("stroke", "black")
       .attr("stroke-width", 5)
       .attr("fill", "none")
-      .attr("d", (d) => {
-        return d3.line()
-          .x(p => xScale(p[0]))
-          .y(p => yScale(p[1]))
-          .curve(d3.curveMonotoneX)
-          ([[selectedEvent, yScale(d3.min(data[0], d => d.y)!)], [selectedEvent, yScale(d3.max(data[0], d => d.y)!)]])
-      })
 
     // event description
     let event_desc = svg.selectAll(".event_desc")
       .data(groupBin).enter()
       .append("text")
-      .attr("x", selectedEvent + 10)
-      .attr("y", -15)
-      .text((d) => {
-        if (Number(d.key) === selectedEvent)
-          return d.value.event[0].eventDescription
-      })
+      .attr("class", "event_desc")
       .attr("font-family", "sans-serif")
       .attr("font-size", "20px")
 
+    // actor description
+    let actor_desc = svg.selectAll(".actor_desc")
+      .data(groupBin)
+      .join('text')
+      .attr("class", "actor_desc")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "15px")
+
+    //xAxis description
+    let xAxis = svg.selectAll(".xAxis")
+      .data(groupBin)
+      .join("text")
+      .attr("class", "xAxis")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "15px")
+      .attr('text-anchor', 'middle')
+
+    //xAxis description background
+    let xAxisLines = svg.selectAll(".xAxisLine")
+      .data(groupBin.filter((d: Binned) => {
+        if (d.value.event[0].eventValue != '-') return true
+      }))
+      .join("line")
+      .attr("class", "xAxisLine")
+      .attr("stroke", "black")
+      .attr("stroke-width", 1)
+      .style("stroke-dasharray", ("3, 3"))
+
+    drawAll()
+
     function mousemove() {
       // recover coordinate we need
-      var x0 = xScale.invert(d3.mouse(this)[0]);
+      var x0 = xScale.invert(d3.mouse(d3.event.currentTarget)[0]);
       var i = bisect(data[0], x0, 1);
       var d0 = data[0][i - 1].x
       var d1 = data[0][i].x
       var d = x0 - d0 > d1 - x0 ? d1 : d0;
       selectedEvent = d
+      drawAll()
+    }
+
+    function drawAll() {
       groups
         .transition()
         .duration(transitionSpeed)
@@ -254,14 +253,36 @@ export default class DrawSpec {
           if (Number(d.key) === selectedEvent) return selectedOpacity
           else return unSelectedOpacity
         })
+        .attr("d", (d) => {
+          return d3.line()
+            .x(p => xScale(p[0]))
+            .y(p => yScale(p[1]))
+            .curve(d3.curveMonotoneX)
+            ([[Number(d.key), d.value.min], [Number(d.key), d.value.max]])
+        })
+
       actors
         .transition()
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
+        .attr("stroke", d => color(d.key) as string)
         .attr('opacity', (d: Binned) => {
           if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
           else return unSelectedOpacity
         })
+        .attr("d", (d: Binned) => {
+          return d3.line()
+            .x(p => xScale(p[0]))
+            .y(p => yScale(p[1]))
+            .curve(d3.curveMonotoneX)
+            (d.values.reduce((arr, p) => {
+              arr.push([p.x, p.y])
+              arr.push([p.x - xPadding, p.y])
+              arr.push([p.x + xPadding, p.y])
+              return arr
+            }, []))
+        })
+
       rule
         .transition()
         .duration(transitionSpeed)
@@ -273,16 +294,56 @@ export default class DrawSpec {
             .curve(d3.curveMonotoneX)
             ([[selectedEvent, 0], [selectedEvent, height]])
         })
+
       event_desc
         .transition()
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
         .attr("x", xScale(selectedEvent) + 10)
-        .attr("y", -15)
+        .attr("y", -25)
         .text((d) => {
           if (Number(d.key) === selectedEvent)
             return d.value.event[0].eventDescription
         })
+
+      xAxis
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("x", (d: Binned) => xScale(d.value.event[0].x))
+        .attr("y", height + 25)
+        .text((d: Binned) => d.value.event[0].eventValue)
+
+      xAxisLines
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr('x1', d => xScale(Number(d.key)))
+        .attr('y1', 0)
+        .attr('x2', d => xScale(Number(d.key)))
+        .attr('y2', height)
+
+      actor_desc
+        .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event)
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("x", xScale(selectedEvent) + 10)
+        .attr("y", (d) => yScale(d.y) - 5)
+        .text((d) => d.z)
+        .call(getTextBox)
+
+      actor_desc.insert("rect", "text")
+        .attr("x", d => { if (d.bbox) return d.bbox.x })
+        .attr("y", d => { if (d.bbox) return d.bbox.y })
+        .attr("width", d => { if (d.bbox) return d.bbox.width })
+        .attr("height", d => { if (d.bbox) return d.bbox.height })
+        .style("fill", "black");
+
+      function getTextBox(selection) {
+        selection.each(function (d) { d.bbox = this.getBBox(); })
+      }
+
     }
 
   }

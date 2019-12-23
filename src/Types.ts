@@ -237,6 +237,8 @@ export class RenderedPoint {
 
   public hiddenYsAmt: number = 0;
 
+  public bbox: any
+
   public constructor(
     public x: number,
     public y: number,
