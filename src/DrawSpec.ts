@@ -157,15 +157,17 @@ export default class DrawSpec {
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    // Create a rect on top of the svg area: this rectangle recovers mouse position
-    svg
-      .append('rect')
-      .style("fill", "none")
-      .style("pointer-events", "all")
-      .attr("class", "rect_pointerID")
-      .attr('width', width)
-      .attr('height', height)
-      .on('mousemove', mousemove)
+    //xAxis description background
+    let xAxisLines = svg.selectAll(".xAxisLine")
+      .data(groupBin.filter((d: Binned) => {
+        if (d.value.event[0].eventValue != '-') return true
+      }))
+      .join("line")
+      .attr("class", "xAxisLine")
+      .attr("stroke", "black")
+      .attr("stroke-width", 2)
+      .attr("stroke-opacity", 0.3)
+      .style("stroke-dasharray", ("3, 3"))
 
     // actor lines
     let actors = svg.selectAll(".actors")
@@ -188,8 +190,9 @@ export default class DrawSpec {
 
     // event ruler
     let rule = svg.selectAll(".rule")
-      .data(groupBin).enter()
-      .append("path")
+      .data(groupBin.filter(d => Number(d.key) === selectedEvent))
+      .enter()
+      .append("line")
       .attr("class", "rule")
       .attr("stroke", "black")
       .attr("stroke-width", 5)
@@ -197,7 +200,8 @@ export default class DrawSpec {
 
     // event description
     let event_desc = svg.selectAll(".event_desc")
-      .data(groupBin).enter()
+      .data(groupBin.filter(d => Number(d.key) === selectedEvent))
+      .enter()
       .append("text")
       .attr("class", "event_desc")
       .attr("font-family", "sans-serif")
@@ -205,11 +209,21 @@ export default class DrawSpec {
 
     // actor description
     let actor_desc = svg.selectAll(".actor_desc")
-      .data(groupBin)
+      .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event)
       .join('text')
       .attr("class", "actor_desc")
       .attr("font-family", "sans-serif")
       .attr("font-size", "15px")
+
+    //Actor events
+    let actor_events = svg.selectAll(".actor_events")
+      .data(groupBin.filter((d: Binned) => {
+        if (d.value.event[0].eventValue != '-') return true
+      }))
+      .join("line")
+      .attr("class", "actor_events")
+      .attr("stroke", "black")
+      .attr("stroke-width", selectedLineSize)
 
     //xAxis description
     let xAxis = svg.selectAll(".xAxis")
@@ -220,16 +234,15 @@ export default class DrawSpec {
       .attr("font-size", "15px")
       .attr('text-anchor', 'middle')
 
-    //xAxis description background
-    let xAxisLines = svg.selectAll(".xAxisLine")
-      .data(groupBin.filter((d: Binned) => {
-        if (d.value.event[0].eventValue != '-') return true
-      }))
-      .join("line")
-      .attr("class", "xAxisLine")
-      .attr("stroke", "black")
-      .attr("stroke-width", 1)
-      .style("stroke-dasharray", ("3, 3"))
+    // Create a rect on top of the svg area: this rectangle recovers mouse position
+    svg
+      .append('rect')
+      .style("fill", "none")
+      .style("pointer-events", "all")
+      .attr("class", "rect_pointerID")
+      .attr('width', width)
+      .attr('height', height)
+      .on('mousemove', mousemove)
 
     drawAll()
 
@@ -276,26 +289,25 @@ export default class DrawSpec {
             .y(p => yScale(p[1]))
             .curve(d3.curveMonotoneX)
             (d.values.reduce((arr, p) => {
-              arr.push([p.x, p.y])
               arr.push([p.x - xPadding, p.y])
+              arr.push([p.x, p.y])
               arr.push([p.x + xPadding, p.y])
               return arr
             }, []))
         })
 
       rule
+        .data(groupBin.filter(d => Number(d.key) === selectedEvent))
         .transition()
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
-        .attr("d", (d) => {
-          return d3.line()
-            .x(p => xScale(p[0]))
-            .y(p => yScale(p[1]))
-            .curve(d3.curveMonotoneX)
-            ([[selectedEvent, 0], [selectedEvent, height]])
-        })
+        .attr('x1', xScale(selectedEvent))
+        .attr('y1', 0)
+        .attr('x2', xScale(selectedEvent))
+        .attr('y2', height)
 
       event_desc
+        .data(groupBin.filter(d => Number(d.key) === selectedEvent))
         .transition()
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
