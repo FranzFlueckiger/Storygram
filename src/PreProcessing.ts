@@ -1,7 +1,22 @@
 import { Data, EventData, Event, YData as ActorData, Actor } from './Types';
+import { Moment } from 'moment'
 
-function inferEventValues () {
+function inferEventValue ( rawEvent: any, eventField: string, index: number, expectedType: string ) {
+  if ( rawEvent[ eventField ] ) {
+    const value = rawEvent[ eventField ]
+    if ( typeof value === "number" && expectedType === "number" ) {
+      return value
+    } else {
+      console.warn( "Event value at index " + index + " was expected to be a " + expectedType + ", instead found " + typeof value + "." )
+    }
+  }
+}
 
+function checkEventValueType ( base: any ) {
+  let myBaseType: string | Date | number = typeof base
+  return ( baseType: string | Date | number ) => {
+    typeof myBaseType === typeof baseType
+  }
 }
 
 /**
@@ -47,11 +62,11 @@ function fromRanges<T extends Record<string, unknown>> (
         ( ( typeof dFromField === 'number' && dFromField <= rawEvent ) || !dFromField ) &&
         ( ( typeof dToField === 'number' && dToField >= rawEvent ) || !dToField )
       ) {
-        const actorID = String(d[actorField]);
-        event.group.push(actorID);
-        const actor = actors.get(actorID) as Actor;
-        actor.layers.push(event);
-        actors.set(actorID, actor);
+        const actorID = String( d[ actorField ] );
+        event.group.push( actorID );
+        const actor = actors.get( actorID ) as Actor;
+        actor.layers.push( event );
+        actors.set( actorID, actor );
       }
     } );
     return event;

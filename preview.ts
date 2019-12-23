@@ -2,7 +2,7 @@ import vega from 'vega-embed';
 import { Storygram } from './src/index';
 import { testRangeData, testArrayData, testTableData } from './test/testData';
 import { Config } from './src/Types';
-import { MetasonData, KurliData, WarData, BundesratData } from './previewData'
+import { MetasonData, KurliData, WarData, BundesratData, BlockBusterdata } from './previewData'
 
 function drawRangeSD() {
   const config: Config = {

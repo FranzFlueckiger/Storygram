@@ -88,11 +88,11 @@ export interface BaseConfig {
   | 'rainbow'
   | 'sinebow';
   // split function for the actor fields, is useful when one string contains e.g. many actors separated by a string
-  actorSplitFunction?: ((arg: string) => string[]) | undefined;
+  actorSplitFunction?: ( ( arg: string ) => string[] ) | undefined;
   // function that returns a string describing the selected event
-  eventDescription: (arg: Event) => string;
+  eventDescription: ( arg: Event ) => string;
   // link to a desired url from the group nodes
-  url: (event: Event, actor: Actor) => string;
+  url: ( event: Event, actor: Actor ) => string;
   // padding between the actors
   actorPadding: number;
   // padding between the events
@@ -120,29 +120,29 @@ export interface BaseConfig {
   // which actors should be highlighted
   highlight: string[];
   // numeric field that determines the stroke width
-  strokeWidth: (event: Event, actor: Actor) => number;
+  strokeWidth: ( event: Event, actor: Actor ) => number;
   // numeric field that determines the stroke width
-  strokeColor: (event: Event, actor: Actor) => string | number;
+  strokeColor: ( event: Event, actor: Actor ) => string | number;
   // function that returns a string describing the actor
-  tooltipText?: (arg: Event) => string;
+  tooltipText?: ( arg: Event ) => string;
   // check if the event contains all the given actors
   mustContain: string[];
   // check if the event contains one of the given actors
   shouldContain: string[];
   // event filter (positive and Negative event ranges possible)
-  filterEventValue: [number | undefined, number | undefined];
+  filterEventValue: [ number | undefined, number | undefined ];
   // event filter (positive group sizes only)
-  filterGroupSize: [number | undefined, number | undefined];
+  filterGroupSize: [ number | undefined, number | undefined ];
   // event filter for boolean predicates
-  filterEventCustom: (event: Event) => boolean;
+  filterEventCustom: ( event: Event ) => boolean;
   // check if the actors interacted with the given ones at the specified depth
-  interactedWith: [string[], number | undefined];
+  interactedWith: [ string[], number | undefined ];
   // actor filter (Positive and Negative event value lifetimes possible)
-  filterEventValueLifeTime: [number | undefined, number | undefined];
+  filterEventValueLifeTime: [ number | undefined, number | undefined ];
   // actor filter (Positive group amounts only)
-  filterGroupAmt: [number | undefined, number | undefined];
+  filterGroupAmt: [ number | undefined, number | undefined ];
   // actor filter for boolean predicates
-  filterActorCustom: (actor: Actor) => boolean;
+  filterActorCustom: ( actor: Actor ) => boolean;
   // Penalty for changing actor's position from one layer to the other
   linearLoss: number;
   // Penalty for the amount of switches
@@ -153,9 +153,9 @@ export interface BaseConfig {
   yExtentLoss: number;
 }
 
-export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
+export type Config = Partial<BaseConfig> & ( RangeData | ArrayData | TableData );
 
-export type FullConfig = BaseConfig & (RangeData | ArrayData | TableData);
+export type FullConfig = BaseConfig & ( RangeData | ArrayData | TableData );
 
 export class Event {
   public id?: number;
@@ -176,7 +176,7 @@ export class Event {
 
   public hiddenActors: string[];
 
-  public constructor(public eventValue: number, public data: Record<string, unknown>) {
+  public constructor ( public eventValue: number, public data: Record<string, unknown> ) {
     this.isHidden = false;
     this.add = [];
     this.remove = [];
@@ -191,7 +191,7 @@ export class Actor {
 
   public isHidden: boolean;
 
-  public constructor(public actorID: string, public data: Record<string, unknown>) {
+  public constructor ( public actorID: string, public data: Record<string, unknown> ) {
     this.isHidden = false;
     this.layers = [];
   }
