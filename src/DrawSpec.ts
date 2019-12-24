@@ -110,7 +110,7 @@ export default class DrawSpec {
 
     let selectedEvent: number = data[0][0].x
     const selectedOpacity = 1
-    const unSelectedOpacity = 0.1
+    const unSelectedOpacity = 0.15
     const selectedLineSize = 12
     const unSelectedLineSize = 10
     const transitionSpeed = 75
@@ -165,8 +165,8 @@ export default class DrawSpec {
       .join("line")
       .attr("class", "xAxisLine")
       .attr("stroke", "black")
-      .attr("stroke-width", 2)
-      .attr("stroke-opacity", 0.3)
+      .attr("stroke-width", 1)
+      .attr("stroke-opacity", 0.2)
       .style("stroke-dasharray", ("4, 4"))
 
     // actor lines
@@ -206,22 +206,6 @@ export default class DrawSpec {
       .attr("class", "event_desc")
       .attr("font-family", "sans-serif")
       .attr("font-size", "20px")
-
-    // actor description
-    let actor_desc = svg.selectAll(".actor_desc")
-      .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event)
-      .join('text')
-      .attr("class", "actor_desc")
-      .attr("font-family", "sans-serif")
-      .attr("font-size", "15px")
-
-    //Actor events
-    let actor_events = svg.selectAll(".actor_events")
-      .data(actorBin)
-      .join("line")
-      .attr("class", "actor_events")
-      .attr("stroke", "black")
-      .attr("stroke-width", selectedLineSize)
 
     //xAxis description
     let xAxis = svg.selectAll(".xAxis")
@@ -264,6 +248,10 @@ export default class DrawSpec {
           if (Number(d.key) === selectedEvent) return selectedOpacity
           else return unSelectedOpacity
         })
+        .attr("stroke-width", (d: Binned) => {
+          if (Number(d.key) === selectedEvent) return selectedLineSize
+          else return unSelectedLineSize
+        })
         .attr("d", (d) => {
           return d3.line()
             .x(p => xScale(p[0]))
@@ -280,6 +268,10 @@ export default class DrawSpec {
         .attr('opacity', (d: Binned) => {
           if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
           else return unSelectedOpacity
+        })
+        .attr("stroke-width", (d: Binned) => {
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedLineSize
+          else return unSelectedLineSize
         })
         .attr("d", (d: Binned) => {
           return d3.line()
@@ -333,39 +325,71 @@ export default class DrawSpec {
         .attr('x2', d => xScale(Number(d.key)))
         .attr('y2', height)
 
-      actor_desc
-        .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event)
-        .transition()
-        .duration(transitionSpeed)
-        .ease(d3.easeLinear)
-        .attr("x", xScale(selectedEvent) + 10)
-        .attr("y", (d) => yScale(d.y) - 5)
-        .text((d) => d.z)
-        .call(getTextBox)
+      let actorDesc = svg.selectAll(".actorDesc")
+        .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event,
+          (d: RenderedPoint) => d.z)
+        .join(
+          enter => enter.append("text")
+            .attr("class", "actorDesc")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "15px")
+            .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
+            .attr("y", (d: RenderedPoint) => yScale(d.y) - 5)
+            .text(d => d.z)
+            .attr("opacity", 0.)
+            .call(getTextBox)
+            .call(enter => enter
+              .transition()
+              .duration(transitionSpeed)
+              .ease(d3.easeLinear)
+              .attr("opacity", 1)),
+          update => update
+            .attr("opacity", 1)
+            .call(enter => enter
+              .transition()
+              .duration(transitionSpeed)
+              .ease(d3.easeLinear)
+              .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
+              .attr("y", (d: RenderedPoint) => yScale(d.y) - 5))
+            .call(getTextBox),
+          exit => exit
+            .transition()
+            .duration(transitionSpeed)
+            .ease(d3.easeLinear)
+            .attr("opacity", 0.)
+            .remove()
+        );
 
-      actor_desc.insert("rect", "text")
-        .attr("x", d => { if (d.bbox) return d.bbox.x })
-        .attr("y", d => { if (d.bbox) return d.bbox.y })
-        .attr("width", d => { if (d.bbox) return d.bbox.width })
-        .attr("height", d => { if (d.bbox) return d.bbox.height })
-        .style("fill", "black");
 
-      actor_events
-        .transition()
-        .duration(transitionSpeed)
-        .ease(d3.easeLinear)
-        .attr("stroke", "black")
-        .attr("d", (d: Binned) => {
-          return d3.line()
-            .x(p => xScale(p[0]))
-            .y(p => yScale(p[1]))
-            .curve(d3.curveMonotoneX)
-            (d.values.reduce((arr, p) => {
-              arr.push([p.x - config.actorPadding / 2, p.y])
-              arr.push([p.x + config.actorPadding / 2, p.y])
-              return arr
-            }, []))
-        })
+      let actorEvents = svg.selectAll(".actorEvent")
+        .data(actorBin.filter((d: Binned) => {
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
+          return false
+        }))
+        .join(
+          enter => enter.append("line")
+            .attr("class", "actorEvent")
+            .attr("x1", (d: RenderedPoint) => xScale(d.x) + 10)
+            .attr("y1", (d: RenderedPoint) => yScale(d.y) - 5)
+            .attr("x2", (d: RenderedPoint) => xScale(d.x) - 10)
+            .attr("y2", (d: RenderedPoint) => yScale(d.y) + 5)
+            .call(enter => enter
+              .transition()
+              .duration(transitionSpeed)
+              .ease(d3.easeLinear)
+            ),
+          update => update
+            .call(enter => enter
+              .transition()
+              .duration(transitionSpeed)
+              .ease(d3.easeLinear)
+            ),
+          exit => exit
+            .transition()
+            .duration(transitionSpeed)
+            .ease(d3.easeLinear)
+            .remove()
+        );
 
       function getTextBox(selection) {
         selection.each(function (d) { d.bbox = this.getBBox(); })
