@@ -148,4 +148,4 @@ async function drawPaperExample() {
   SD.draw()
 }
 
-drawBundesratExample()
+drawMetasonSD()

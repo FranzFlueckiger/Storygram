@@ -148,7 +148,7 @@ export default class DrawSpec {
       })
       .entries(data[0].filter(d => d.isGrouped))
 
-    var colorEntries = actorBin.map(d => d.key)
+    var colorEntries = data[0].map(d => d.strokeColor as string)
 
     var color = d3.scaleOrdinal()
       .domain(colorEntries)
@@ -253,7 +253,7 @@ export default class DrawSpec {
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
         .attr('opacity', (d: Binned) => {
-          if(Number(d.key) === selectedEvent) return 0
+          if(Number(d.key) === selectedEvent) return unSelectedOpacity
           else return unSelectedOpacity
         })
         .attr("stroke-width", (d: Binned) => {
@@ -310,7 +310,7 @@ export default class DrawSpec {
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
         .attr("x", xScale(selectedEvent) + 10)
-        .attr("y", -25)
+        .attr("y", -35)
         .text((d) => {
           if(Number(d.key) === selectedEvent)
             return d.value.event[0].eventDescription
@@ -332,6 +332,65 @@ export default class DrawSpec {
         .attr('y1', 0)
         .attr('x2', d => xScale(Number(d.key)))
         .attr('y2', height)
+
+      //hidden actors => invisible to get bounding box 
+      let hiddenActors = layer2.selectAll(".hiddenActors")
+        .data(groupBin.reduce<RenderedPoint[]>((arr, d) => {
+          d.value.event.forEach(v => {
+            if(v.hiddenYs.length > 0) arr.push(v)
+          })
+          return arr
+        }, []), (d: RenderedPoint) => String(d.x))
+        .join((enter: any) => enter.append("text")
+          .attr("class", "hiddenActors")
+          .attr("font-family", "sans-serif")
+          .attr("font-size", "13px")
+          .attr("dominant-baseline", "middle")
+          .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
+          .attr("y", (d: RenderedPoint) => yScale(d.y))
+          .text((d: RenderedPoint) => d.hiddenYs ? d.hiddenYs.length : '')
+          .call(getTextBox),
+          (update: any) => update
+            .transition()
+            .duration(transitionSpeed)
+            .ease(d3.easeLinear)
+            .attr("y", (d: RenderedPoint) => {
+              if(d.x === selectedEvent) return yScale(d.y) - 25
+              else return yScale(d.y)
+            })
+            .call(getTextBox)
+        )
+
+      //hidden actors => invisible to get bounding box 
+      let hiddenActorsBackground = layer2.selectAll(".hiddenActorsBackground")
+        .data(groupBin.reduce<RenderedPoint[]>((arr, d) => {
+          d.value.event.forEach(v => {
+            if(v.hiddenYs.length > 0) arr.push(v)
+          })
+          return arr
+        }, []), (d: RenderedPoint) => String(d.x))
+        .join((enter: any) => enter.append("rect")
+          .attr("class", "hiddenActorsBackground")
+          .attr('opacity', 0.8)
+          .attr('fill', 'red')
+          .attr('rx', 4)
+          .attr('ry', 4)
+          .attr("x", (d: RenderedPoint) => xScale(d.x) +10)
+          .attr("y", (d: RenderedPoint) => yScale(d.y))
+          .attr("width", (d: RenderedPoint) => d.bbox.width)
+          .attr("height", (d: RenderedPoint) => d.bbox.height)
+          .text((d: RenderedPoint) => d.hiddenYs ? d.hiddenYs.length : '')
+          .call(getTextBox),
+          (update: any) => update
+            .transition()
+            .duration(transitionSpeed)
+            .ease(d3.easeLinear)
+            .attr("y", (d: RenderedPoint) => {
+              if(d.x === selectedEvent) return yScale(d.y) - 32
+              else return yScale(d.y)
+            })
+            .call(getTextBox)
+        )
 
       let actorEvents = layer1.selectAll(".actorEvent")
         .data(actorBin.filter((d: Binned) => {
