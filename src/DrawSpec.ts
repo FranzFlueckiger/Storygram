@@ -104,9 +104,21 @@ export default class DrawSpec {
   }
 
   public static drawD3(data: [RenderedPoint[], number, number], config: FullConfig) {
-    let margin = {top: 50, right: 50, bottom: 50, left: 50}
+    let margin = {top: 50, right: 400, bottom: 50, left: 50}
     let width = data[1] * config.eventPadding;
     let height = data[2] * config.actorPadding;
+
+    let svg = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+
+    let layer1 = svg
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    let layer2 = svg
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     let selectedEvent: number = data[0][0].x
     const selectedOpacity = 1
@@ -115,6 +127,7 @@ export default class DrawSpec {
     const unSelectedLineSize = 10
     const transitionSpeed = 100
     const xPadding = 0.01
+    const actorDescSize = 15
 
     let actorBin: Binned[] = d3.nest()
       .key(d => d instanceof RenderedPoint ? d.z : '')
@@ -131,17 +144,17 @@ export default class DrawSpec {
             event: d3.values(p)
           }
         }
-        return {min: null, max: null}
+        return {min: null, max: null, event: null}
       })
       .entries(data[0].filter(d => d.isGrouped))
 
-    var res = actorBin.map(d => d.key)
-
-    var bisect = d3.bisector((d: RenderedPoint) => d.x).left;
+    var colorEntries = actorBin.map(d => d.key)
 
     var color = d3.scaleOrdinal()
-      .domain(res)
+      .domain(colorEntries)
       .range(d3.schemePaired)
+
+    var bisect = d3.bisector((d: RenderedPoint) => d.x).left;
 
     let xScale = d3.scaleLinear()
       .domain([d3.min(data[0].map(d => d.x))!, d3.max(data[0].map(d => d.x))!])
@@ -151,26 +164,20 @@ export default class DrawSpec {
       .domain([d3.min(data[0].map(d => d.y))!, d3.max(data[0].map(d => d.y))!])
       .range([height, 0]);
 
-    let svg = d3.select("body").append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
     //xAxis description background
-    let xAxisLines = svg.selectAll(".xAxisLine")
+    let xAxisLines = layer1.selectAll(".xAxisLine")
       .data(groupBin.filter((d: Binned) => {
         if(d.value.event[0].eventValue != '-') return true
       }))
       .join("line")
       .attr("class", "xAxisLine")
       .attr("stroke", "black")
-      .attr("stroke-width", 1)
-      .attr("stroke-opacity", 0.2)
+      .attr("stroke-width", 1.5)
+      .attr("stroke-opacity", 0.4)
       .style("stroke-dasharray", ("4, 4"))
 
     // actor lines
-    let actors = svg.selectAll(".actors")
+    let actors = layer1.selectAll(".actors")
       .data(actorBin).enter()
       .append("path")
       .attr("class", "actor")
@@ -179,7 +186,7 @@ export default class DrawSpec {
       .attr("stroke-width", unSelectedLineSize)
 
     // group lines
-    let groups = svg.selectAll(".groups")
+    let groups = layer1.selectAll(".groups")
       .data(groupBin).enter()
       .append("path")
       .attr("class", "group")
@@ -189,7 +196,7 @@ export default class DrawSpec {
       .attr("fill", "none")
 
     // event ruler
-    let rule = svg.selectAll(".rule")
+    let rule = layer1.selectAll(".rule")
       .data(groupBin.filter(d => Number(d.key) === selectedEvent))
       .enter()
       .append("line")
@@ -199,7 +206,7 @@ export default class DrawSpec {
       .attr("fill", "none")
 
     // event description
-    let event_desc = svg.selectAll(".event_desc")
+    let event_desc = layer1.selectAll(".event_desc")
       .data(groupBin.filter(d => Number(d.key) === selectedEvent))
       .enter()
       .append("text")
@@ -208,7 +215,7 @@ export default class DrawSpec {
       .attr("font-size", "20px")
 
     //xAxis description
-    let xAxis = svg.selectAll(".xAxis")
+    let xAxis = layer1.selectAll(".xAxis")
       .data(groupBin)
       .join("text")
       .attr("class", "xAxis")
@@ -217,7 +224,7 @@ export default class DrawSpec {
       .attr('text-anchor', 'middle')
 
     // Create a rect on top of the svg area: this rectangle recovers mouse position
-    svg
+    layer2
       .append('rect')
       .style("fill", "none")
       .style("pointer-events", "all")
@@ -236,6 +243,7 @@ export default class DrawSpec {
       var d1 = data[0][i].x
       var d = x0 - d0 > d1 - x0 ? d1 : d0;
       selectedEvent = d
+      drawAll()
       drawAll()
     }
 
@@ -325,32 +333,7 @@ export default class DrawSpec {
         .attr('x2', d => xScale(Number(d.key)))
         .attr('y2', height)
 
-      let actorDesc = svg.selectAll(".actorDesc")
-        .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event,
-          (d: RenderedPoint) => d.z)
-        .join(
-          (enter: any) => enter.append("text")
-            .attr("class", "actorDesc")
-            .attr("font-family", "sans-serif")
-            .attr("font-size", "15px")
-            .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
-            .attr("y", (d: RenderedPoint) => yScale(d.y) - 5)
-            .text((d: RenderedPoint) => d.z)
-            .call(getTextBox),
-          (update: any) => update
-            .attr("opacity", 1)
-            .call((upd: any) => upd
-              .transition()
-              .duration(transitionSpeed)
-              .ease(d3.easeLinear)
-              .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
-              .attr("y", (d: RenderedPoint) => yScale(d.y) - 5))
-            .call(getTextBox),
-          (exit: any) => exit
-            .remove()
-        );
-
-      let actorEvents = svg.selectAll(".actorEvent")
+      let actorEvents = layer1.selectAll(".actorEvent")
         .data(actorBin.filter((d: Binned) => {
           if(d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
           return false
@@ -359,7 +342,9 @@ export default class DrawSpec {
             if(v.isGrouped) arr.push(v)
           })
           return arr
-        }, []), (d: RenderedPoint) => d)
+        }, []), (d: RenderedPoint) => {
+          return String(d.x) + ' ' + String(d.y) + ' ' + d.z + d.strokeColor
+        })
         .join(
           (enter: any) => enter.append("line")
             .attr("class", "actorEvent")
@@ -371,7 +356,7 @@ export default class DrawSpec {
             .attr("x2", (d: RenderedPoint) => xScale(d.x))
             .attr("y1", (d: RenderedPoint) => yScale(d.y) - config.eventPadding / 5)
             .attr("y2", (d: RenderedPoint) => yScale(d.y) + config.eventPadding / 5)
-            .attr("stroke-opacity", 1.0),
+            .attr("stroke-opacity", 0.8),
           (update: any) => {
             return update
           },
@@ -382,6 +367,95 @@ export default class DrawSpec {
             .attr("y2", (d: RenderedPoint) => yScale(d.y))
             .attr("stroke-opacity", 0.0)
             .remove()
+        );
+
+      let actorDescInv = layer1.selectAll(".actorDescInv")
+        .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event,
+          (d: RenderedPoint) => d.z)
+        .join(
+          (enter: any) => {
+            enter
+              .append("text")
+              .attr("class", "actorDescInv")
+              .attr("font-family", "sans-serif")
+              .attr("font-size", actorDescSize + "px")
+              .attr("dominant-baseline", "middle")
+              .attr("opacity", 0)
+              .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
+              .attr("y", (d: RenderedPoint) => yScale(d.y))
+              .text((d: RenderedPoint) => d.z)
+              .call(getTextBox)
+          },
+          (update: any) => {
+            update
+              .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
+              .attr("y", (d: RenderedPoint) => yScale(d.y))
+              .call(getTextBox)
+          },
+          (exit: any) => {
+            exit
+              .remove()
+          }
+        );
+
+      let actorDescBackground = layer2.selectAll(".actorDescBackground")
+        .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event,
+          (d: RenderedPoint) => d.z)
+        .join(
+          (enter: any) => {
+            enter
+              .append("rect")
+              .attr("class", "actorDescBackground")
+              .attr('opacity', 0.8)
+              .attr('fill', 'white')
+              .attr('rx', 10)
+              .attr('ry', 10)
+              .style('stroke-width', 3)
+              .style('stroke', d => color(d.z) as string)
+              .attr("x", xScale(selectedEvent) + selectedLineSize / 2)
+              .attr("y", (d: RenderedPoint) => d.bbox.y - 5)
+              .attr("width", (d: RenderedPoint) => d.bbox.width + 10)
+              .attr("height", (d: RenderedPoint) => d.bbox.height + 10)
+          },
+          (update: any) => {
+            update.transition()
+              .duration(transitionSpeed)
+              .ease(d3.easeLinear)
+              .attr("x", xScale(selectedEvent) + selectedLineSize / 2)
+              .attr("y", (d: RenderedPoint) => d.bbox.y - 5)
+          },
+          (exit: any) => {
+            exit
+              .remove()
+          }
+        );
+
+      let actorDesc = layer2.selectAll(".actorDesc")
+        .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event,
+          (d: RenderedPoint) => d.z)
+        .join(
+          (enter: any) => {
+            enter
+              .append("text")
+              .attr("class", "actorDesc")
+              .attr("font-family", "sans-serif")
+              .attr("font-size", actorDescSize + "px")
+              .attr("dominant-baseline", "middle")
+              .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
+              .attr("y", (d: RenderedPoint) => yScale(d.y))
+              .text((d: RenderedPoint) => d.z)
+          },
+          (update: any) => {
+            update.transition()
+              .duration(transitionSpeed)
+              .ease(d3.easeLinear)
+              .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
+              .attr("y", (d: RenderedPoint) => yScale(d.y))
+          },
+          (exit: any) => {
+            exit
+              .remove()
+          }
         );
 
       function getTextBox(selection: any) {

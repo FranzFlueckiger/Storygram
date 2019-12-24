@@ -123,6 +123,8 @@ function drawBundesratExample() {
     eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
     strokeColor: (event, actor) => actor.data.Partei,
     compact: true,
+    populationSize: 100,
+    generationAmt: 100
   };
   const SD = new Storygram(data, config);
   SD.draw()
@@ -146,4 +148,4 @@ async function drawPaperExample() {
   SD.draw()
 }
 
-drawMetasonSD()
+drawBundesratExample()

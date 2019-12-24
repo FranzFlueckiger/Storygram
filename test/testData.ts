@@ -40,6 +40,7 @@ export function testRangeData() {
     {id: 5, from: 8, to: 9, c: 'af', d: 'pf'},
     {id: 6, from: 3, to: 8, c: 'kf'},
     {id: 7, from: 7, to: 8},
+    {id: 0, from: 6, to: 8, c: 'kf'},
     {id: 8, from: 9, to: 9, c: 'cf', d: 'af'},
     {id: 9, from: 1, to: 3, c: 'zf'},
   ];
