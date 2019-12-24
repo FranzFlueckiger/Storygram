@@ -336,13 +336,7 @@ export default class DrawSpec {
             .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
             .attr("y", (d: RenderedPoint) => yScale(d.y) - 5)
             .text(d => d.z)
-            .attr("opacity", 0.)
             .call(getTextBox)
-            .call(enter => enter
-              .transition()
-              .duration(transitionSpeed)
-              .ease(d3.easeLinear)
-              .attr("opacity", 1)),
           update => update
             .attr("opacity", 1)
             .call(enter => enter
@@ -353,23 +347,22 @@ export default class DrawSpec {
               .attr("y", (d: RenderedPoint) => yScale(d.y) - 5))
             .call(getTextBox),
           exit => exit
-            .transition()
-            .duration(transitionSpeed)
-            .ease(d3.easeLinear)
-            .attr("opacity", 0.)
             .remove()
         );
 
-
       let actorEvents = svg.selectAll(".actorEvent")
         .data(actorBin.filter((d: Binned) => {
+          console.log(d)
           if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
           return false
         }))
         .join(
           enter => enter.append("line")
             .attr("class", "actorEvent")
-            .attr("x1", (d: RenderedPoint) => xScale(d.x) + 10)
+            .attr("x1", (d: RenderedPoint) => {
+              console.log(d)
+              return xScale(d.x) + 10
+            })
             .attr("y1", (d: RenderedPoint) => yScale(d.y) - 5)
             .attr("x2", (d: RenderedPoint) => xScale(d.x) - 10)
             .attr("y2", (d: RenderedPoint) => yScale(d.y) + 5)
