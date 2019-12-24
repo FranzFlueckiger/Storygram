@@ -1,6 +1,6 @@
 import Storygram from '../src/Storygram';
-import { ArrayData, Config, TableData, RangeData } from '../src/Types';
-import { testArrayData, testTableData, testRangeData } from './testData';
+import {ArrayData, Config, TableData, RangeData} from '../src/Types';
+import {testArrayData, testTableData, testRangeData} from './testData';
 
 test('from array', () => {
   const config: Config = {

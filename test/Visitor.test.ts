@@ -1,5 +1,5 @@
-import { remove, add, switchP, getCenter, getDistances, group, visit } from '../src/Visitor';
-import { Switch, EventData, ActorData, Data, Actor } from '../src/Types';
+import {remove, add, switchP, getCenter, getDistances, group, visit} from '../src/Visitor';
+import {Switch, EventData, ActorData, Data, Actor} from '../src/Types';
 
 test('remove', () => {
   let visitor: string[] = ['hallo', 'world', 'wie', 'gehts'];
@@ -29,11 +29,11 @@ test('add', () => {
 
 test('switchP', () => {
   let visitor: string[] = ['hallo', 'wie', 'gehts'];
-  let switches: Switch = { target: 1, prev: 0 };
+  let switches: Switch = {target: 1, prev: 0};
   visitor = switchP(switches, visitor);
   expect(JSON.stringify(visitor)).toEqual(JSON.stringify(['wie', 'hallo', 'gehts']));
   // check two impossible values
-  switches = { target: -1, prev: 3 };
+  switches = {target: -1, prev: 3};
   visitor = switchP(switches, visitor);
   expect(JSON.stringify(visitor)).toEqual(JSON.stringify(['wie', 'hallo', 'gehts']));
 });
@@ -56,7 +56,7 @@ test('getDistances', () => {
   const groupedPs = ['hallo', 'gut'];
   const center = 1;
   const dists = getDistances(groupedPs, center, visitor);
-  expect(dists).toEqual([{ distance: 1, p: 'hallo' }, { distance: -2, p: 'gut' }]);
+  expect(dists).toEqual([{distance: 1, p: 'hallo'}, {distance: -2, p: 'gut'}]);
 });
 
 test('group', () => {
@@ -101,7 +101,7 @@ test('visit', () => {
   ys.set('b', new Actor('b', {}));
   ys.set('c', new Actor('c', {}));
   ys.set('d', new Actor('d', {}));
-  const data: Data = { xData: xs, yData: ys };
+  const data: Data = {xData: xs, yData: ys};
   const newData = visit(data, undefined);
   expect(JSON.stringify(newData[0][0].state)).toEqual('["b","a"]');
 });

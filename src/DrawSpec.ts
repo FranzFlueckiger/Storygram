@@ -1,5 +1,5 @@
-import { Spec, stringValue } from 'vega';
-import { FullConfig, Data, RenderedPoint, ActorData } from './Types';
+import {Spec, stringValue} from 'vega';
+import {FullConfig, Data, RenderedPoint, ActorData} from './Types';
 import d3 = require('d3');
 
 
@@ -27,7 +27,7 @@ export default class DrawSpec {
     let active_Ys: Set<string> = new Set()
     data.events.forEach((xLayer, xIndex) => {
       let offset = 0;
-      if (config.compact) {
+      if(config.compact) {
         xLayer.state = xLayer.state.filter(y => y !== '')
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
@@ -35,19 +35,19 @@ export default class DrawSpec {
       // this is the eventValue that is shown at the bottom of the chart
       // if it changes it will be drawn
       let eventValueLegend: number | string
-      if (eventValue === xLayer.eventValue) eventValueLegend = '-'
+      if(eventValue === xLayer.eventValue) eventValueLegend = '-'
       else eventValueLegend = xLayer.eventValue
       xLayer.state.forEach((yID: string, yIndex: number) => {
         const yVal = data.actors.get(yID)
         const isGrouped = xLayer.group.some(a => a === yID) ? 1 : 0;
-        if (isGrouped) {
+        if(isGrouped) {
           active_Ys.add(yID)
           lastGroupedIndex = yIndex
         }
-        if (xIndex != 0 && data.events[xIndex - 1].remove.includes(yID)) {
+        if(xIndex != 0 && data.events[xIndex - 1].remove.includes(yID)) {
           active_Ys.delete(yID)
         }
-        if (active_Ys.has(yID) || config.continuousStart) {
+        if(active_Ys.has(yID) || config.continuousStart) {
           let yDrawn = config.compact ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(xLayer, yVal!);
@@ -60,11 +60,11 @@ export default class DrawSpec {
           const isHiglighted = config.highlight.includes(yID) ? 1 : 0
           const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, isHiglighted);
           // this is necessary to show the hidden ys counter
-          if (lastGroupedIndex! < yIndex && lastGroupedIndex != undefined) {
+          if(lastGroupedIndex! < yIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenYs = hiddenYs
             result[result.length - 1].hiddenYsAmt = hiddenYs.length
             lastGroupedIndex = undefined
-          } else if (isGrouped && xLayer.state.length - 1 === yIndex) {
+          } else if(isGrouped && xLayer.state.length - 1 === yIndex) {
             point.hiddenYs = hiddenYs
             point.hiddenYsAmt = hiddenYs.length
           }
@@ -85,12 +85,12 @@ export default class DrawSpec {
     const points = new Map();
     renderedPoints.forEach(r => {
       const arr = points.get(r.z) ? points.get(r.z) : [];
-      arr.push({ x: r.x, y: r.y, bool: r.isGrouped, strokeWidth: r.strokeWidth, strokeColor: r.strokeColor });
+      arr.push({x: r.x, y: r.y, bool: r.isGrouped, strokeWidth: r.strokeWidth, strokeColor: r.strokeColor});
       points.set(r.z, arr);
     });
     // then we insert these 'interaction arrays' in the grouped points
     renderedPoints.map((r: any) => {
-      if (r.isGrouped) {
+      if(r.isGrouped) {
         const point = points.get(r.z);
         r.pointsX = point.map((g: any) => g.x);
         r.pointsY = point.map((g: any) => g.y);
@@ -104,7 +104,7 @@ export default class DrawSpec {
   }
 
   public static drawD3(data: [RenderedPoint[], number, number], config: FullConfig) {
-    let margin = { top: 50, right: 50, bottom: 50, left: 50 }
+    let margin = {top: 50, right: 50, bottom: 50, left: 50}
     let width = data[1] * config.eventPadding;
     let height = data[2] * config.actorPadding;
 
@@ -113,7 +113,7 @@ export default class DrawSpec {
     const unSelectedOpacity = 0.15
     const selectedLineSize = 12
     const unSelectedLineSize = 10
-    const transitionSpeed = 75
+    const transitionSpeed = 100
     const xPadding = 0.01
 
     let actorBin: Binned[] = d3.nest()
@@ -124,14 +124,14 @@ export default class DrawSpec {
       //Todo this 'casting' is ugly, numeric key?
       .key(d => d instanceof RenderedPoint ? String(d.x) : '')
       .rollup((p: Binned) => {
-        if (Array.isArray(p) && p.every(d => d instanceof RenderedPoint)) {
+        if(Array.isArray(p) && p.every(d => d instanceof RenderedPoint)) {
           return {
             min: d3.min(p, (d: RenderedPoint) => d.y),
             max: d3.max(p, (d: RenderedPoint) => d.y),
             event: d3.values(p)
           }
         }
-        return { min: null, max: null }
+        return {min: null, max: null}
       })
       .entries(data[0].filter(d => d.isGrouped))
 
@@ -160,7 +160,7 @@ export default class DrawSpec {
     //xAxis description background
     let xAxisLines = svg.selectAll(".xAxisLine")
       .data(groupBin.filter((d: Binned) => {
-        if (d.value.event[0].eventValue != '-') return true
+        if(d.value.event[0].eventValue != '-') return true
       }))
       .join("line")
       .attr("class", "xAxisLine")
@@ -195,7 +195,7 @@ export default class DrawSpec {
       .append("line")
       .attr("class", "rule")
       .attr("stroke", "black")
-      .attr("stroke-width", 5)
+      .attr("stroke-width", 3)
       .attr("fill", "none")
 
     // event description
@@ -245,11 +245,11 @@ export default class DrawSpec {
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
         .attr('opacity', (d: Binned) => {
-          if (Number(d.key) === selectedEvent) return selectedOpacity
+          if(Number(d.key) === selectedEvent) return 0
           else return unSelectedOpacity
         })
         .attr("stroke-width", (d: Binned) => {
-          if (Number(d.key) === selectedEvent) return selectedLineSize
+          if(Number(d.key) === selectedEvent) return selectedLineSize
           else return unSelectedLineSize
         })
         .attr("d", (d) => {
@@ -266,11 +266,11 @@ export default class DrawSpec {
         .ease(d3.easeLinear)
         .attr("stroke", d => color(d.key) as string)
         .attr('opacity', (d: Binned) => {
-          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
+          if(d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
           else return unSelectedOpacity
         })
         .attr("stroke-width", (d: Binned) => {
-          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedLineSize
+          if(d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedLineSize - 1
           else return unSelectedLineSize
         })
         .attr("d", (d: Binned) => {
@@ -304,7 +304,7 @@ export default class DrawSpec {
         .attr("x", xScale(selectedEvent) + 10)
         .attr("y", -25)
         .text((d) => {
-          if (Number(d.key) === selectedEvent)
+          if(Number(d.key) === selectedEvent)
             return d.value.event[0].eventDescription
         })
 
@@ -313,7 +313,7 @@ export default class DrawSpec {
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
         .attr("x", (d: Binned) => xScale(d.value.event[0].x))
-        .attr("y", height + 25)
+        .attr("y", height + 35)
         .text((d: Binned) => d.value.event[0].eventValue)
 
       xAxisLines
@@ -329,63 +329,63 @@ export default class DrawSpec {
         .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event,
           (d: RenderedPoint) => d.z)
         .join(
-          enter => enter.append("text")
+          (enter: any) => enter.append("text")
             .attr("class", "actorDesc")
             .attr("font-family", "sans-serif")
             .attr("font-size", "15px")
             .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
             .attr("y", (d: RenderedPoint) => yScale(d.y) - 5)
-            .text(d => d.z)
-            .call(getTextBox)
-          update => update
+            .text((d: RenderedPoint) => d.z)
+            .call(getTextBox),
+          (update: any) => update
             .attr("opacity", 1)
-            .call(enter => enter
+            .call((upd: any) => upd
               .transition()
               .duration(transitionSpeed)
               .ease(d3.easeLinear)
               .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
               .attr("y", (d: RenderedPoint) => yScale(d.y) - 5))
             .call(getTextBox),
-          exit => exit
+          (exit: any) => exit
             .remove()
         );
 
       let actorEvents = svg.selectAll(".actorEvent")
         .data(actorBin.filter((d: Binned) => {
-          console.log(d)
-          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
+          if(d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
           return false
-        }))
+        }).reduce<RenderedPoint[]>((arr, d) => {
+          d.values.forEach(v => {
+            if(v.isGrouped) arr.push(v)
+          })
+          return arr
+        }, []), (d: RenderedPoint) => d)
         .join(
-          enter => enter.append("line")
+          (enter: any) => enter.append("line")
             .attr("class", "actorEvent")
-            .attr("x1", (d: RenderedPoint) => {
-              console.log(d)
-              return xScale(d.x) + 10
-            })
-            .attr("y1", (d: RenderedPoint) => yScale(d.y) - 5)
-            .attr("x2", (d: RenderedPoint) => xScale(d.x) - 10)
-            .attr("y2", (d: RenderedPoint) => yScale(d.y) + 5)
-            .call(enter => enter
-              .transition()
-              .duration(transitionSpeed)
-              .ease(d3.easeLinear)
-            ),
-          update => update
-            .call(enter => enter
-              .transition()
-              .duration(transitionSpeed)
-              .ease(d3.easeLinear)
-            ),
-          exit => exit
-            .transition()
+            .attr("stroke", "black")
+            .attr("stroke-width", selectedLineSize)
+            .attr('stroke-linecap', 'round')
+            .attr("fill", "none")
+            .attr("x1", (d: RenderedPoint) => xScale(d.x))
+            .attr("x2", (d: RenderedPoint) => xScale(d.x))
+            .attr("y1", (d: RenderedPoint) => yScale(d.y) - config.eventPadding / 5)
+            .attr("y2", (d: RenderedPoint) => yScale(d.y) + config.eventPadding / 5)
+            .attr("stroke-opacity", 1.0),
+          (update: any) => {
+            return update
+          },
+          (exit: any) => exit.transition()
             .duration(transitionSpeed)
             .ease(d3.easeLinear)
+            .attr("y1", (d: RenderedPoint) => yScale(d.y))
+            .attr("y2", (d: RenderedPoint) => yScale(d.y))
+            .attr("stroke-opacity", 0.0)
             .remove()
         );
 
-      function getTextBox(selection) {
-        selection.each(function (d) { d.bbox = this.getBBox(); })
+      function getTextBox(selection: any) {
+        selection.each(function(d: RenderedPoint) {d.bbox = this.getBBox()})
       }
 
     }
@@ -406,7 +406,7 @@ export default class DrawSpec {
           "values": [
             {
               "unit": "\"layer_4\"",
-              "fields": [{ "type": "E", "field": "x" }],
+              "fields": [{"type": "E", "field": "x"}],
               "values": [0]
             }
           ]
@@ -419,15 +419,15 @@ export default class DrawSpec {
           "name": "data_0",
           "source": "data-62aa173cefa189ca06419e6e93ca30c4",
           "transform": [
-            { "type": "formula", "expr": "toNumber(datum[\"y\"])", "as": "y" }
+            {"type": "formula", "expr": "toNumber(datum[\"y\"])", "as": "y"}
           ]
         },
         {
           "name": "data_2",
           "source": "data_0",
           "transform": [
-            { "type": "formula", "expr": "(datum.x - 0.001)", "as": "xPre" },
-            { "type": "formula", "expr": "(datum.x + 0.001)", "as": "xPost" },
+            {"type": "formula", "expr": "(datum.x - 0.001)", "as": "xPre"},
+            {"type": "formula", "expr": "(datum.x + 0.001)", "as": "xPost"},
             {
               "type": "fold",
               "fields": ["x", "xPre", "xPost"],
@@ -438,7 +438,7 @@ export default class DrawSpec {
         {
           "name": "data_3",
           "source": "data_2",
-          "transform": [{ "type": "filter", "expr": "datum.isHighlighted" }]
+          "transform": [{"type": "filter", "expr": "datum.isHighlighted"}]
         },
         {
           "name": "data_4",
@@ -450,8 +450,8 @@ export default class DrawSpec {
               "ops": ["max", "min"],
               "fields": ["y", "y"]
             },
-            { "type": "formula", "expr": "datum.yHi + 0.5", "as": "yHigh" },
-            { "type": "formula", "expr": "datum.yLo - 0.5", "as": "yLow" }
+            {"type": "formula", "expr": "datum.yHi + 0.5", "as": "yHigh"},
+            {"type": "formula", "expr": "datum.yLo - 0.5", "as": "yLow"}
           ]
         },
         {
@@ -521,7 +521,7 @@ export default class DrawSpec {
               "fields": ["pointX", "pointXPre", "pointXPost"],
               "as": ["key", "value"]
             },
-            { "type": "filter", "expr": "datum.isGrouped" }
+            {"type": "filter", "expr": "datum.isGrouped"}
           ]
         },
         {
@@ -550,8 +550,8 @@ export default class DrawSpec {
               "fields": ["pointX", "pointXPre", "pointXPost"],
               "as": ["key", "value"]
             },
-            { "type": "filter", "expr": "datum.isGrouped" },
-            { "type": "filter", "expr": "datum.isHighlighted" }
+            {"type": "filter", "expr": "datum.isGrouped"},
+            {"type": "filter", "expr": "datum.isHighlighted"}
           ]
         },
         {
@@ -580,7 +580,7 @@ export default class DrawSpec {
               "fields": ["pointX", "pointXPre", "pointXPost"],
               "as": ["key", "value"]
             },
-            { "type": "filter", "expr": "datum.isGrouped" },
+            {"type": "filter", "expr": "datum.isGrouped"},
             {
               "type": "filter",
               "expr": "datum[\"pointX\"] !== null && !isNaN(datum[\"pointX\"]) && datum[\"pointY\"] !== null && !isNaN(datum[\"pointY\"])"
@@ -600,15 +600,15 @@ export default class DrawSpec {
         {
           "name": "data_13",
           "source": "data_2",
-          "transform": [{ "type": "filter", "expr": "(datum.hiddenYsAmt !== 0)" }]
+          "transform": [{"type": "filter", "expr": "(datum.hiddenYsAmt !== 0)"}]
         },
         {
           "name": "data_14",
           "source": "data_13",
           "transform": [
-            { "type": "formula", "expr": "(datum.x + 0.2)", "as": "x2" },
-            { "type": "formula", "expr": "(datum.y + 0.3)", "as": "yLo" },
-            { "type": "formula", "expr": "(datum.y + 0.6)", "as": "yHi" },
+            {"type": "formula", "expr": "(datum.x + 0.2)", "as": "x2"},
+            {"type": "formula", "expr": "(datum.y + 0.3)", "as": "yLo"},
+            {"type": "formula", "expr": "(datum.y + 0.6)", "as": "yHi"},
             {
               "type": "filter",
               "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"yLo\"] !== null && !isNaN(datum[\"yLo\"])"
@@ -628,7 +628,7 @@ export default class DrawSpec {
         {
           "name": "data_16",
           "source": "data_2",
-          "transform": [{ "type": "filter", "expr": "datum.isGrouped" }]
+          "transform": [{"type": "filter", "expr": "datum.isGrouped"}]
         },
         {
           "name": "data_17",
@@ -644,9 +644,9 @@ export default class DrawSpec {
           "name": "data_18",
           "source": "data_17",
           "transform": [
-            { "type": "formula", "expr": "datum.x + 2.5", "as": "x2" },
-            { "type": "formula", "expr": "datum.y - 0.2", "as": "yLo" },
-            { "type": "formula", "expr": "datum.y + 0.2", "as": "yHi" },
+            {"type": "formula", "expr": "datum.x + 2.5", "as": "x2"},
+            {"type": "formula", "expr": "datum.y - 0.2", "as": "yLo"},
+            {"type": "formula", "expr": "datum.y + 0.2", "as": "yHi"},
             {
               "type": "filter",
               "expr": "datum[\"x\"] !== null && !isNaN(datum[\"x\"]) && datum[\"yLo\"] !== null && !isNaN(datum[\"yLo\"])"
@@ -702,7 +702,7 @@ export default class DrawSpec {
           "name": "unit",
           "value": {},
           "on": [
-            { "events": "mousemove", "update": "isTuple(group()) ? group() : unit" }
+            {"events": "mousemove", "update": "isTuple(group()) ? group() : unit"}
           ]
         },
         {
@@ -713,16 +713,16 @@ export default class DrawSpec {
           "name": "selector010_tuple",
           "on": [
             {
-              "events": [{ "source": "scope", "type": "mouseover" }],
+              "events": [{"source": "scope", "type": "mouseover"}],
               "update": "datum && item().mark.marktype !== 'group' ? {unit: \"layer_4\", fields: selector010_tuple_fields, values: [(item().isVoronoi ? datum.datum : datum)[\"x\"]]} : null",
               "force": true
             },
-            { "events": [{ "source": "scope", "type": "dblclick" }], "update": "null" }
+            {"events": [{"source": "scope", "type": "dblclick"}], "update": "null"}
           ]
         },
         {
           "name": "selector010_tuple_fields",
-          "value": [{ "type": "E", "field": "x" }]
+          "value": [{"type": "E", "field": "x"}]
         },
         {
           "name": "selector010_modify",
@@ -742,8 +742,8 @@ export default class DrawSpec {
           },
           "encode": {
             "update": {
-              "width": { "field": { "group": "width" } },
-              "height": { "field": { "group": "height" } }
+              "width": {"field": {"group": "width"}},
+              "height": {"field": {"group": "height"}}
             }
           },
           "marks": [
@@ -751,17 +751,17 @@ export default class DrawSpec {
               "name": "layer_0_marks",
               "type": "line",
               "style": ["line"],
-              "sort": { "field": "datum[\"value\"]" },
-              "from": { "data": "faceted_path_layer_0_main" },
+              "sort": {"field": "datum[\"value\"]"},
+              "from": {"data": "faceted_path_layer_0_main"},
               "encode": {
                 "update": {
-                  "strokeCap": { "value": "round" },
-                  "interpolate": { "value": "monotone" },
-                  "stroke": { "scale": "color", "field": "strokeColor" },
-                  "opacity": { "value": 0.2 },
-                  "x": { "scale": "x", "field": "value" },
-                  "y": { "scale": "y", "field": "y" },
-                  "strokeWidth": { "value": 9 },
+                  "strokeCap": {"value": "round"},
+                  "interpolate": {"value": "monotone"},
+                  "stroke": {"scale": "color", "field": "strokeColor"},
+                  "opacity": {"value": 0.2},
+                  "x": {"scale": "x", "field": "value"},
+                  "y": {"scale": "y", "field": "y"},
+                  "strokeWidth": {"value": 9},
                   "defined": {
                     "signal": "datum[\"value\"] !== null && !isNaN(datum[\"value\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
                   }
@@ -782,8 +782,8 @@ export default class DrawSpec {
           },
           "encode": {
             "update": {
-              "width": { "field": { "group": "width" } },
-              "height": { "field": { "group": "height" } }
+              "width": {"field": {"group": "width"}},
+              "height": {"field": {"group": "height"}}
             }
           },
           "marks": [
@@ -791,17 +791,17 @@ export default class DrawSpec {
               "name": "layer_1_marks",
               "type": "line",
               "style": ["line"],
-              "sort": { "field": "datum[\"value\"]" },
-              "from": { "data": "faceted_path_layer_1_main" },
+              "sort": {"field": "datum[\"value\"]"},
+              "from": {"data": "faceted_path_layer_1_main"},
               "encode": {
                 "update": {
-                  "strokeDash": { "value": [5, 5] },
-                  "interpolate": { "value": "monotone" },
-                  "stroke": { "value": "black" },
-                  "opacity": { "value": 0.2 },
-                  "x": { "scale": "x", "field": "value" },
-                  "y": { "scale": "y", "field": "y" },
-                  "strokeWidth": { "value": 4.5 },
+                  "strokeDash": {"value": [5, 5]},
+                  "interpolate": {"value": "monotone"},
+                  "stroke": {"value": "black"},
+                  "opacity": {"value": 0.2},
+                  "x": {"scale": "x", "field": "value"},
+                  "y": {"scale": "y", "field": "y"},
+                  "strokeWidth": {"value": 4.5},
                   "defined": {
                     "signal": "datum[\"value\"] !== null && !isNaN(datum[\"value\"]) && datum[\"y\"] !== null && !isNaN(datum[\"y\"])"
                   }
@@ -814,22 +814,22 @@ export default class DrawSpec {
           "name": "layer_2_marks",
           "type": "rule",
           "style": ["rule"],
-          "from": { "data": "data_20" },
+          "from": {"data": "data_20"},
           "encode": {
             "update": {
-              "strokeCap": { "value": "round" },
-              "stroke": { "value": "black" },
-              "opacity": { "value": 0.2 },
+              "strokeCap": {"value": "round"},
+              "stroke": {"value": "black"},
+              "opacity": {"value": 0.2},
               "x": [
                 {
                   "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x" }
+                {"scale": "x", "field": "x"}
               ],
-              "y": { "scale": "y", "field": "min_y" },
-              "y2": { "scale": "y", "field": "max_y" },
-              "strokeWidth": { "value": 9 }
+              "y": {"scale": "y", "field": "min_y"},
+              "y2": {"scale": "y", "field": "max_y"},
+              "strokeWidth": {"value": 9}
             }
           }
         },
@@ -837,21 +837,21 @@ export default class DrawSpec {
           "name": "layer_3_marks",
           "type": "rule",
           "style": ["rule"],
-          "from": { "data": "data_5" },
+          "from": {"data": "data_5"},
           "encode": {
             "update": {
-              "strokeDash": { "value": [5, 5] },
-              "stroke": { "value": "#8c8c8c" },
-              "opacity": [{ "test": "datum.eventValue === '-'", "value": 0 }, { "value": 1 }],
+              "strokeDash": {"value": [5, 5]},
+              "stroke": {"value": "#8c8c8c"},
+              "opacity": [{"test": "datum.eventValue === '-'", "value": 0}, {"value": 1}],
               "x": [
                 {
                   "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x" }
+                {"scale": "x", "field": "x"}
               ],
-              "y": { "scale": "y", "field": "yHigh" },
-              "y2": { "scale": "y", "field": "yLow" }
+              "y": {"scale": "y", "field": "yHigh"},
+              "y2": {"scale": "y", "field": "yLow"}
             }
           }
         },
@@ -859,49 +859,49 @@ export default class DrawSpec {
           "name": "layer_4_marks",
           "type": "rule",
           "style": ["rule"],
-          "from": { "data": "data_6" },
+          "from": {"data": "data_6"},
           "encode": {
             "update": {
-              "strokeCap": { "value": "round" },
-              "stroke": { "value": "black" },
+              "strokeCap": {"value": "round"},
+              "stroke": {"value": "black"},
               "opacity": [
                 {
                   "test": "(vlSelectionTest(\"selector010_store\", datum))",
                   "value": 1
                 },
-                { "value": 0 }
+                {"value": 0}
               ],
               "x": [
                 {
                   "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x" }
+                {"scale": "x", "field": "x"}
               ],
-              "y": { "scale": "y", "field": "yHigh" },
-              "y2": { "scale": "y", "field": "yLow" },
-              "strokeWidth": { "value": 4 }
+              "y": {"scale": "y", "field": "yHigh"},
+              "y2": {"scale": "y", "field": "yLow"},
+              "strokeWidth": {"value": 4}
             }
           }
         },
         {
           "name": "layer_4_voronoi",
           "type": "path",
-          "from": { "data": "layer_4_marks" },
+          "from": {"data": "layer_4_marks"},
           "encode": {
             "update": {
-              "fill": { "value": "transparent" },
-              "strokeWidth": { "value": 0.35 },
-              "stroke": { "value": "transparent" },
-              "isVoronoi": { "value": true }
+              "fill": {"value": "transparent"},
+              "strokeWidth": {"value": 0.35},
+              "stroke": {"value": "transparent"},
+              "isVoronoi": {"value": true}
             }
           },
           "transform": [
             {
               "type": "voronoi",
-              "x": { "expr": "datum.datum.x || 0" },
-              "y": { "expr": "datum.datum.y || 0" },
-              "size": [{ "signal": "width" }, { "signal": "height" }]
+              "x": {"expr": "datum.datum.x || 0"},
+              "y": {"expr": "datum.datum.y || 0"},
+              "size": [{"signal": "width"}, {"signal": "height"}]
             }
           ]
         },
@@ -917,8 +917,8 @@ export default class DrawSpec {
           },
           "encode": {
             "update": {
-              "width": { "field": { "group": "width" } },
-              "height": { "field": { "group": "height" } }
+              "width": {"field": {"group": "width"}},
+              "height": {"field": {"group": "height"}}
             }
           },
           "marks": [
@@ -926,16 +926,16 @@ export default class DrawSpec {
               "name": "layer_5_marks",
               "type": "line",
               "style": ["line"],
-              "sort": { "field": "datum[\"value\"]" },
-              "from": { "data": "faceted_path_layer_5_main" },
+              "sort": {"field": "datum[\"value\"]"},
+              "from": {"data": "faceted_path_layer_5_main"},
               "encode": {
                 "update": {
-                  "strokeCap": { "value": "round" },
-                  "interpolate": { "value": "monotone" },
-                  "stroke": { "scale": "color", "field": "strokeColor" },
-                  "x": { "scale": "x", "field": "value" },
-                  "y": { "scale": "y", "field": "pointY" },
-                  "strokeWidth": { "value": 9 },
+                  "strokeCap": {"value": "round"},
+                  "interpolate": {"value": "monotone"},
+                  "stroke": {"scale": "color", "field": "strokeColor"},
+                  "x": {"scale": "x", "field": "value"},
+                  "y": {"scale": "y", "field": "pointY"},
+                  "strokeWidth": {"value": 9},
                   "defined": {
                     "signal": "datum[\"value\"] !== null && !isNaN(datum[\"value\"]) && datum[\"pointY\"] !== null && !isNaN(datum[\"pointY\"])"
                   }
@@ -956,8 +956,8 @@ export default class DrawSpec {
           },
           "encode": {
             "update": {
-              "width": { "field": { "group": "width" } },
-              "height": { "field": { "group": "height" } }
+              "width": {"field": {"group": "width"}},
+              "height": {"field": {"group": "height"}}
             }
           },
           "marks": [
@@ -965,16 +965,16 @@ export default class DrawSpec {
               "name": "layer_6_marks",
               "type": "line",
               "style": ["line"],
-              "sort": { "field": "datum[\"value\"]" },
-              "from": { "data": "faceted_path_layer_6_main" },
+              "sort": {"field": "datum[\"value\"]"},
+              "from": {"data": "faceted_path_layer_6_main"},
               "encode": {
                 "update": {
-                  "strokeDash": { "value": [5, 5] },
-                  "interpolate": { "value": "monotone" },
-                  "stroke": { "value": "black" },
-                  "x": { "scale": "x", "field": "value" },
-                  "y": { "scale": "y", "field": "pointY" },
-                  "strokeWidth": { "value": 4.5 },
+                  "strokeDash": {"value": [5, 5]},
+                  "interpolate": {"value": "monotone"},
+                  "stroke": {"value": "black"},
+                  "x": {"scale": "x", "field": "value"},
+                  "y": {"scale": "y", "field": "pointY"},
+                  "strokeWidth": {"value": 4.5},
                   "defined": {
                     "signal": "datum[\"value\"] !== null && !isNaN(datum[\"value\"]) && datum[\"pointY\"] !== null && !isNaN(datum[\"pointY\"])"
                   }
@@ -987,23 +987,23 @@ export default class DrawSpec {
           "name": "layer_7_marks",
           "type": "rect",
           "style": ["tick"],
-          "from": { "data": "data_11" },
+          "from": {"data": "data_11"},
           "encode": {
             "update": {
-              "opacity": [{ "test": "datum.pointBool", "value": 0.25 }, { "value": 0 }],
-              "cursor": { "value": "pointer" },
-              "fill": { "value": "black" },
-              "href": { "signal": "''+datum[\"url\"]" },
+              "opacity": [{"test": "datum.pointBool", "value": 0.25}, {"value": 0}],
+              "cursor": {"value": "pointer"},
+              "fill": {"value": "black"},
+              "href": {"signal": "''+datum[\"url\"]"},
               "xc": [
                 {
                   "test": "datum[\"pointX\"] === null || isNaN(datum[\"pointX\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "pointX" }
+                {"scale": "x", "field": "pointX"}
               ],
-              "yc": { "scale": "y", "field": "pointY" },
-              "height": { "value": 40 },
-              "width": { "value": 9 }
+              "yc": {"scale": "y", "field": "pointY"},
+              "height": {"value": 40},
+              "width": {"value": 9}
             }
           }
         },
@@ -1011,23 +1011,23 @@ export default class DrawSpec {
           "name": "layer_8_marks",
           "type": "text",
           "style": ["text"],
-          "from": { "data": "data_12" },
+          "from": {"data": "data_12"},
           "encode": {
             "update": {
-              "align": { "value": "left" },
-              "dx": { "value": 10 },
-              "fontSize": { "value": 20 },
-              "fill": { "value": "black" },
+              "align": {"value": "left"},
+              "dx": {"value": 10},
+              "fontSize": {"value": 20},
+              "fill": {"value": "black"},
               "x": [
                 {
                   "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x" }
+                {"scale": "x", "field": "x"}
               ],
-              "y": { "value": 0 },
-              "text": { "signal": "''+datum[\"eventDescription\"]" },
-              "baseline": { "value": "middle" }
+              "y": {"value": 0},
+              "text": {"signal": "''+datum[\"eventDescription\"]"},
+              "baseline": {"value": "middle"}
             }
           }
         },
@@ -1035,29 +1035,29 @@ export default class DrawSpec {
           "name": "layer_9_marks",
           "type": "rect",
           "style": ["rect"],
-          "from": { "data": "data_14" },
+          "from": {"data": "data_14"},
           "encode": {
             "update": {
-              "cornerRadius": { "value": 4 },
-              "fill": { "value": "red" },
-              "opacity": { "value": 0.35 },
-              "tooltip": { "signal": "''+datum[\"hiddenYs\"]" },
+              "cornerRadius": {"value": 4},
+              "fill": {"value": "red"},
+              "opacity": {"value": 0.35},
+              "tooltip": {"signal": "''+datum[\"hiddenYs\"]"},
               "x": [
                 {
                   "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x" }
+                {"scale": "x", "field": "x"}
               ],
               "x2": [
                 {
                   "test": "datum[\"x2\"] === null || isNaN(datum[\"x2\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x2" }
+                {"scale": "x", "field": "x2"}
               ],
-              "y": { "scale": "y", "field": "yLo" },
-              "y2": { "scale": "y", "field": "yHi" }
+              "y": {"scale": "y", "field": "yLo"},
+              "y2": {"scale": "y", "field": "yHi"}
             }
           }
         },
@@ -1065,24 +1065,24 @@ export default class DrawSpec {
           "name": "layer_10_marks",
           "type": "text",
           "style": ["text"],
-          "from": { "data": "data_15" },
+          "from": {"data": "data_15"},
           "encode": {
             "update": {
-              "align": { "value": "center" },
-              "dx": { "value": 5 },
-              "dy": { "value": -17 },
-              "fill": { "value": "white" },
-              "tooltip": { "signal": "''+datum[\"hiddenYs\"]" },
+              "align": {"value": "center"},
+              "dx": {"value": 5},
+              "dy": {"value": -17},
+              "fill": {"value": "white"},
+              "tooltip": {"signal": "''+datum[\"hiddenYs\"]"},
               "x": [
                 {
                   "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x" }
+                {"scale": "x", "field": "x"}
               ],
-              "y": { "scale": "y", "field": "y" },
-              "text": { "signal": "''+datum[\"hiddenYsAmt\"]" },
-              "baseline": { "value": "middle" }
+              "y": {"scale": "y", "field": "y"},
+              "text": {"signal": "''+datum[\"hiddenYsAmt\"]"},
+              "baseline": {"value": "middle"}
             }
           }
         },
@@ -1090,29 +1090,29 @@ export default class DrawSpec {
           "name": "layer_11_marks",
           "type": "rect",
           "style": ["rect"],
-          "from": { "data": "data_18" },
+          "from": {"data": "data_18"},
           "encode": {
             "update": {
-              "cursor": { "value": "pointer" },
-              "fill": { "value": "black" },
-              "opacity": { "value": 0.3 },
-              "href": { "signal": "''+datum[\"url\"]" },
+              "cursor": {"value": "pointer"},
+              "fill": {"value": "black"},
+              "opacity": {"value": 0.3},
+              "href": {"signal": "''+datum[\"url\"]"},
               "x": [
                 {
                   "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x" }
+                {"scale": "x", "field": "x"}
               ],
               "x2": [
                 {
                   "test": "datum[\"x2\"] === null || isNaN(datum[\"x2\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x2" }
+                {"scale": "x", "field": "x2"}
               ],
-              "y": { "scale": "y", "field": "yLo" },
-              "y2": { "scale": "y", "field": "yHi" }
+              "y": {"scale": "y", "field": "yLo"},
+              "y2": {"scale": "y", "field": "yHi"}
             }
           }
         },
@@ -1120,25 +1120,25 @@ export default class DrawSpec {
           "name": "layer_12_marks",
           "type": "text",
           "style": ["text"],
-          "from": { "data": "data_19" },
+          "from": {"data": "data_19"},
           "encode": {
             "update": {
-              "align": { "value": "left" },
-              "dx": { "value": 10 },
-              "limit": { "value": 115 },
-              "cursor": { "value": "pointer" },
-              "fill": { "value": "white" },
-              "href": { "signal": "''+datum[\"url\"]" },
+              "align": {"value": "left"},
+              "dx": {"value": 10},
+              "limit": {"value": 115},
+              "cursor": {"value": "pointer"},
+              "fill": {"value": "white"},
+              "href": {"signal": "''+datum[\"url\"]"},
               "x": [
                 {
                   "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x" }
+                {"scale": "x", "field": "x"}
               ],
-              "y": { "scale": "y", "field": "y" },
-              "text": { "signal": "''+datum[\"z\"]" },
-              "baseline": { "value": "middle" }
+              "y": {"scale": "y", "field": "y"},
+              "text": {"signal": "''+datum[\"z\"]"},
+              "baseline": {"value": "middle"}
             }
           }
         },
@@ -1146,22 +1146,22 @@ export default class DrawSpec {
           "name": "layer_13_marks",
           "type": "text",
           "style": ["text"],
-          "from": { "data": "data_21" },
+          "from": {"data": "data_21"},
           "encode": {
             "update": {
-              "dy": { "value": 40 },
-              "fill": { "value": "black" },
+              "dy": {"value": 40},
+              "fill": {"value": "black"},
               "x": [
                 {
                   "test": "datum[\"x\"] === null || isNaN(datum[\"x\"])",
                   "value": 0
                 },
-                { "scale": "x", "field": "x" }
+                {"scale": "x", "field": "x"}
               ],
-              "y": { "scale": "y", "field": "yLo" },
-              "text": { "signal": "''+datum[\"eventValue\"]" },
-              "align": { "value": "center" },
-              "baseline": { "value": "middle" }
+              "y": {"scale": "y", "field": "yLo"},
+              "text": {"signal": "''+datum[\"eventValue\"]"},
+              "align": {"value": "center"},
+              "baseline": {"value": "middle"}
             }
           }
         }
@@ -1172,25 +1172,25 @@ export default class DrawSpec {
           "type": "linear",
           "domain": {
             "fields": [
-              { "data": "data_2", "field": "value" },
-              { "data": "data_3", "field": "value" },
-              { "data": "data_20", "field": "x" },
-              { "data": "data_5", "field": "x" },
-              { "data": "data_6", "field": "x" },
-              { "data": "data_9", "field": "value" },
-              { "data": "data_10", "field": "value" },
-              { "data": "data_11", "field": "pointX" },
-              { "data": "data_12", "field": "x" },
-              { "data": "data_14", "field": "x" },
-              { "data": "data_14", "field": "x2" },
-              { "data": "data_15", "field": "x" },
-              { "data": "data_18", "field": "x" },
-              { "data": "data_18", "field": "x2" },
-              { "data": "data_19", "field": "x" },
-              { "data": "data_21", "field": "x" }
+              {"data": "data_2", "field": "value"},
+              {"data": "data_3", "field": "value"},
+              {"data": "data_20", "field": "x"},
+              {"data": "data_5", "field": "x"},
+              {"data": "data_6", "field": "x"},
+              {"data": "data_9", "field": "value"},
+              {"data": "data_10", "field": "value"},
+              {"data": "data_11", "field": "pointX"},
+              {"data": "data_12", "field": "x"},
+              {"data": "data_14", "field": "x"},
+              {"data": "data_14", "field": "x2"},
+              {"data": "data_15", "field": "x"},
+              {"data": "data_18", "field": "x"},
+              {"data": "data_18", "field": "x2"},
+              {"data": "data_19", "field": "x"},
+              {"data": "data_21", "field": "x"}
             ]
           },
-          "range": [0, { "signal": "width" }],
+          "range": [0, {"signal": "width"}],
           "nice": true,
           "zero": false
         },
@@ -1199,27 +1199,27 @@ export default class DrawSpec {
           "type": "linear",
           "domain": {
             "fields": [
-              { "data": "data_2", "field": "y" },
-              { "data": "data_3", "field": "y" },
-              { "data": "data_20", "field": "min_y" },
-              { "data": "data_20", "field": "max_y" },
-              { "data": "data_5", "field": "yHigh" },
-              { "data": "data_5", "field": "yLow" },
-              { "data": "data_6", "field": "yHigh" },
-              { "data": "data_6", "field": "yLow" },
-              { "data": "data_9", "field": "pointY" },
-              { "data": "data_10", "field": "pointY" },
-              { "data": "data_11", "field": "pointY" },
-              { "data": "data_14", "field": "yLo" },
-              { "data": "data_14", "field": "yHi" },
-              { "data": "data_15", "field": "y" },
-              { "data": "data_18", "field": "yLo" },
-              { "data": "data_18", "field": "yHi" },
-              { "data": "data_19", "field": "y" },
-              { "data": "data_21", "field": "yLo" }
+              {"data": "data_2", "field": "y"},
+              {"data": "data_3", "field": "y"},
+              {"data": "data_20", "field": "min_y"},
+              {"data": "data_20", "field": "max_y"},
+              {"data": "data_5", "field": "yHigh"},
+              {"data": "data_5", "field": "yLow"},
+              {"data": "data_6", "field": "yHigh"},
+              {"data": "data_6", "field": "yLow"},
+              {"data": "data_9", "field": "pointY"},
+              {"data": "data_10", "field": "pointY"},
+              {"data": "data_11", "field": "pointY"},
+              {"data": "data_14", "field": "yLo"},
+              {"data": "data_14", "field": "yHi"},
+              {"data": "data_15", "field": "y"},
+              {"data": "data_18", "field": "yLo"},
+              {"data": "data_18", "field": "yHi"},
+              {"data": "data_19", "field": "y"},
+              {"data": "data_21", "field": "yLo"}
             ]
           },
-          "range": [{ "signal": "height" }, 0],
+          "range": [{"signal": "height"}, 0],
           "nice": true,
           "zero": true
         },
@@ -1228,8 +1228,8 @@ export default class DrawSpec {
           "type": "ordinal",
           "domain": {
             "fields": [
-              { "data": "data_2", "field": "strokeColor" },
-              { "data": "data_9", "field": "strokeColor" }
+              {"data": "data_2", "field": "strokeColor"},
+              {"data": "data_9", "field": "strokeColor"}
             ],
             "sort": true
           },
@@ -1243,7 +1243,7 @@ export default class DrawSpec {
           "grid": false,
           "labelFlush": true,
           "labelOverlap": true,
-          "tickCount": { "signal": "ceil(width/40)" },
+          "tickCount": {"signal": "ceil(width/40)"},
           "zindex": 1
         },
         {
@@ -1251,14 +1251,14 @@ export default class DrawSpec {
           "orient": "left",
           "grid": false,
           "labelOverlap": true,
-          "tickCount": { "signal": "ceil(height/40)" },
+          "tickCount": {"signal": "ceil(height/40)"},
           "zindex": 1
         }
       ],
       "legends": [
         {
           "stroke": "color",
-          "gradientLength": { "signal": "clamp(height, 64, 200)" },
+          "gradientLength": {"signal": "clamp(height, 64, 200)"},
           "symbolType": "stroke",
           "title": "Color:"
         }
@@ -1270,7 +1270,7 @@ export default class DrawSpec {
           "labelOpacity": 0,
           "tickOpacity": 0,
         },
-        "style": { "cell": { "strokeWidth": 0 } }
+        "style": {"cell": {"strokeWidth": 0}}
       }
     }
   }

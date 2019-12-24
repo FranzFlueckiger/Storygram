@@ -1,7 +1,7 @@
-import { filter } from '../src/Filter';
+import {filter} from '../src/Filter';
 import Storygram from '../src/Storygram';
-import { Data, Config } from '../src/Types';
-import { testArrayData } from './testData';
+import {Data, Config} from '../src/Types';
+import {testArrayData} from './testData';
 
 test('filter group size and amt', () => {
   const config: Config = {
