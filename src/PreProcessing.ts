@@ -16,7 +16,6 @@ function inferEventValue(rawEvent: any, eventField: string | 'self' | undefined,
     if (eventField != 'self' && eventField in rawEvent) {
       eventValue = rawEvent[eventField]
     }
-    console.log('inferring...', eventValue, rawEvent, eventField, rawEvent[eventField])
     if (typeof eventValue === "number") {
       return { eventValue: eventValue, eventXValue: eventValue, type: 'number' }
     } else if (typeof eventValue === "string") {
@@ -26,11 +25,12 @@ function inferEventValue(rawEvent: any, eventField: string | 'self' | undefined,
       }
       eventXValue = Date.parse(eventValue)
       if (Number.isNaN(eventXValue)) {
-        console.error("Event value at index " + index + " couldn't be parsed as number or date.")
+        console.error("Event value " + rawEvent + ', ' + eventValue + " at index " + index + " couldn't be parsed as number or date.")
       }
       return { eventValue: eventValue, eventXValue, type: 'datestring' }
     } else {
       console.error("Event value " + rawEvent + ', ' + eventValue + " at index " + index + " can't be inferred.")
+      return undefined
     }
   }
 }
@@ -47,27 +47,28 @@ function fromRanges<T extends Record<string, unknown>>(
   fromField: string,
   toField: string
 ): Data {
-  const rawEvents: Set<number> = new Set();
+  const rawEvents: Map<number, inferredEvent> = new Map();
   const actors: Actors = new Map();
   data.forEach((d, i) => {
-    rawEvents.add(d[fromField] as number);
-    rawEvents.add(d[toField] as number);
+    const from = inferEventValue(d, fromField, i)
+    const to = inferEventValue(d, toField, i)
+    if (from) rawEvents.set(from.eventXValue, from);
+    if (to) rawEvents.set(to.eventXValue, to);
     const dActorField = d[actorField];
     if (typeof dActorField != 'string') {
       console.warn(`Value of actorField (${dActorField}) of actor nr. ${i} should be of type string.`);
     }
     actors.set(String(dActorField), new Actor(String(dActorField), d));
   });
-  const sortedEvents: number[] = Array.from(rawEvents).sort((a, b) => a - b).filter(d => d);
+  const sortedEvents = Array.from(rawEvents).sort((a, b) => a[0] - b[0]).filter(d => d);
   const events: Event[] = sortedEvents.map((rawEvent, i) => {
-    let eventValues = inferEventValue(rawEvent, 'self', i)
-    const event = new Event(eventValues.eventValue, eventValues.eventXValue, {});
+    const event = new Event(rawEvent[1].eventValue, rawEvent[0], {});
     data.forEach((d) => {
-      const dFromField: number | undefined = d[fromField];
-      const dToField: number | undefined = d[toField];
+      const from = inferEventValue(d, fromField, i);
+      const to = inferEventValue(d, toField, i);
       if (
-        ((!dFromField || dFromField <= eventValues.eventXValue)) &&
-        ((!dToField || dToField >= eventValues.eventXValue))
+        ((!from || from.eventXValue <= rawEvent[0])) &&
+        ((!to || to.eventXValue >= rawEvent[0]))
       ) {
         const actorID = String(d[actorField]);
         event.group.push(actorID);

@@ -88,6 +88,10 @@ export default class DrawSpec {
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    var tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
     let selectedEvent: number = data[0][0].x
     const selectedOpacity = 1
     const unSelectedOpacity = 0.15
@@ -116,7 +120,7 @@ export default class DrawSpec {
       })
       .entries(data[0].filter(d => d.isGrouped))
 
-    var colorEntries = data[0].map(d => d.strokeColor as string)
+    var colorEntries = data[0].map(d => String(d.strokeColor))
 
     var color = d3.scaleOrdinal()
       .domain(colorEntries)
@@ -240,7 +244,7 @@ export default class DrawSpec {
         .transition()
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
-        .attr("stroke", d => color(d.key) as string)
+        .attr("stroke", d => color(String(d.values[0].strokeColor)) as string)
         .attr('opacity', (d: Binned) => {
           if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
           else return unSelectedOpacity
@@ -452,7 +456,7 @@ export default class DrawSpec {
               .attr('rx', 10)
               .attr('ry', 10)
               .style('stroke-width', 3)
-              .style('stroke', (d: RenderedPoint) => color(d.z) as string)
+              .style('stroke', (d: RenderedPoint) => color(String(d.strokeColor)) as string)
               .attr("x", xScale(selectedEvent) + selectedLineSize / 2 + 5)
               .attr("y", (d: RenderedPoint) => d.bbox.y - 5)
               .attr("width", (d: RenderedPoint) => d.bbox.width + 10)

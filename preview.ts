@@ -80,7 +80,7 @@ function drawMetasonSD() {
     filterEventValue: [1988, 1993],
     eventDescription: (event) => event.data.releaseName + ", " + event.data.year,
     filterEventCustom: (event) => {
-      const name: string = event.data.releaseName
+      const name: string = event.data.releaseName as string
       return !name.includes('compilation') &&
         !name.toLowerCase().includes('best of') &&
         !name.toLowerCase().includes('collection') &&
@@ -118,12 +118,14 @@ function drawBundesratExample() {
   const data = BundesratData()
   const config: Config = {
     dataFormat: 'ranges',
-    startField: 'Amtsantritt',
+    startField: 'Amtsbeginn',
     endField: 'Amtsende',
     actorField: 'Name',
     eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
-    strokeColor: (event, actor) => actor.data.Partei,
+    strokeColor: (event, actor) => actor.data.Partei as string,
     compact: true,
+    eventValueScaling: 0.00000000002,
+    verbose: true
   };
   const SD = new Storygram(data, config);
   SD.draw()

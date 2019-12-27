@@ -2,11 +2,11 @@ import { Config, Data, Actor } from './Types';
 
 function filter(data: Data, config: Config): Data {
   if (config.verbose) console.log('Before Filtering', data);
-  // filter xs
+  // filter events
   data = filterEvents(data, config);
-  // filter ys
+  // filter actors
   data = filterActors(data, config);
-  // remove x points without y points
+  // remove events without actors
   data.events = data.events.filter(layer => layer.group.length > 0);
   setLifeCycles(data, config);
   if (config.verbose) console.log('After Filtering', data);
