@@ -339,7 +339,7 @@ export default class DrawSpec {
         console.log('fuudel in')
       }
 
-      function hideiddenActorsTooltip(d: any) {
+      function hideHiddenActorsTooltip(d: any) {
         console.log('fuudel out')
       }
 

@@ -6,6 +6,10 @@ interface inferredEvent {
   type: "index" | "number" | 'datestring' | 'numberstring'
 }
 
+function inferActorID(rawActor: any) {
+  return String(rawActor)
+}
+
 function inferEventValue(rawEvent: any, eventField: string | 'self' | undefined, index: number): inferredEvent | undefined {
   if (!eventField && eventField != 'self') {
     console.warn('Event field not found, using index (' + index + 'instead.')
@@ -58,7 +62,7 @@ function fromRanges<T extends Record<string, unknown>>(
     if (typeof dActorField != 'string') {
       console.warn(`Value of actorField (${dActorField}) of actor nr. ${i} should be of type string.`);
     }
-    actors.set(String(dActorField), new Actor(String(dActorField), d));
+    actors.set(inferActorID(dActorField), new Actor(String(dActorField), d));
   });
   const sortedEvents = Array.from(rawEvents).sort((a, b) => a[0] - b[0]).filter(d => d);
   const events: Event[] = sortedEvents.map((rawEvent, i) => {
@@ -118,7 +122,6 @@ function processEventsFirst(
   const actors: Actors = new Map();
   const events: Event[] = inputData.map((rawEvent, i) => {
     let event: Event;
-    console.log(rawEvent, eventField, i)
     let eventValues = inferEventValue(rawEvent, eventField, i)
     if ('eventValue' in eventValues && 'eventXValue' in eventValues) {
       event = new Event(eventValues.eventValue, eventValues.eventXValue, rawEvent);
