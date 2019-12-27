@@ -1,8 +1,8 @@
 import vega from 'vega-embed';
-import {Storygram} from './src/index';
-import {testRangeData, testArrayData, testTableData} from './test/testData';
-import {Config} from './src/Types';
-import {MetasonData, KurliData, WarData, BundesratData, BlockBusterdata} from './previewData'
+import { Storygram } from './src/index';
+import { testRangeData, testArrayData, testTableData } from './test/testData';
+import { Config } from './src/Types';
+import { MetasonData, KurliData, WarData, BundesratData, BlockBusterdata } from './previewData'
 
 function drawRangeSD() {
   const config: Config = {
@@ -123,8 +123,6 @@ function drawBundesratExample() {
     eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
     strokeColor: (event, actor) => actor.data.Partei,
     compact: true,
-    populationSize: 100,
-    generationAmt: 100
   };
   const SD = new Storygram(data, config);
   SD.draw()
@@ -132,10 +130,10 @@ function drawBundesratExample() {
 
 async function drawPaperExample() {
   const data = [
-    {politicians: ['y0', 'y1', 'y2'], election_nr: 1990},
-    {politicians: ['y0', 'y2', 'y3'], election_nr: 1992},
-    {politicians: ['y1', 'y2', 'y3'], election_nr: 1994},
-    {politicians: ['y1', 'y3', 'y4'], election_nr: 1996},
+    { politicians: ['y0', 'y1', 'y2'], election_nr: 1990 },
+    { politicians: ['y0', 'y2', 'y3'], election_nr: 1992 },
+    { politicians: ['y1', 'y2', 'y3'], election_nr: 1994 },
+    { politicians: ['y1', 'y3', 'y4'], election_nr: 1996 },
   ];
   const config: Config = {
     dataFormat: 'array',
@@ -148,4 +146,4 @@ async function drawPaperExample() {
   SD.draw()
 }
 
-drawMetasonSD()
+drawArraySD()

@@ -1,4 +1,4 @@
-import {Child, FullConfig, Data, GenePool, Event, EventData} from './Types';
+import {Child, FullConfig, Data, GenePool, Event} from './Types';
 import {visit} from './Visitor';
 
 
@@ -90,7 +90,7 @@ function mutate(data: Data, genes: GenePool[], config: FullConfig) {
 }
 
 
-function getLoss(child: [EventData, GenePool], config: FullConfig): number {
+function getLoss(child: [Event[], GenePool], config: FullConfig): number {
   let score = 0;
   score += getSwitchAmountLoss(child, config);
   score += getSwitchSizeLoss(child, config);
@@ -102,7 +102,7 @@ function getLoss(child: [EventData, GenePool], config: FullConfig): number {
   return score;
 }
 
-function getSwitchAmountLoss(child: [EventData, GenePool], config: FullConfig): number {
+function getSwitchAmountLoss(child: [Event[], GenePool], config: FullConfig): number {
   return (child[0].reduce<number>((acc, xLayer) => {
     // Penalty for the amount of switches
     return (acc += xLayer.switch.length);
@@ -110,7 +110,7 @@ function getSwitchAmountLoss(child: [EventData, GenePool], config: FullConfig): 
   ) * config.amtLoss;
 }
 
-function getSwitchSizeLoss(child: [EventData, GenePool], config: FullConfig): number {
+function getSwitchSizeLoss(child: [Event[], GenePool], config: FullConfig): number {
   return child[0].reduce<number>((acc, xLayer) => {
     // Penalty for the amount of switches
     return (acc +=
@@ -123,15 +123,15 @@ function getSwitchSizeLoss(child: [EventData, GenePool], config: FullConfig): nu
   }, 0) * config.lengthLoss;
 }
 
-function getYExtentLoss(child: [EventData, GenePool], config: FullConfig): number {
+function getYExtentLoss(child: [Event[], GenePool], config: FullConfig): number {
   return child[0].reduce((max, x) => {
     return Math.max(max, x.state.length)
   }, 0) * config.yExtentLoss
 }
 
-function getLinearLoss(child: [EventData, GenePool], config: FullConfig): number {
+function getLinearLoss(child: [Event[], GenePool], config: FullConfig): number {
   let score = 0;
-  const xLayers: EventData = child[0];
+  const xLayers: Event[] = child[0];
   const maxLen = xLayers.reduce((acc, c) => Math.max(acc, c.state.length), 0);
   let prevVector = getStateVector(xLayers[0], maxLen, config);
   for(let i = 1; i < xLayers.length; i++) {

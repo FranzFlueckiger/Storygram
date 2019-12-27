@@ -176,7 +176,7 @@ export class Event {
 
   public hiddenActors: string[];
 
-  public constructor(public eventValue: number, public data: Record<string, unknown>) {
+  public constructor(public eventValue: number | string | undefined, public eventXValue: number, public data: Record<string, unknown>) {
     this.isHidden = false;
     this.add = [];
     this.remove = [];
@@ -200,7 +200,7 @@ export class Actor {
 export interface Child {
   loss: number;
   gene: GenePool;
-  events: EventData;
+  events: Event[];
 }
 
 export interface Switch {
@@ -215,27 +215,15 @@ export interface Distance {
 
 export type GenePool = Map<string, number>;
 
-export type EventData = Event[];
-
-export type ActorData = Map<string, Actor>;
+export type Actors = Map<string, Actor>;
 
 export interface Data {
-  events: EventData;
-  actors: ActorData;
+  events: Event[];
+  actors: Actors;
 }
 
 export class RenderedPoint {
-  public pointsX: [] = [];
-
-  public pointsY: [] = [];
-
-  public pointsBool: [] = [];
-
-  public pointsSize: [] = [];
-
   public hiddenYs: string[] = [];
-
-  public hiddenYsAmt: number = 0;
 
   public bbox: any
 
@@ -250,5 +238,5 @@ export class RenderedPoint {
     public eventDescription: string,
     public url: string,
     public isHighlighted: number
-  ) {}
+  ) { }
 }
