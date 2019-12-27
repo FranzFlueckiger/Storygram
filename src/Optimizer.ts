@@ -32,7 +32,7 @@ function getGeneration(data: Data, yEntryPoints: Array<Map<string, number>> | un
   for(let i = 0; i < config.populationSize; i++) {
     const entryPoints = yEntryPoints ? yEntryPoints[i] : undefined;
     const result: [Event[], GenePool] = visit(data, entryPoints, config);
-    const loss = getLoss(result, config);
+    const loss = getLoss(result, config, data);
     const child: Child = {loss, gene: result[1], events: result[0]};
     population.push(child);
   }
@@ -90,46 +90,65 @@ function mutate(data: Data, genes: GenePool[], config: FullConfig) {
 }
 
 
-function getLoss(child: [Event[], GenePool], config: FullConfig): number {
+function getLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
   let score = 0;
-  score += getSwitchAmountLoss(child, config);
-  score += getSwitchSizeLoss(child, config);
+  score += getSwitchAmountLoss(child, config, data);
+  score += getSwitchSizeLoss(child, config, data);
   if(config.compact) {
-    score += getLinearLoss(child, config)
+    score += getLinearLoss(child, config, data)
   } else {
-    score += getYExtentLoss(child, config)
+    score += getYExtentLoss(child, config, data)
   }
   return score;
 }
 
-function getSwitchAmountLoss(child: [Event[], GenePool], config: FullConfig): number {
-  return (child[0].reduce<number>((acc, xLayer) => {
+function getSwitchAmountLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
+  return (child[0].reduce<number>((acc, event) => {
     // Penalty for the amount of switches
-    return (acc += xLayer.switch.length);
+    if((!config.continuousStart || !config.continuousEnd)) {
+      event.switch.forEach((switches, i) => {
+        const actor1 = data.actors.get(event.state[switches.prev])
+        const actor2 = data.actors.get(event.state[switches.target])
+        if(actor1!.layers[0].index! >= i && actor1!.layers[actor1!.layers.length - 1].index! <= i &&
+          actor2!.layers[0].index! >= i && actor2!.layers[actor2!.layers.length - 1].index! <= i &&
+          !event.add.includes(event.state[switches.prev]) && !event.add.includes(event.state[switches.target])) {
+          acc++
+        }
+      })
+      return acc
+    }
+    return acc
   }, 0)
   ) * config.amtLoss;
 }
 
-function getSwitchSizeLoss(child: [Event[], GenePool], config: FullConfig): number {
-  return child[0].reduce<number>((acc, xLayer) => {
+//  a+= Math.abs(switches.target - switches.prev)
+
+function getSwitchSizeLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
+  return child[0].reduce<number>((acc, event) => {
     // Penalty for the amount of switches
-    return (acc +=
-      xLayer.switch.reduce((a, switches) => {
-        if(!xLayer.add.includes(xLayer.state[switches.prev])) {
-          a += Math.abs(switches.target - switches.prev);
+    if((!config.continuousStart || !config.continuousEnd)) {
+      event.switch.forEach((switches, i) => {
+        const actor1 = data.actors.get(event.state[switches.prev])
+        const actor2 = data.actors.get(event.state[switches.target])
+        if(actor1!.layers[0].index! >= i && actor1!.layers[actor1!.layers.length - 1].index! <= i &&
+          actor2!.layers[0].index! >= i && actor2!.layers[actor2!.layers.length - 1].index! <= i &&
+          !event.add.includes(event.state[switches.prev]) && !event.add.includes(event.state[switches.target])) {
+          acc += Math.abs(switches.target - switches.prev)
         }
-        return a;
-      }, 0));
+      })
+      return acc
+    }
   }, 0) * config.lengthLoss;
 }
 
-function getYExtentLoss(child: [Event[], GenePool], config: FullConfig): number {
+function getYExtentLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
   return child[0].reduce((max, x) => {
     return Math.max(max, x.state.length)
   }, 0) * config.yExtentLoss
 }
 
-function getLinearLoss(child: [Event[], GenePool], config: FullConfig): number {
+function getLinearLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
   let score = 0;
   const xLayers: Event[] = child[0];
   const maxLen = xLayers.reduce((acc, c) => Math.max(acc, c.state.length), 0);

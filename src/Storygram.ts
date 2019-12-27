@@ -29,7 +29,7 @@ export default class Storygram<T extends {}> {
     eventPadding: 60,
     actorPadding: 40,
     eventValueScaling: 0.625,
-    generationAmt: 20,
+    generationAmt: 30,
     populationSize: 50,
     selectionRate: 0.25,
     selectionSeverity: 8,

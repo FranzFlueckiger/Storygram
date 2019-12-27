@@ -1,4 +1,4 @@
-import { Data, Event, Actors, Actor } from './Types';
+import {Data, Event, Actors, Actor} from './Types';
 
 interface inferredEvent {
   eventValue: number | string | undefined,
@@ -11,27 +11,27 @@ function inferActorID(rawActor: any) {
 }
 
 function inferEventValue(rawEvent: any, eventField: string | 'self' | undefined, index: number): inferredEvent | undefined {
-  if (!eventField && eventField != 'self') {
+  if(!eventField && eventField != 'self') {
     console.warn('Event field not found, using index (' + index + 'instead.')
-    return { eventValue: index, eventXValue: index, type: 'index' }
+    return {eventValue: index, eventXValue: index, type: 'index'}
   }
   else {
     let eventValue = rawEvent
-    if (eventField != 'self' && eventField in rawEvent) {
+    if(eventField != 'self' && eventField in rawEvent) {
       eventValue = rawEvent[eventField]
     }
-    if (typeof eventValue === "number") {
-      return { eventValue: eventValue, eventXValue: eventValue, type: 'number' }
-    } else if (typeof eventValue === "string") {
+    if(typeof eventValue === "number") {
+      return {eventValue: eventValue, eventXValue: eventValue, type: 'number'}
+    } else if(typeof eventValue === "string") {
       let eventXValue = Number(eventValue)
-      if (!Number.isNaN(eventXValue)) {
-        return { eventValue: eventValue, eventXValue, type: 'numberstring' }
+      if(!Number.isNaN(eventXValue)) {
+        return {eventValue: eventValue, eventXValue, type: 'numberstring'}
       }
       eventXValue = Date.parse(eventValue)
-      if (Number.isNaN(eventXValue)) {
+      if(Number.isNaN(eventXValue)) {
         console.error("Event value " + rawEvent + ', ' + eventValue + " at index " + index + " couldn't be parsed as number or date.")
       }
-      return { eventValue: eventValue, eventXValue, type: 'datestring' }
+      return {eventValue: eventValue, eventXValue, type: 'datestring'}
     } else {
       console.error("Event value " + rawEvent + ', ' + eventValue + " at index " + index + " can't be inferred.")
       return undefined
@@ -56,10 +56,10 @@ function fromRanges<T extends Record<string, unknown>>(
   data.forEach((d, i) => {
     const from = inferEventValue(d, fromField, i)
     const to = inferEventValue(d, toField, i)
-    if (from) rawEvents.set(from.eventXValue, from);
-    if (to) rawEvents.set(to.eventXValue, to);
+    if(from) rawEvents.set(from.eventXValue, from);
+    if(to) rawEvents.set(to.eventXValue, to);
     const dActorField = d[actorField];
-    if (typeof dActorField != 'string') {
+    if(typeof dActorField != 'string') {
       console.warn(`Value of actorField (${dActorField}) of actor nr. ${i} should be of type string.`);
     }
     actors.set(inferActorID(dActorField), new Actor(String(dActorField), d));
@@ -70,7 +70,7 @@ function fromRanges<T extends Record<string, unknown>>(
     data.forEach((d) => {
       const from = inferEventValue(d, fromField, i);
       const to = inferEventValue(d, toField, i);
-      if (
+      if(
         ((!from || from.eventXValue <= rawEvent[0])) &&
         ((!to || to.eventXValue >= rawEvent[0]))
       ) {
@@ -83,7 +83,7 @@ function fromRanges<T extends Record<string, unknown>>(
     });
     return event;
   });
-  return { events, actors };
+  return {events, actors};
 }
 
 /**
@@ -118,34 +118,36 @@ function processEventsFirst(
   eventField?: string,
   splitFunction?: ((arg: string) => string[]) | undefined
 ) {
-  inputData.sort((a, b) => (eventField ? a[eventField] - b[eventField] : -1));
-  const actors: Actors = new Map();
-  const events: Event[] = inputData.map((rawEvent, i) => {
-    let event: Event;
-    let eventValues = inferEventValue(rawEvent, eventField, i)
-    if ('eventValue' in eventValues && 'eventXValue' in eventValues) {
-      event = new Event(eventValues.eventValue, eventValues.eventXValue, rawEvent);
-      event.id = i;
-      if (format === 'table') {
-        event.group = extractActorsFromTable(rawEvent, actorField as string[], splitFunction);
-      }
-      if (format === 'array') {
-        event.group = extractActorsFromArray(rawEvent as Record<string, string[]>, actorField as string, splitFunction);
-      }
-      event.group = event.group.map(rawActor => {
-        let actor = actors.get(rawActor);
-        if (!actor) {
-          // create the y object
-          actor = new Actor(rawActor, {});
-        }
-        actor.layers.push(event);
-        actors.set(rawActor, actor);
-        return rawActor;
-      });
-      return event;
+  let data: Array<Record<string, any> & inferredEvent> = inputData.reduce<Record<string, any> & inferredEvent>((arr, event, i) => {
+    let moment = inferEventValue(event, eventField, i)
+    if(moment) {
+      arr.push([event, moment])
     }
+    return arr
+  }, [])
+  data.sort((a, b) => a[1].eventXValue - b[1].eventXValue);
+  const actors: Actors = new Map();
+  const events: Event[] = data.map((rawEvent, i) => {
+    let event = new Event(rawEvent[1].eventValue, rawEvent[1].eventXValue, rawEvent[0]);
+    if(format === 'table') {
+      event.group = extractActorsFromTable(rawEvent[0], actorField as string[], splitFunction);
+    }
+    if(format === 'array') {
+      event.group = extractActorsFromArray(rawEvent[0] as Record<string, string[]>, actorField as string, splitFunction);
+    }
+    event.group = event.group.map(rawActor => {
+      let actor = actors.get(rawActor);
+      if(!actor) {
+        // create the y object
+        actor = new Actor(rawActor, {});
+      }
+      actor.layers.push(event);
+      actors.set(rawActor, actor);
+      return rawActor;
+    });
+    return event;
   });
-  return { events, actors };
+  return {events, actors};
 }
 
 function extractActorsFromTable(
@@ -156,10 +158,10 @@ function extractActorsFromTable(
   return [
     ...Array.from(
       actorFields.reduce<Set<string>>((acc, actorField) => {
-        if (event[actorField]) {
-          if (splitFunction) {
+        if(event[actorField]) {
+          if(splitFunction) {
             splitFunction(event[actorField]).forEach(p => {
-              if (p) {
+              if(p) {
                 acc.add(p);
               }
             });
@@ -178,14 +180,14 @@ function extractActorsFromArray(
   actorField: string,
   splitFunction: ((arg: string) => string[]) | undefined
 ): string[] {
-  if (actorField in event) {
+  if(actorField in event) {
     return [
       ...Array.from(
         event[actorField].reduce<Set<string>>((acc: Set<string>, rawActor: string) => {
-          if (rawActor) {
-            if (splitFunction) {
+          if(rawActor) {
+            if(splitFunction) {
               splitFunction(rawActor).forEach(splitActor => {
-                if (splitActor) {
+                if(splitActor) {
                   acc.add(splitActor);
                 }
               });
@@ -201,4 +203,4 @@ function extractActorsFromArray(
   return [];
 }
 
-export { fromTable, fromRanges, fromArray };
+export {fromTable, fromRanges, fromArray};

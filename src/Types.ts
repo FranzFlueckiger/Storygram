@@ -158,8 +158,6 @@ export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
 export type FullConfig = BaseConfig & (RangeData | ArrayData | TableData);
 
 export class Event {
-  public id?: number;
-
   public index?: number;
 
   public isHidden: boolean;
@@ -238,5 +236,5 @@ export class RenderedPoint {
     public eventDescription: string,
     public url: string,
     public isHighlighted: number
-  ) { }
+  ) {}
 }

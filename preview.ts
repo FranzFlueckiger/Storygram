@@ -1,8 +1,7 @@
-import vega from 'vega-embed';
-import { Storygram } from './src/index';
-import { testRangeData, testArrayData, testTableData } from './test/testData';
-import { Config } from './src/Types';
-import { MetasonData, KurliData, WarData, BundesratData, BlockBusterdata } from './previewData'
+import {Storygram} from './src/index';
+import {testRangeData, testArrayData, testTableData} from './test/testData';
+import {Config} from './src/Types';
+import {MetasonData, KurliData, WarData, BundesratData, BlockBusterdata} from './previewData'
 
 function drawRangeSD() {
   const config: Config = {
@@ -10,8 +9,6 @@ function drawRangeSD() {
     actorField: 'id',
     startField: 'from',
     endField: 'to',
-    continuousStart: false,
-    continuousEnd: false
   };
   const SD = new Storygram(testRangeData(), config);
   SD.draw()
@@ -23,9 +20,8 @@ function drawArraySD() {
     actorArrayField: 'a',
     eventField: 'id',
     filterGroupAmt: [3, undefined],
-    continuousStart: false,
-    continuousEnd: false,
-    compact: false
+    compact: false,
+    verbose: true
   };
   const SD = new Storygram(testArrayData(), config);
   SD.draw()
@@ -36,8 +32,6 @@ function drawTableSD() {
     dataFormat: 'table',
     actorFields: ['a', 'b', 'c', 'd'],
     eventField: 'id',
-    continuousStart: false,
-    continuousEnd: false,
     compact: false,
     filterGroupAmt: [2, undefined]
   };
@@ -58,9 +52,7 @@ function drawWarData() {
     filterGroupAmt: [2, undefined],
     actorSplitFunction: (ys) => ys.split(', '),
     shouldContain: ['Russia (Soviet Union)'],
-    highlight: ['Afghanistan', 'Russia (Soviet Union)'],
-    generationAmt: 100,
-    populationSize: 100
+    highlight: ['Afghanistan', 'Russia (Soviet Union)']
   };
   const SD = new Storygram(data, config);
   SD.draw()
@@ -87,11 +79,7 @@ function drawMetasonSD() {
         !name.toLowerCase().includes('greatest hits') &&
         !name.toLowerCase().includes('super hits') &&
         !name.toLowerCase().includes('remaster')
-    },
-    verbose: true,
-    eventValueScaling: 0,
-    generationAmt: 100,
-    populationSize: 100
+    }
   }
   const SD = new Storygram(data, config);
   SD.draw()
@@ -103,9 +91,7 @@ function drawKurliSD() {
     dataFormat: 'array',
     eventField: 'date',
     actorArrayField: 'collocs',
-    verbose: true,
-    compact: true,
-    eventValueScaling: 0.9
+    compact: true
   }
   const SD = new Storygram(data, config);
   SD.draw()
@@ -124,8 +110,7 @@ function drawBundesratExample() {
     eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
     strokeColor: (event, actor) => actor.data.Partei as string,
     compact: true,
-    eventValueScaling: 0.00000000002,
-    verbose: true
+    eventValueScaling: 0.00000000002
   };
   const SD = new Storygram(data, config);
   SD.draw()
@@ -133,20 +118,33 @@ function drawBundesratExample() {
 
 async function drawPaperExample() {
   const data = [
-    { politicians: ['y0', 'y1', 'y2'], election_nr: 1990 },
-    { politicians: ['y0', 'y2', 'y3'], election_nr: 1992 },
-    { politicians: ['y1', 'y2', 'y3'], election_nr: 1994 },
-    { politicians: ['y1', 'y3', 'y4'], election_nr: 1996 },
+    {politicians: ['y0', 'y1', 'y2'], election_nr: 1990},
+    {politicians: ['y0', 'y2', 'y3'], election_nr: 1992},
+    {politicians: ['y1', 'y2', 'y3'], election_nr: 1994},
+    {politicians: ['y1', 'y3', 'y4'], election_nr: 1996},
   ];
   const config: Config = {
     dataFormat: 'array',
     actorArrayField: 'politicians',
-    eventField: 'election_nr',
-    continuousStart: false,
-    continuousEnd: false
+    eventField: 'election_nr'
   };
   const SD = new Storygram(data, config);
   SD.draw()
 }
 
-drawBundesratExample()
+async function drawBlockbusterData() {
+  const data = BlockBusterdata()
+  const config: Config = {
+    dataFormat: 'array',
+    actorArrayField: 'people',
+    eventField: 'release_date',
+    eventDescription: (l) => l.data.original_title + ' (' + l.data.vote_average + '/10)' as string,
+    filterGroupAmt: [3, undefined],
+    shouldContain: ['Jim Carrey'],
+    eventValueScaling: 0.00000000005,
+  };
+  const SD = new Storygram(data, config);
+  SD.draw()
+}
+
+drawBlockbusterData()
