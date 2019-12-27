@@ -1,7 +1,5 @@
-import { Spec, stringValue } from 'vega';
 import { FullConfig, Data, RenderedPoint, Actors } from './Types';
 import d3 = require('d3');
-
 
 interface Binned {
   key: string
@@ -24,8 +22,8 @@ export default class DrawSpec {
     const xLen = data.events.length;
     const scaling = config.eventValueScaling;
     let eventValue: number | string = ''
-    let active_Ys: Set<string> = new Set()
-    data.events.forEach((xLayer, xIndex) => {
+    let activeActors: Set<string> = new Set()
+    data.events.forEach((xLayer, eventIndex) => {
       let offset = 0;
       if (config.compact) {
         xLayer.state = xLayer.state.filter(y => y !== '')
@@ -37,41 +35,39 @@ export default class DrawSpec {
       let eventValueLegend: string
       if (eventValue === xLayer.eventValue) eventValueLegend = '-'
       else eventValueLegend = String(xLayer.eventValue)
-      xLayer.state.forEach((yID: string, yIndex: number) => {
-        const yVal = data.actors.get(yID)
-        const isGrouped = xLayer.group.some(a => a === yID) ? 1 : 0;
+      xLayer.state.forEach((actorID: string, actorIndex: number) => {
+        const yVal = data.actors.get(actorID)
+        const isGrouped = xLayer.group.some(a => a === actorID) ? 1 : 0;
         if (isGrouped) {
-          active_Ys.add(yID)
-          lastGroupedIndex = yIndex
+          activeActors.add(actorID)
+          lastGroupedIndex = actorIndex
         }
-        if (xIndex != 0 && data.events[xIndex - 1].remove.includes(yID)) {
-          active_Ys.delete(yID)
+        if (eventIndex != 0 && data.events[eventIndex - 1].remove.includes(actorID)) {
+          activeActors.delete(actorID)
         }
-        if (active_Ys.has(yID) || config.continuousStart) {
-          let yDrawn = config.compact ? (xLayer.state.length - 1) / 2 - yIndex : yIndex;
+        if (activeActors.has(actorID) || config.continuousStart) {
+          let yDrawn = config.compact ? (xLayer.state.length - 1) / 2 - actorIndex : actorIndex;
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(xLayer, yVal!);
           const strokeColor = config.strokeColor(xLayer, yVal!);
           const eventXValue = xLayer.eventXValue;
-          const xDrawn = scaling * eventXValue + (1 - scaling) * xIndex;
+          const xDrawn = scaling * eventXValue + (1 - scaling) * eventIndex;
           const eventDescription = config.eventDescription!(xLayer);
           const url = config.url(xLayer, yVal!)
           const hiddenYs = xLayer.hiddenActors
-          const isHiglighted = config.highlight.includes(yID) ? 1 : 0
-          const point = new RenderedPoint(xDrawn, yDrawn, yID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, isHiglighted);
+          const isHiglighted = config.highlight.includes(actorID) ? 1 : 0
+          const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, isHiglighted);
           // this is necessary to show the hidden ys counter
-          if (lastGroupedIndex! < yIndex && lastGroupedIndex != undefined) {
+          if (lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenYs = hiddenYs
             lastGroupedIndex = undefined
-          } else if (isGrouped && xLayer.state.length - 1 === yIndex) {
+          } else if (isGrouped && xLayer.state.length - 1 === actorIndex) {
             point.hiddenYs = hiddenYs
           }
           result.push(point);
         }
       });
     });
-    //console.log(result)
-    //console.log(JSON.stringify(result))
     return [result, xLen, maxYLen];
   }
 

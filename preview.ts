@@ -104,7 +104,8 @@ function drawKurliSD() {
     eventField: 'date',
     actorArrayField: 'collocs',
     verbose: true,
-    compact: true
+    compact: true,
+    eventValueScaling: 0.9
   }
   const SD = new Storygram(data, config);
   SD.draw()
@@ -146,4 +147,4 @@ async function drawPaperExample() {
   SD.draw()
 }
 
-drawArraySD()
+drawMetasonSD()
