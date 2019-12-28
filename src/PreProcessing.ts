@@ -203,4 +203,4 @@ function extractActorsFromArray(
   return [];
 }
 
-export {fromTable, fromRanges, fromArray};
+export {fromTable, fromRanges, fromArray, inferEventValue, inferActorID};

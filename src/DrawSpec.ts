@@ -65,7 +65,7 @@ export default class DrawSpec {
   }
 
   public static drawD3(data: [RenderedPoint[], number, number], config: FullConfig) {
-    let margin = {top: 50, right: 400, bottom: 50, left: 50}
+    let margin = {top: 50, right: 400, bottom: 200, left: 100}
     let width = data[1] * config.eventPadding;
     let height = data[2] * config.actorPadding;
 
@@ -150,6 +150,15 @@ export default class DrawSpec {
       .attr("fill", "none")
       .attr("stroke-width", unSelectedLineSize)
 
+    // actor highlight lines
+    let actorsHighlighted = layer1.selectAll(".actorsHighlighted")
+      .data(actorBin).enter()
+      .append("path")
+      .attr("class", "actorHighlighted")
+      .attr('stroke-linecap', 'round')
+      .attr("fill", "none")
+      .attr("stroke-width", 2)
+
     // group lines
     let groups = layer1.selectAll(".groups")
       .data(groupBin).enter()
@@ -185,8 +194,6 @@ export default class DrawSpec {
       .join("text")
       .attr("class", "xAxis")
       .attr("font-family", "sans-serif")
-      .attr("font-size", "15px")
-      .attr('text-anchor', 'middle')
 
     // Create a rect on top of the svg area: this rectangle recovers mouse position
     layer2
@@ -285,9 +292,15 @@ export default class DrawSpec {
         .transition()
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
+        .attr("font-size", "15px")
+        .attr('text-anchor', 'end')
         .attr("x", (d: Binned) => xScale(d.value.event[0].x))
-        .attr("y", height + 35)
+        .attr("y", height + 60)
+        .attr('id', (_, i) => i)
+        .attr("font-size", (d: Binned) => Number(d.key) === selectedEvent ? "17px" : "13px")
+        .attr('font-weight', (d: Binned) => Number(d.key) === selectedEvent ? 'bold' : 'normal')
         .text((d: Binned) => d.value.event[0].eventValue)
+        .attr("transform", (d: Binned) => "rotate(-45, " + (xScale(d.value.event[0].x) - 35) + ", " + (height + 35) + ")")
 
       xAxisLines
         .transition()

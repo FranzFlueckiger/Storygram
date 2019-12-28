@@ -102,43 +102,24 @@ function getLoss(child: [Event[], GenePool], config: FullConfig, data: Data): nu
   return score;
 }
 
-function getSwitchAmountLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
-  return (child[0].reduce<number>((acc, event) => {
+function getSwitchAmountLoss(child: [Event[], GenePool], config: FullConfig): number {
+  return (child[0].reduce<number>((acc, xLayer) => {
     // Penalty for the amount of switches
-    if((!config.continuousStart || !config.continuousEnd)) {
-      event.switch.forEach((switches, i) => {
-        const actor1 = data.actors.get(event.state[switches.prev])
-        const actor2 = data.actors.get(event.state[switches.target])
-        if(actor1!.layers[0].index! >= i && actor1!.layers[actor1!.layers.length - 1].index! <= i &&
-          actor2!.layers[0].index! >= i && actor2!.layers[actor2!.layers.length - 1].index! <= i &&
-          !event.add.includes(event.state[switches.prev]) && !event.add.includes(event.state[switches.target])) {
-          acc++
-        }
-      })
-      return acc
-    }
-    return acc
+    return (acc += xLayer.switch.length);
   }, 0)
   ) * config.amtLoss;
 }
 
-//  a+= Math.abs(switches.target - switches.prev)
-
-function getSwitchSizeLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
-  return child[0].reduce<number>((acc, event) => {
+function getSwitchSizeLoss(child: [Event[], GenePool], config: FullConfig): number {
+  return child[0].reduce<number>((acc, xLayer) => {
     // Penalty for the amount of switches
-    if((!config.continuousStart || !config.continuousEnd)) {
-      event.switch.forEach((switches, i) => {
-        const actor1 = data.actors.get(event.state[switches.prev])
-        const actor2 = data.actors.get(event.state[switches.target])
-        if(actor1!.layers[0].index! >= i && actor1!.layers[actor1!.layers.length - 1].index! <= i &&
-          actor2!.layers[0].index! >= i && actor2!.layers[actor2!.layers.length - 1].index! <= i &&
-          !event.add.includes(event.state[switches.prev]) && !event.add.includes(event.state[switches.target])) {
-          acc += Math.abs(switches.target - switches.prev)
+    return (acc +=
+      xLayer.switch.reduce((a, switches) => {
+        if(!xLayer.add.includes(xLayer.state[switches.prev])) {
+          a += Math.abs(switches.target - switches.prev);
         }
-      })
-      return acc
-    }
+        return a;
+      }, 0));
   }, 0) * config.lengthLoss;
 }
 

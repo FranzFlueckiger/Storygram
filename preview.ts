@@ -139,9 +139,12 @@ async function drawBlockbusterData() {
     actorArrayField: 'people',
     eventField: 'release_date',
     eventDescription: (l) => l.data.original_title + ' (' + l.data.vote_average + '/10)' as string,
-    filterGroupAmt: [3, undefined],
-    shouldContain: ['Jim Carrey'],
+    filterGroupAmt: [2, undefined],
+    filterEventValue: ['1 Jan 2000', '1 Jan 2010'],
+    shouldContain: ['Leonardo DiCaprio', 'Tim Burton'],
     eventValueScaling: 0.00000000005,
+    populationSize: 100,
+    generationAmt: 100
   };
   const SD = new Storygram(data, config);
   SD.draw()

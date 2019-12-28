@@ -1,4 +1,5 @@
 import { Config, Data, Actor } from './Types';
+import {inferEventValue} from './PreProcessing';
 
 function filter(data: Data, config: Config): Data {
   if (config.verbose) console.log('Before Filtering', data);
@@ -37,7 +38,7 @@ function filterEvents(data: Data, config: Config): Data {
     }
     if (
       !isInRange(event.group.length, config.filterGroupSize) ||
-      !isInRange(event.eventXValue, config.filterEventValue) ||
+      !isInRange(event.eventXValue, config.filterEventValue ? config.filterEventValue.map(f => inferEventValue(f, 'self', 0)?.eventXValue) : undefined) ||
       event.group.length == 0 ||
       !contains ||
       isCustomEventFilter

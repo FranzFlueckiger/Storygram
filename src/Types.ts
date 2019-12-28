@@ -130,7 +130,7 @@ export interface BaseConfig {
   // check if the event contains one of the given actors
   shouldContain: string[];
   // event filter (positive and Negative event ranges possible)
-  filterEventValue: [number | undefined, number | undefined];
+  filterEventValue: [number | string | undefined, number | string | undefined];
   // event filter (positive group sizes only)
   filterGroupSize: [number | undefined, number | undefined];
   // event filter for boolean predicates
