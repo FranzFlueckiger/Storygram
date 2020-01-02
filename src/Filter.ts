@@ -38,7 +38,7 @@ function filterEvents(data: Data, config: Config): Data {
     }
     if (
       !isInRange(event.group.length, config.filterGroupSize) ||
-      !isInRange(event.eventXValue, config.filterEventValue ? config.filterEventValue.map(f => inferEventValue(f, 'self', 0)?.eventXValue) : undefined) ||
+      !isInRange(event.eventXValue, config.filterEventValue.map(f => f? inferEventValue(f, 'self', 0).eventXValue : undefined)) ||
       event.group.length == 0 ||
       !contains ||
       isCustomEventFilter
