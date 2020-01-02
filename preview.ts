@@ -1,7 +1,7 @@
-import {Storygram} from './src/index';
-import {testRangeData, testArrayData, testTableData} from './test/testData';
-import {Config} from './src/Types';
-import {MetasonData, KurliData, WarData, BundesratData, BlockBusterdata} from './previewData'
+import { Storygram } from './src/index';
+import { testRangeData, testArrayData, testTableData } from './test/testData';
+import { Config } from './src/Types';
+import { MetasonData, KurliData, WarData, BundesratData, BlockBusterdata } from './previewData'
 
 function drawRangeSD() {
   const config: Config = {
@@ -118,10 +118,10 @@ function drawBundesratExample() {
 
 async function drawPaperExample() {
   const data = [
-    {politicians: ['y0', 'y1', 'y2'], election_nr: 1990},
-    {politicians: ['y0', 'y2', 'y3'], election_nr: 1992},
-    {politicians: ['y1', 'y2', 'y3'], election_nr: 1994},
-    {politicians: ['y1', 'y3', 'y4'], election_nr: 1996},
+    { politicians: ['y0', 'y1', 'y2'], election_nr: 1990 },
+    { politicians: ['y0', 'y2', 'y3'], election_nr: 1992 },
+    { politicians: ['y1', 'y2', 'y3'], election_nr: 1994 },
+    { politicians: ['y1', 'y3', 'y4'], election_nr: 1996 },
   ];
   const config: Config = {
     dataFormat: 'array',
@@ -141,7 +141,7 @@ async function drawBlockbusterData() {
     eventDescription: (l) => l.data.original_title + ' (' + l.data.vote_average + '/10)' as string,
     filterGroupAmt: [2, undefined],
     filterEventValue: ['1 Jan 2000', '1 Jan 2010'],
-    shouldContain: ['Leonardo DiCaprio', 'Tim Burton'],
+    shouldContain: ['Leonardo DiCaprio', 'Rocco Siffredi'],
     eventValueScaling: 0.00000000005,
     populationSize: 100,
     generationAmt: 100
