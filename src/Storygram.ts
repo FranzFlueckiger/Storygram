@@ -25,7 +25,7 @@ export default class Storygram<T extends {}> {
     colorScheme: 'tableau10',
     lineSize: 12,
     eventDescription: l => String(l.eventValue),
-    url: (xLayer, yLayer) => 'https://www.google.ch/search?q=' + String(xLayer.eventValue) + ' ' + yLayer.actorID,
+    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.eventValue) + ' ' + actor.actorID,
     eventPadding: 60,
     actorPadding: 40,
     eventValueScaling: 0.625,
@@ -38,8 +38,8 @@ export default class Storygram<T extends {}> {
     continuousEnd: false,
     compact: false,
     highlight: [],
-    strokeWidth: (xLayer, yLayer) => 0,
-    strokeColor: (xLayer, yLayer) => yLayer.actorID,
+    strokeWidth: (event, actor) => 0,
+    strokeColor: (event, actor) => actor.actorID,
     mustContain: [],
     shouldContain: [],
     interactedWith: [[], 0],
@@ -102,14 +102,7 @@ export default class Storygram<T extends {}> {
     if(!this.isRendered) {
       this.render()
     }
-    DrawSpec.drawD3(this.renderedGrid, this.config)
-    /** 
-    await vega(
-      '#viz',
-      DrawSpec.getSpecNew( this.renderedGrid, this.config ),
-      { renderer: 'svg' }
-    );
-    */
+    DrawSpec.drawD3(this.renderedGrid, this.config, this.processedData)
   }
 
 }

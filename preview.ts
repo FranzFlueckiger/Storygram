@@ -1,7 +1,7 @@
-import { Storygram } from './src/index';
-import { testRangeData, testArrayData, testTableData } from './test/testData';
-import { Config } from './src/Types';
-import { MetasonData, KurliData, WarData, BundesratData, BlockBusterdata } from './previewData'
+import {Storygram} from './src/index';
+import {testRangeData, testArrayData, testTableData} from './test/testData';
+import {Config} from './src/Types';
+import {MetasonData, KurliData, WarData, BundesratData, BlockBusterdata, deNationalElf, chNationalElfFrauen} from './previewData'
 
 function drawRangeSD() {
   const config: Config = {
@@ -110,18 +110,20 @@ function drawBundesratExample() {
     eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
     strokeColor: (event, actor) => actor.data.Partei as string,
     compact: true,
-    eventValueScaling: 0.00000000002
+    eventValueScaling: 0.00000000002,
+    populationSize: 100,
+    generationAmt: 100
   };
   const SD = new Storygram(data, config);
   SD.draw()
 }
 
-async function drawPaperExample() {
+function drawPaperExample() {
   const data = [
-    { politicians: ['y0', 'y1', 'y2'], election_nr: 1990 },
-    { politicians: ['y0', 'y2', 'y3'], election_nr: 1992 },
-    { politicians: ['y1', 'y2', 'y3'], election_nr: 1994 },
-    { politicians: ['y1', 'y3', 'y4'], election_nr: 1996 },
+    {politicians: ['y0', 'y1', 'y2'], election_nr: 1990},
+    {politicians: ['y0', 'y2', 'y3'], election_nr: 1992},
+    {politicians: ['y1', 'y2', 'y3'], election_nr: 1994},
+    {politicians: ['y1', 'y3', 'y4'], election_nr: 1996},
   ];
   const config: Config = {
     dataFormat: 'array',
@@ -132,19 +134,47 @@ async function drawPaperExample() {
   SD.draw()
 }
 
-async function drawBlockbusterData() {
+function drawBlockbusterData() {
   const data = BlockBusterdata()
   const config: Config = {
     dataFormat: 'array',
     actorArrayField: 'people',
     eventField: 'release_date',
     eventDescription: (l) => l.data.original_title + ' (' + l.data.vote_average + '/10)' as string,
-    filterGroupAmt: [2, undefined],
-    filterEventValue: ['1 Jan 2000', '1 Jan 2010'],
-    shouldContain: ['Leonardo DiCaprio', 'Rocco Siffredi'],
+    filterGroupAmt: [5, undefined],
+    shouldContain: ['Leonardo DiCaprio', 'Tim Burton'],
     eventValueScaling: 0.00000000005,
-    populationSize: 100,
-    generationAmt: 100
+    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID
+  };
+  const SD = new Storygram(data, config);
+  SD.draw()
+}
+
+function drawNationalElfDEData() {
+  const data = deNationalElf()
+  const config: Config = {
+    dataFormat: 'ranges',
+    actorField: 'Name',
+    startField: 'von',
+    endField: 'bis',
+    filterGroupAmt: [12, undefined],
+    compact: true,
+    verbose: true
+  };
+  const SD = new Storygram(data, config);
+  SD.draw()
+}
+
+function drawNationalElfCHFrauenData() {
+  const data = chNationalElfFrauen()
+  const config: Config = {
+    dataFormat: 'ranges',
+    actorField: 'Name',
+    startField: 'Debüt',
+    endField: 'letzter Einsatz',
+    compact: true,
+    eventValueScaling: 0.0000000001,
+    verbose: true
   };
   const SD = new Storygram(data, config);
   SD.draw()

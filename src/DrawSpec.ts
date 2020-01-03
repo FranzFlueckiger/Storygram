@@ -1,4 +1,4 @@
-import { FullConfig, Data, RenderedPoint } from './Types';
+import {FullConfig, Data, RenderedPoint} from './Types';
 import d3 = require('d3');
 
 interface Binned {
@@ -18,28 +18,32 @@ export default class DrawSpec {
     // this is the eventValue that is shown on the legend of the chart
     // if it changes it will be drawn
     let eventValueLegend: string
-    let eventValue: number | string = ''
+    let eventValue: number | string | undefined
     let activeActors: Set<string> = new Set()
     data.events.forEach((xLayer, eventIndex) => {
       let offset = 0;
-      if (config.compact) {
+      if(config.compact) {
         xLayer.state = xLayer.state.filter(y => y !== '')
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
       let lastGroupedIndex: number | undefined = undefined
-      if (eventValue === xLayer.eventValue) eventValueLegend = '-'
-      else eventValueLegend = String(xLayer.eventValue)
+      if(eventValue === xLayer.eventValue) {
+        eventValueLegend = '-'
+      } else {
+        eventValue = xLayer.eventValue
+        eventValueLegend = String(xLayer.eventValue)
+      }
       xLayer.state.forEach((actorID: string, actorIndex: number) => {
         const yVal = data.actors.get(actorID)
         const isGrouped = xLayer.group.some(a => a === actorID) ? 1 : 0;
-        if (isGrouped) {
+        if(isGrouped) {
           activeActors.add(actorID)
           lastGroupedIndex = actorIndex
         }
-        if (eventIndex != 0 && data.events[eventIndex - 1].remove.includes(actorID)) {
+        if(eventIndex != 0 && data.events[eventIndex - 1].remove.includes(actorID)) {
           activeActors.delete(actorID)
         }
-        if (activeActors.has(actorID) || config.continuousStart) {
+        if(activeActors.has(actorID) || config.continuousStart) {
           let yDrawn = config.compact ? (xLayer.state.length - 1) / 2 - actorIndex : actorIndex;
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(xLayer, yVal!);
@@ -51,10 +55,10 @@ export default class DrawSpec {
           const isHiglighted = config.highlight.includes(actorID) ? 1 : 0
           const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, isHiglighted);
           // this is necessary to show the hidden ys counter
-          if (lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
+          if(lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenYs = hiddenYs
             lastGroupedIndex = undefined
-          } else if (isGrouped && xLayer.state.length - 1 === actorIndex) {
+          } else if(isGrouped && xLayer.state.length - 1 === actorIndex) {
             point.hiddenYs = hiddenYs
           }
           result.push(point);
@@ -64,8 +68,8 @@ export default class DrawSpec {
     return [result, xLen, maxYLen];
   }
 
-  public static drawD3(data: [RenderedPoint[], number, number], config: FullConfig) {
-    let margin = { top: 50, right: 400, bottom: 200, left: 100 }
+  public static drawD3(data: [RenderedPoint[], number, number], config: FullConfig, fullData: Data) {
+    let margin = {top: 50, right: 400, bottom: 200, left: 100}
     let width = data[1] * config.eventPadding;
     let height = data[2] * config.actorPadding;
 
@@ -97,7 +101,9 @@ export default class DrawSpec {
     const unSelectedOpacity = 0.15
     const selectedLineSize = 12
     const unSelectedLineSize = 10
-    const transitionSpeed = 150
+    const opacity = 0.9
+    const fontSize = 17
+    const transitionSpeed = 100
     const xPadding = 0.01
     const actorDescSize = 15
     let tooltipEvent = -1
@@ -110,14 +116,14 @@ export default class DrawSpec {
       //Todo this 'casting' is ugly, numeric key?
       .key(d => d instanceof RenderedPoint ? String(d.x) : '')
       .rollup((p: Binned) => {
-        if (Array.isArray(p) && p.every(d => d instanceof RenderedPoint)) {
+        if(Array.isArray(p) && p.every(d => d instanceof RenderedPoint)) {
           return {
             min: d3.min(p, (d: RenderedPoint) => d.y),
             max: d3.max(p, (d: RenderedPoint) => d.y),
             event: d3.values(p)
           }
         }
-        return { min: null, max: null, event: null }
+        return {min: null, max: null, event: null}
       })
       .entries(data[0].filter(d => d.isGrouped))
 
@@ -140,12 +146,12 @@ export default class DrawSpec {
     //xAxis description background
     let xAxisLines = layer1.selectAll(".xAxisLine")
       .data(groupBin.filter((d: Binned) => {
-        if (d.value.event[0].eventValue != '-') return true
+        if(d.value.event[0].eventValue != '-') return true
       }))
       .join("line")
       .attr("class", "xAxisLine")
       .attr("stroke", "black")
-      .attr("stroke-width", 1.5)
+      .attr("stroke-width", 1.2)
       .attr("stroke-opacity", 0.4)
       .style("stroke-dasharray", ("4, 4"))
 
@@ -194,7 +200,7 @@ export default class DrawSpec {
       .append("text")
       .attr("class", "event_desc")
       .attr("font-family", "sans-serif")
-      .attr("font-size", "20px")
+      .attr("font-size", fontSize)
 
     //xAxis description
     let xAxis = layer1.selectAll(".xAxis")
@@ -223,8 +229,6 @@ export default class DrawSpec {
       var d1 = data[0][i].x
       var d = x0 - d0 > d1 - x0 ? d1 : d0;
       selectedEvent = d
-      // todo
-      // drawAll()
       drawAll()
     }
 
@@ -234,11 +238,11 @@ export default class DrawSpec {
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
         .attr('opacity', (d: Binned) => {
-          if (Number(d.key) === selectedEvent) return unSelectedOpacity
+          if(Number(d.key) === selectedEvent) return unSelectedOpacity
           else return unSelectedOpacity
         })
         .attr("stroke-width", (d: Binned) => {
-          if (Number(d.key) === selectedEvent) return selectedLineSize
+          if(Number(d.key) === selectedEvent) return selectedLineSize
           else return unSelectedLineSize
         })
         .attr("d", (d) => {
@@ -255,11 +259,11 @@ export default class DrawSpec {
         .ease(d3.easeLinear)
         .attr("stroke", d => color(String(d.values[0].strokeColor)) as string)
         .attr('opacity', (d: Binned) => {
-          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
+          if(d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
           else return unSelectedOpacity
         })
         .attr("stroke-width", (d: Binned) => {
-          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedLineSize - 1
+          if(d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedLineSize - 1
           else return unSelectedLineSize
         })
         .attr("d", (d: Binned) => {
@@ -268,9 +272,13 @@ export default class DrawSpec {
             .y(p => yScale(p[1]))
             .curve(d3.curveMonotoneX)
             (d.values.reduce((arr, p) => {
-              arr.push([p.x - xPadding, p.y])
-              arr.push([p.x, p.y])
-              arr.push([p.x + xPadding, p.y])
+              if(p.isGrouped) {
+                arr.push([p.x - xPadding, p.y])
+                arr.push([p.x, p.y])
+                arr.push([p.x + xPadding, p.y])
+              } else {
+                arr.push([p.x, p.y])
+              }
               return arr
             }, []))
         })
@@ -293,7 +301,7 @@ export default class DrawSpec {
         .attr("x", xScale(selectedEvent) + 10)
         .attr("y", -35)
         .text((d) => {
-          if (Number(d.key) === selectedEvent)
+          if(Number(d.key) === selectedEvent)
             return d.value.event[0].eventDescription
         })
 
@@ -306,9 +314,11 @@ export default class DrawSpec {
         .attr("x", (d: Binned) => xScale(d.value.event[0].x))
         .attr("y", height + 60)
         .attr('id', (_, i) => i)
-        .attr("font-size", (d: Binned) => Number(d.key) === selectedEvent ? "17px" : "13px")
+        .attr("font-size", (d: Binned) => Number(d.key) === selectedEvent ? (fontSize) + "px" : (fontSize - 3) + "px")
         .attr('font-weight', (d: Binned) => Number(d.key) === selectedEvent ? 'bold' : 'normal')
-        .text((d: Binned) => d.value.event[0].eventValue)
+        .text((d: Binned) => {
+          return d.value.event[0].eventValue
+        })
         .attr("transform", (d: Binned) => "rotate(-45, " + (xScale(d.value.event[0].x) - 35) + ", " + (height + 35) + ")")
 
       xAxisLines
@@ -320,22 +330,21 @@ export default class DrawSpec {
         .attr('x2', d => xScale(Number(d.key)))
         .attr('y2', height)
 
-      //hidden actors => invisible to get bounding box 
       let hiddenActors = layer2.selectAll(".hiddenActors")
         .data(groupBin.reduce<RenderedPoint[]>((arr, d) => {
           d.value.event.forEach(v => {
-            if (v.hiddenYs.length > 0) arr.push(v)
+            if(v.hiddenYs.length > 0) arr.push(v)
           })
           return arr
         }, []), (d: RenderedPoint) => String(d.x))
         .join((enter: any) => enter.append("text")
           .attr("class", "hiddenActors")
           .attr("font-family", "sans-serif")
-          .attr("font-size", "13px")
+          .attr("font-size", (fontSize - 4) + "px")
           .attr('fill', 'white')
           .attr("dominant-baseline", "middle")
-          .attr("x", (d: RenderedPoint) => xScale(d.x) + 8.5)
-          .attr("y", (d: RenderedPoint) => yScale(d.y))
+          .attr("x", (d: RenderedPoint) => xScale(d.x) + 8.)
+          .attr("y", (d: RenderedPoint) => yScale(d.y) + 0.4)
           .text((d: RenderedPoint) => d.hiddenYs ? d.hiddenYs.length : '')
           .call(getTextBox),
           (update: any) => update
@@ -343,8 +352,8 @@ export default class DrawSpec {
             .duration(transitionSpeed)
             .ease(d3.easeLinear)
             .attr("y", (d: RenderedPoint) => {
-              if (d.x === selectedEvent) return yScale(d.y) - 24
-              else return yScale(d.y)
+              if(d.x === selectedEvent) return yScale(d.y) - 24
+              else return yScale(d.y) + 0.4
             })
             .call(getTextBox)
         )
@@ -353,7 +362,7 @@ export default class DrawSpec {
       let hiddenActorsBackground = layer1.selectAll(".hiddenActorsBackground")
         .data(groupBin.reduce<RenderedPoint[]>((arr, d) => {
           d.value.event.forEach(v => {
-            if (v.hiddenYs.length > 0) arr.push(v)
+            if(v.hiddenYs.length > 0) arr.push(v)
           })
           return arr
         }, []), (d: RenderedPoint) => String(d.x))
@@ -375,47 +384,53 @@ export default class DrawSpec {
             .duration(transitionSpeed)
             .ease(d3.easeLinear)
             .attr('opacity', (d: RenderedPoint) => {
-              if (d.x === selectedEvent) return 0.8
+              if(d.x === selectedEvent) return opacity
               else return 0.4
             })
             .attr("y", (d: RenderedPoint) => {
-              if (d.x === selectedEvent) return yScale(d.y) - 32
+              if(d.x === selectedEvent) return yScale(d.y) - 32
               else return yScale(d.y) - selectedLineSize / 2 - 2
             })
         )
 
       function showTooltip(d: RenderedPoint) {
         tooltip.transition()
-          .duration(200)
-          .style("opacity", .92);
+          .duration(transitionSpeed)
+          .style("opacity", opacity);
         tooltip
-          .html('Hidden actors: <p>' + d.hiddenYs.map(p => ' ' + p))
-          .classed('event' + String(d.x), true)
+          .html('<b>Hidden actors:</b>' + d.hiddenYs.map(p => '<br>' + p))
           .style("left", (d3.event.pageX) + "px")
-          .style("top", (d3.event.pageY - 28) + "px");
-        console.log(d)
+          .style("top", (d3.event.pageY - 28) + "px")
+          .style("width", "200px");
+        tooltipEvent = d.x
+      }
+
+      if(tooltipEvent != selectedEvent) {
+        tooltip
+          .html('')
+          .style("opacity", .0);
       }
 
       hiddenActors.on(
-        "mouseover", function (d) {
+        "mouseover", function(d) {
           d3.select(this).style("cursor", "pointer")
         })
         .on(
-          "mouseout", function (d) {
+          "mouseout", function(d) {
             d3.select(this).style("cursor", "default");
           })
-        .on("click", function (d) {
+        .on("click", function(d) {
           // checkActorsTooltipVisibility(d)
           showTooltip(d)
         })
 
       let actorEvents = layer1.selectAll(".actorEvent")
         .data(actorBin.filter((d: Binned) => {
-          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
+          if(d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
           return false
         }).reduce<RenderedPoint[]>((arr, d) => {
           d.values.forEach(v => {
-            if (v.isGrouped) arr.push(v)
+            if(v.isGrouped) arr.push(v)
           })
           return arr
         }, []), (d: RenderedPoint) => {
@@ -432,7 +447,7 @@ export default class DrawSpec {
             .attr("x2", (d: RenderedPoint) => xScale(d.x))
             .attr("y1", (d: RenderedPoint) => yScale(d.y) - config.eventPadding / 5)
             .attr("y2", (d: RenderedPoint) => yScale(d.y) + config.eventPadding / 5)
-            .attr("stroke-opacity", 0.8),
+            .attr("stroke-opacity", opacity),
           (update: any) => {
             return update
           },
@@ -482,7 +497,7 @@ export default class DrawSpec {
             enter
               .append("rect")
               .attr("class", "actorDescBackground")
-              .attr('opacity', 0.8)
+              .attr('opacity', opacity)
               .attr('fill', 'white')
               .attr('rx', 10)
               .attr('ry', 10)
@@ -520,6 +535,17 @@ export default class DrawSpec {
               .attr("x", (d: RenderedPoint) => xScale(d.x) + selectedLineSize / 2 + 10)
               .attr("y", (d: RenderedPoint) => yScale(d.y))
               .text((d: RenderedPoint) => d.z)
+              .on("click", function(d: RenderedPoint) {
+                window.open(d.url)
+              })
+              .on(
+                "mouseover", function(d) {
+                  d3.select(this).style("cursor", "pointer")
+                })
+              .on(
+                "mouseout", function(d) {
+                  d3.select(this).style("cursor", "default");
+                })
           },
           (update: any) => {
             update.transition()
@@ -535,7 +561,7 @@ export default class DrawSpec {
         );
 
       function getTextBox(selection: any) {
-        selection.each(function (d: RenderedPoint) { d.bbox = this.getBBox() })
+        selection.each(function(d: RenderedPoint) {d.bbox = this.getBBox()})
       }
 
     }

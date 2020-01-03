@@ -138,7 +138,7 @@ export interface BaseConfig {
   // check if the actors interacted with the given ones at the specified depth
   interactedWith: [string[], number | undefined];
   // actor filter (Positive and Negative event value lifetimes possible)
-  filterEventValueLifeTime: [number | undefined, number | undefined];
+  filterEventValueLifeTime: [number | string | undefined, number | string | undefined];
   // actor filter (Positive group amounts only)
   filterGroupAmt: [number | undefined, number | undefined];
   // actor filter for boolean predicates
