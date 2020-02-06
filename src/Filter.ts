@@ -1,8 +1,8 @@
-import { Config, Data, Actor } from './Types';
+import {Config, Data, Actor} from './Types';
 import {inferEventValue} from './PreProcessing';
 
 function filter(data: Data, config: Config): Data {
-  if (config.verbose) console.log('Before Filtering', data);
+  if(config.verbose) console.log('Before Filtering', data);
   // filter events
   data = filterEvents(data, config);
   // filter actors
@@ -10,11 +10,11 @@ function filter(data: Data, config: Config): Data {
   // remove events without actors
   data.events = data.events.filter(layer => layer.group.length > 0);
   setLifeCycles(data, config);
-  if (config.verbose) console.log('After Filtering', data);
+  if(config.verbose) console.log('After Filtering', data);
   return data;
 }
 
-function isInRange(p: number, range: [number | undefined, number | undefined] | undefined): boolean {
+function isInRange(p: number, range: [number | string | undefined, number | string | undefined] | undefined): boolean {
   return range ? (range[0] ? p >= range[0] : true) && (range[1] ? p <= range[1] : true) : true;
 }
 
@@ -22,23 +22,25 @@ function filterEvents(data: Data, config: Config): Data {
   const actors: Map<string, Actor> = new Map();
   const events = data.events.filter(event => {
     let contains = true;
-    if (config.mustContain && config.mustContain.length) {
+    if(config.mustContain && config.mustContain.length) {
       contains = config.mustContain.every(query => {
         return event.group.includes(query);
       });
     }
-    if (config.shouldContain && config.shouldContain.length) {
+    if(config.shouldContain && config.shouldContain.length) {
       contains = config.shouldContain.some(query => {
         return event.group.includes(query);
       });
     }
     let isCustomEventFilter = false;
-    if (config.filterEventCustom) {
+    if(config.filterEventCustom) {
       isCustomEventFilter = !config.filterEventCustom(event);
     }
-    if (
+    if(
       !isInRange(event.group.length, config.filterGroupSize) ||
-      !isInRange(event.eventXValue, config.filterEventValue.map(f => f? inferEventValue(f, 'self', 0).eventXValue : undefined)) ||
+      !isInRange(event.eventXValue,
+        [inferEventValue(config.filterEventValue![0], 'self', 0)!.eventValue,
+        inferEventValue(config.filterEventValue![1], 'self', 0)!.eventValue]) ||
       event.group.length == 0 ||
       !contains ||
       isCustomEventFilter
@@ -53,7 +55,7 @@ function filterEvents(data: Data, config: Config): Data {
       return true;
     }
   });
-  return { events, actors };
+  return {events, actors};
 }
 
 function filterActors(data: Data, config: Config): Data {
@@ -61,10 +63,10 @@ function filterActors(data: Data, config: Config): Data {
     const actor: Actor = actorMap[1];
     const visibleEvents = actor.layers ? actor.layers.filter(event => !event.isHidden) : [];
     let isCustomActorFilter = false;
-    if (config.filterActorCustom) {
+    if(config.filterActorCustom) {
       isCustomActorFilter = !config.filterActorCustom(actor);
     }
-    if (
+    if(
       // check if y value has an xValue lifetime in the allowed range
       !isInRange(visibleEvents[visibleEvents.length - 1].eventXValue - visibleEvents[0].eventXValue, config.filterEventValueLifeTime) ||
       // check if y value has an amount of non-hidden groups in the allowed range
@@ -89,14 +91,14 @@ function setLifeCycles(data: Data, config: Config) {
   Array.from(data.actors).forEach(yMap => {
     const y: Actor = yMap[1];
     const activeLayers = y.layers ? y.layers.filter(l => !l.isHidden) : [];
-    if (!y.isHidden) {
+    if(!y.isHidden) {
       // check where to add the y-point
-      if (config.dataFormat === 'ranges' && !config.startField) {
+      if(config.dataFormat === 'ranges' && !config.startField) {
         data.events[0].add.push(y.actorID);
       } else {
         data.events[activeLayers[0].index!].add.push(y.actorID);
       }
-      if (config.dataFormat === 'ranges' && !config.endField) {
+      if(config.dataFormat === 'ranges' && !config.endField) {
         data.events[data.events.length - 1].remove.push(y.actorID);
       } else {
         data.events[activeLayers[activeLayers.length - 1].index!].remove.push(y.actorID);
@@ -105,4 +107,4 @@ function setLifeCycles(data: Data, config: Config) {
   });
 }
 
-export { filter, filterEvents as filterX, filterActors as filterY, isInRange, setLifeCycles };
+export {filter, filterEvents as filterX, filterActors as filterY, isInRange, setLifeCycles};

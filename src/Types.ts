@@ -221,7 +221,7 @@ export interface Data {
 }
 
 export class RenderedPoint {
-  public hiddenYs: string[] = [];
+  public hiddenActors: string[] = [];
 
   public bbox: any
 

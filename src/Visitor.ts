@@ -134,4 +134,4 @@ function getDistances(group: string[], center: number, visitor: string[]): Dista
 }
 
 
-export { visit, add, switchP, group, getCenter, getDistances };
+export { visit, add, remove, switchP, group, getCenter, getDistances };

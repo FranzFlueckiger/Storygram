@@ -88,7 +88,7 @@ export default class Storygram<T extends {}> {
     if(!this.isCalculated) {
       this.calculate()
     }
-    this.renderedGrid = DrawSpec.draw(this.processedData, this.config);
+    this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
     if(this.config.verbose) {
       console.log(this.renderedGrid);
     }

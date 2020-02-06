@@ -1,5 +1,5 @@
 import {remove, add, switchP, getCenter, getDistances, group, visit} from '../src/Visitor';
-import {Switch, EventData, Actors, Data, Actor} from '../src/Types';
+import {Switch, Event, Actors, Data, Actor} from '../src/Types';
 
 test('remove', () => {
   let visitor: string[] = ['hallo', 'world', 'wie', 'gehts'];
@@ -19,12 +19,12 @@ test('add', () => {
   let str = 'world';
   const center = 2;
   let gene = -1;
-  visitor = add(str, center, gene, visitor);
-  expect(JSON.stringify(visitor)).toEqual(JSON.stringify(['hallo', 'world', 'wie', 'gehts']));
+  visitor = add(str, gene, visitor);
+  expect(JSON.stringify(visitor)).toEqual(JSON.stringify(["world", "hallo", "wie", "gehts"]));
   str = 'wie';
-  visitor = add(str, center, gene, visitor);
+  visitor = add(str, gene, visitor);
   gene = 1;
-  expect(JSON.stringify(visitor)).toEqual(JSON.stringify(['hallo', 'world', 'wie', 'wie', 'gehts']));
+  expect(JSON.stringify(visitor)).toEqual(JSON.stringify(['wie', 'world', 'hallo', 'wie', 'gehts']));
 });
 
 test('switchP', () => {
@@ -65,11 +65,10 @@ test('group', () => {
   const switches = group(groupedPs, visitor);
   expect(JSON.stringify(switches)).toEqual('[{"target":2,"prev":3},{"target":1,"prev":0}]');
 });
-
+/*
 test('visit', () => {
-  const xs: EventData = [
+  const xs: Event[] = [
     {
-      id: 4,
       index: 0,
       eventValue: 10,
       isHidden: false,
@@ -82,7 +81,6 @@ test('visit', () => {
       data: {},
     },
     {
-      id: 8,
       index: 1,
       eventValue: 20,
       isHidden: false,
@@ -101,7 +99,7 @@ test('visit', () => {
   ys.set('b', new Actor('b', {}));
   ys.set('c', new Actor('c', {}));
   ys.set('d', new Actor('d', {}));
-  const data: Data = {xData: xs, yData: ys};
+  const data: Data = {events: xs, actors: ys};
   const newData = visit(data, undefined);
   expect(JSON.stringify(newData[0][0].state)).toEqual('["b","a"]');
-});
+}); */

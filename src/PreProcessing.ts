@@ -118,9 +118,10 @@ function processEventsFirst(
   eventField?: string,
   splitFunction?: ((arg: string) => string[]) | undefined
 ) {
-  let data: Array<Record<string, any> & inferredEvent> = inputData.reduce<Record<string, any> & inferredEvent>((arr, event, i) => {
+  let data = inputData.reduce<Array<Record<string, any> & inferredEvent>>((arr, event, i: number) => {
     let moment = inferEventValue(event, eventField, i)
     if(moment) {
+      // @ts-ignore
       arr.push([event, moment])
     }
     return arr

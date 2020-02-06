@@ -92,8 +92,8 @@ function mutate(data: Data, genes: GenePool[], config: FullConfig) {
 
 function getLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
   let score = 0;
-  score += getSwitchAmountLoss(child, config, data);
-  score += getSwitchSizeLoss(child, config, data);
+  score += getSwitchAmountLoss(child, config);
+  score += getSwitchSizeLoss(child, config);
   if(config.compact) {
     score += getLinearLoss(child, config, data)
   } else {
