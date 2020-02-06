@@ -53,15 +53,15 @@ export default class DrawSpec {
           const xDrawn = scaling * xLayer.eventXValue + (1 - scaling) * eventIndex;
           const eventDescription = config.eventDescription!(xLayer);
           const url = config.url(xLayer, yVal!)
-          const hiddenYs = xLayer.hiddenActors
+          const hiddenActors = xLayer.hiddenActors
           const isHiglighted = config.highlight.includes(actorID) ? 1 : 0
           const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, isHiglighted);
           // this is necessary to show the hidden ys counter
           if(lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
-            result[result.length - 1].hiddenActors = hiddenYs
+            result[result.length - 1].hiddenActors = hiddenActors
             lastGroupedIndex = undefined
           } else if(isGrouped && xLayer.state.length - 1 === actorIndex) {
-            point.hiddenActors = hiddenYs
+            point.hiddenActors = hiddenActors
           }
           result.push(point);
         }
@@ -371,7 +371,7 @@ export default class DrawSpec {
       let hiddenActorsBackground = layer1.selectAll(".hiddenActorsBackground")
         .data(groupBin.reduce<RenderedPoint[]>((arr, d: Binned) => {
           d.value.event.forEach((v: any) => {
-            if(v.hiddenYs.length > 0) arr.push(v)
+            if(v.hiddenActors.length > 0) arr.push(v)
           })
           return arr
         }, []), (d: RenderedPoint) => String(d.x))
