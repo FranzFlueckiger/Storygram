@@ -3,7 +3,6 @@ import {filter} from './Filter';
 import {fit} from './Optimizer';
 import {fromArray, fromRanges, fromTable} from './PreProcessing';
 import {Config, Data, RenderedPoint, BaseConfig, FullConfig} from './Types';
-import vega from 'vega-embed';
 
 /**
  * href
