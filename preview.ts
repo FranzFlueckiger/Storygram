@@ -84,6 +84,33 @@ function drawMetasonSD() {
   SD.draw()
 }
 
+/**
+ * Data found on https://www.metason.net/
+ */
+function drawMetasonNarrowSD() {
+  const data = MetasonData()
+  const config: Config = {
+    dataFormat: 'array',
+    eventField: 'year',
+    actorArrayField: 'participants',
+    filterGroupAmt: [3, undefined],
+    filterEventValue: [2008, 2018],
+    eventValueScaling: 0.7,
+    eventDescription: (event) => event.data.releaseName + ", " + event.data.year,
+    filterEventCustom: (event) => {
+      const name: string = event.data.releaseName as string
+      return !name.includes('compilation') &&
+        !name.toLowerCase().includes('best of') &&
+        !name.toLowerCase().includes('collection') &&
+        !name.toLowerCase().includes('greatest hits') &&
+        !name.toLowerCase().includes('super hits') &&
+        !name.toLowerCase().includes('remaster')
+    }
+  }
+  const SD = new Storygram(data, config);
+  SD.draw()
+}
+
 function drawKurliSD() {
   const data = KurliData()
   const config: Config = {
@@ -141,6 +168,22 @@ function drawBlockbusterData() {
     filterGroupAmt: [2, undefined],
     filterEventValue: ['1 Jan 1990', '1 Jan 2010'],
     shouldContain: ['Leonardo DiCaprio', 'James Cameron'],
+    eventValueScaling: 0.00000000005,
+    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID
+  };
+  const SD = new Storygram(data, config);
+  SD.draw()
+}
+
+function drawNarrowBlockbusterData() {
+  const data = BlockBusterdata()
+  const config: Config = {
+    dataFormat: 'array',
+    actorArrayField: 'people',
+    eventField: 'release_date',
+    eventDescription: (l) => l.data.original_title + ' (' + l.data.vote_average + '/10)' as string,
+    filterGroupAmt: [5, undefined],
+    shouldContain: ['Leonardo DiCaprio', 'Tim Burton'],
     eventValueScaling: 0.00000000005,
     url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID
   };
