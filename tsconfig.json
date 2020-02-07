@@ -11,7 +11,7 @@
      "exclude": [
      "node_modules",
      "doc",
-     "tests,
+     "tests",
      "dist"
  ]
 }
