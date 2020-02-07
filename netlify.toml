@@ -1,7 +1,5 @@
-# Settings in the [build] context are global and are applied to all contexts
-# unless otherwise overridden by more specific contexts.
-[build]
-  # Directory to change to before starting a build.
-  # This is where we will look for package.json/.nvmrc/etc.
-  base = "doc/"
-
+# COMMENT: This a rule for Single Page Applications as Docz site is one
+[[redirects]]
+  from = "/*"
+  to = "/"
+  status = 200
