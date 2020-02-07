@@ -1,3 +1,6 @@
 preview.html
 preview.ts
 previewData.ts
+node_modules
+tests
+doc
