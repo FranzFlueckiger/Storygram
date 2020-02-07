@@ -14,11 +14,11 @@
   "author": "Franz Flückiger, ZHaW",
   "license": "BSD-3",
   "dependencies": {
-    "@types/d3": "^5.7.2",
     "d3": "^5.14.2"
   },
   "devDependencies": {
     "@types/jest": "^24.0.24",
+    "@types/d3": "^5.7.2",
     "eslint": "^6.8.0",
     "jest": "^24.9.0",
     "ts-jest": "^24.2.0",
