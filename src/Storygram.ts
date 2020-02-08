@@ -17,7 +17,7 @@ export default class Storygram<T extends {}> {
 
   private isCalculated: boolean = false;
 
-  private isRendered: boolean = false;
+  private root: string = 'body'
 
   private baseConfig: BaseConfig = {
     verbose: false,
@@ -80,26 +80,17 @@ export default class Storygram<T extends {}> {
   public calculate() {
     this.processedData = filter(this.data, this.config);
     this.processedData = fit(this.processedData, this.config) as Data;
-    this.isCalculated = true
-  }
-
-  public render() {
-    if(!this.isCalculated) {
-      this.calculate()
-    }
     this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
     if(this.config.verbose) {
       console.log(this.renderedGrid);
     }
-    this.isRendered = true
+    this.isCalculated = true
   }
 
-  public async draw() {
+  public async draw(root: string) {
+    if(root) this.root = root
     if(!this.isCalculated) {
       this.calculate()
-    }
-    if(!this.isRendered) {
-      this.render()
     }
     DrawSpec.drawD3(this.renderedGrid, this.config, this.processedData)
   }
