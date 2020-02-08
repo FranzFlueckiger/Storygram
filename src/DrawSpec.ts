@@ -79,19 +79,28 @@ export default class DrawSpec {
     let width = data[1] * config.eventPadding;
     let height = data[2] * config.actorPadding;
 
-    let svg = d3.select(config.root).append("svg")
+    let svg
+
+    if(document.getElementById("storygram")) {
+      console.log('was already there')
+      svg = d3.select("#storygram").remove()
+    }
+    console.log('freshly rendered')
+    svg = d3.select(config.root).append("svg")
+      .attr('id', 'storygram')
       .attr("width", width + this.margin.left + this.margin.right)
-      .attr("height", height + this.margin.top + this.margin.bottom)
+      .attr("height", height + this.margin.top + this.margin.bottom);
 
     let layer1 = svg
       .append("g")
+      .attr('id', 'layer1')
       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-
     let layer2 = svg
       .append("g")
+      .attr('id', 'layer2')
       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-
-    var tooltip = d3.select("body").append("div")
+    let tooltip = d3.select("body").append("div")
+      .attr('id', 'tooltip')
       .attr("class", "tooltip")
       .style("opacity", 0)
       .style('position', 'absolute')
@@ -100,7 +109,7 @@ export default class DrawSpec {
       .style("border-width", "2px")
       .style("border-radius", "10px")
       .style("padding", "5px")
-      .style('font', '15px sans-serif')
+      .style('font', '15px sans-serif');
 
     let selectedEvent: number = data[0][0].x
     const selectedOpacity = 1
