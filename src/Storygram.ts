@@ -51,7 +51,8 @@ export default class Storygram<T extends {}> {
     linearLoss: 1,
     amtLoss: 1,
     lengthLoss: 1,
-    yExtentLoss: 0
+    yExtentLoss: 0,
+    root: 'body'
   };
 
   public config: FullConfig;
@@ -87,8 +88,7 @@ export default class Storygram<T extends {}> {
     this.isCalculated = true
   }
 
-  public async draw(root: string) {
-    if(root) this.root = root
+  public async draw() {
     if(!this.isCalculated) {
       this.calculate()
     }

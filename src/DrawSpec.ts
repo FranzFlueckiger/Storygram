@@ -79,7 +79,7 @@ export default class DrawSpec {
     let width = data[1] * config.eventPadding;
     let height = data[2] * config.actorPadding;
 
-    let svg = d3.select("body").append("svg")
+    let svg = d3.select(config.root).append("svg")
       .attr("width", width + this.margin.left + this.margin.right)
       .attr("height", height + this.margin.top + this.margin.bottom)
 
