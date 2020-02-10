@@ -133,6 +133,7 @@ function drawBundesratExample() {
     startField: 'Amtsbeginn',
     endField: 'Amtsende',
     actorField: 'Name',
+    filterEventValue: ['1 Jan 1990', undefined],
     eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
     strokeColor: (event, actor) => actor.data.Partei as string,
     compact: true,
@@ -166,7 +167,7 @@ function drawBlockbusterData() {
     eventField: 'release_date',
     eventDescription: (l) => l.data.original_title + ' (' + l.data.vote_average + '/10)' as string,
     filterGroupAmt: [2, undefined],
-    //filterEventValue: ['1 Jan 1990', '1 Jan 2010'],
+    filterEventValue: ['1 Jan 1990', '1 Jan 2010'],
     shouldContain: ['Leonardo DiCaprio', 'James Cameron'],
     eventValueScaling: 0.00000000005,
     url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID,
@@ -223,8 +224,10 @@ function drawNationalElfCHFrauenData() {
   SD.draw()
 }
 
-drawBlockbusterData()
+drawBundesratExample()
 
+/**
 setTimeout(function() {
   drawNarrowBlockbusterData()
 }, 1000);
+*/

@@ -20,15 +20,19 @@ function isInRange(p: number, range: [number | string | undefined, number | stri
 
 function filterEvents(data: Data, config: Config): Data {
   const actors: Map<string, Actor> = new Map();
+  let filterEventValue: [string | number | undefined, string | number | undefined] = [
+    inferEventValue(config.filterEventValue![0], 'self', 0)!.eventXValue,
+    inferEventValue(config.filterEventValue![1], 'self', 0)!.eventXValue
+  ]
   const events = data.events.filter(event => {
-    let contains = true;
+    let isContained = true;
     if(config.mustContain && config.mustContain.length) {
-      contains = config.mustContain.every(query => {
+      isContained = config.mustContain.every(query => {
         return event.group.includes(query);
       });
     }
     if(config.shouldContain && config.shouldContain.length) {
-      contains = config.shouldContain.some(query => {
+      isContained = config.shouldContain.some(query => {
         return event.group.includes(query);
       });
     }
@@ -36,14 +40,10 @@ function filterEvents(data: Data, config: Config): Data {
     if(config.filterEventCustom) {
       isCustomEventFilter = !config.filterEventCustom(event);
     }
+    const isGroupLengthInRange = isInRange(event.group.length, config.filterGroupSize)
+    const isEventInRange = isInRange(event.eventXValue, filterEventValue)
     if(
-      !isInRange(event.group.length, config.filterGroupSize) ||
-      !isInRange(event.eventXValue,
-        [inferEventValue(config.filterEventValue![0], 'self', 0)!.eventValue,
-        inferEventValue(config.filterEventValue![1], 'self', 0)!.eventValue]) ||
-      event.group.length == 0 ||
-      !contains ||
-      isCustomEventFilter
+      !isGroupLengthInRange || !isEventInRange || event.group.length === 0 || !isContained || isCustomEventFilter
     ) {
       event.isHidden = true;
       return false;

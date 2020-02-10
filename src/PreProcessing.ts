@@ -20,6 +20,7 @@ function inferEventValue(rawEvent: any, eventField: string | 'self' | undefined,
     if(eventField != 'self' && eventField in rawEvent) {
       eventValue = rawEvent[eventField]
     }
+    //console.log(eventValue)
     if(typeof eventValue === "number") {
       return {eventValue: eventValue, eventXValue: eventValue, type: 'number'}
     } else if(typeof eventValue === "string") {
