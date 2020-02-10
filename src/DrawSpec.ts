@@ -75,6 +75,7 @@ export default class DrawSpec {
     let width = data[1] * config.eventPadding;
     let height = data[2] * config.actorPadding;
 
+    // @ts-ignore
     let svg, layer1, layer2, tooltip
 
     if(document.getElementById("storygram")) {
@@ -258,6 +259,7 @@ export default class DrawSpec {
         })
 
       //xAxis description background
+      // @ts-ignore
       let xAxisLines = layer1.selectAll(".xAxisLine")
         .data(groupBin.filter((d: Binned) => {
           return d.value.event[0].eventValue != '-'
@@ -275,9 +277,9 @@ export default class DrawSpec {
               .transition()
               .duration(transitionSpeed)
               .ease(d3.easeLinear)
-              .attr('x1', d => xScale(Number(d.key)))
+              .attr('x1', (d: Binned) => xScale(Number(d.key)))
               .attr('y1', 0)
-              .attr('x2', d => xScale(Number(d.key)))
+              .attr('x2', (d: Binned) => xScale(Number(d.key)))
               .attr('y2', height)
           },
           (exit: any) => {
@@ -328,6 +330,7 @@ export default class DrawSpec {
 
 
       //xAxis description
+      // @ts-ignore
       let xAxis = layer1.selectAll(".xAxis")
         .data(groupBin)
         .join((enter: any) => {
@@ -343,7 +346,7 @@ export default class DrawSpec {
               .attr('text-anchor', 'end')
               .attr("x", (d: Binned) => xScale(d.value.event[0].x))
               .attr("y", height + 60)
-              .attr('id', (_, i) => i)
+              .attr('id', (_: any, i: number) => i)
               .attr("font-size", (d: Binned) => Number(d.key) === selectedEvent ? (fontSize) + "px" : (fontSize - 3) + "px")
               .attr('font-weight', (d: Binned) => Number(d.key) === selectedEvent ? 'bold' : 'normal')
               .text((d: Binned) => {
@@ -428,9 +431,11 @@ export default class DrawSpec {
         )
 
       function showTooltip(d: RenderedPoint) {
+        // @ts-ignore
         tooltip.transition()
           .duration(transitionSpeed)
           .style("opacity", opacity);
+        // @ts-ignore
         tooltip
           .html('<b>Hidden actors:</b>' + d.hiddenActors.map(p => '<br>' + p))
           .style("left", (d3.event.pageX) + "px")
@@ -440,6 +445,7 @@ export default class DrawSpec {
       }
 
       if(tooltipEvent != selectedEvent) {
+        // @ts-ignore
         tooltip
           .html('')
           .style("opacity", .0);
@@ -499,6 +505,7 @@ export default class DrawSpec {
             .remove()
         );
 
+      // @ts-ignore
       let actorDescInv = layer1.selectAll(".actorDescInv")
         .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event,
           //@ts-ignore
@@ -529,6 +536,7 @@ export default class DrawSpec {
           }
         );
 
+      // @ts-ignore
       let actorDescBackground = layer2.selectAll(".actorDescBackground")
         .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event,
           //@ts-ignore
@@ -562,6 +570,7 @@ export default class DrawSpec {
           }
         );
 
+      // @ts-ignore
       let actorDesc = layer2.selectAll(".actorDesc")
         .data(groupBin.filter(d => d.value.event[0].x === selectedEvent)[0].value.event,
           //@ts-ignore

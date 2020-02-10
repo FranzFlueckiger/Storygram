@@ -92,7 +92,7 @@ export default class Storygram<T extends {}> {
     if(!this.isCalculated) {
       this.calculate()
     }
-    DrawSpec.drawD3(this.renderedGrid, this.config, this.processedData)
+    DrawSpec.drawD3(this.renderedGrid, this.config)
   }
 
 }
