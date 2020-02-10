@@ -117,7 +117,8 @@ function drawKurliSD() {
     dataFormat: 'array',
     eventField: 'date',
     actorArrayField: 'collocs',
-    compact: true
+    compact: true,
+    eventValueScaling: 0.004
   }
   const SD = new Storygram(data, config);
   SD.draw()
@@ -137,7 +138,7 @@ function drawBundesratExample() {
     eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
     strokeColor: (event, actor) => actor.data.Partei as string,
     compact: true,
-    eventValueScaling: 0.00000000002,
+    eventValueScaling: 0.002,
   };
   const SD = new Storygram(data, config);
   SD.draw()
@@ -169,7 +170,7 @@ function drawBlockbusterData() {
     filterGroupAmt: [2, undefined],
     filterEventValue: ['1 Jan 1990', '1 Jan 2010'],
     shouldContain: ['Leonardo DiCaprio', 'James Cameron'],
-    eventValueScaling: 0.00000000005,
+    eventValueScaling: 0.0025,
     url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID,
     verbose: true
   };
@@ -186,7 +187,7 @@ function drawNarrowBlockbusterData() {
     eventDescription: (l) => l.data.original_title + ' (' + l.data.vote_average + '/10)' as string,
     filterGroupAmt: [5, undefined],
     shouldContain: ['Leonardo DiCaprio', 'Tim Burton'],
-    eventValueScaling: 0.00000000005,
+    eventValueScaling: 0.003,
     url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID,
     verbose: true
   };
@@ -201,7 +202,6 @@ function drawNationalElfDEData() {
     actorField: 'Name',
     startField: 'von',
     endField: 'bis',
-    filterGroupAmt: [8, undefined],
     compact: true,
     verbose: true
   };
@@ -217,17 +217,15 @@ function drawNationalElfCHFrauenData() {
     startField: 'Debüt',
     endField: 'letzter Einsatz',
     compact: true,
-    eventValueScaling: 0.0000000001,
+    eventValueScaling: 0.0025,
     verbose: true
   };
   const SD = new Storygram(data, config);
   SD.draw()
 }
 
-drawBundesratExample()
+drawMetasonSD()
 
-/**
 setTimeout(function() {
   drawNarrowBlockbusterData()
 }, 1000);
-*/

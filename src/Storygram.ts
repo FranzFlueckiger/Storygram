@@ -27,7 +27,7 @@ export default class Storygram<T extends {}> {
     url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.eventValue) + ' ' + actor.actorID,
     eventPadding: 40,
     actorPadding: 30,
-    eventValueScaling: 0.625,
+    eventValueScaling: 0.9,
     generationAmt: 30,
     populationSize: 50,
     selectionRate: 0.25,

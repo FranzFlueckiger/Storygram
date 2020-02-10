@@ -50,7 +50,7 @@ export default class DrawSpec {
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(xLayer, yVal!);
           const strokeColor = config.strokeColor(xLayer, yVal!);
-          const xDrawn = scaling * xLayer.eventXValue + (1 - scaling) * eventIndex;
+          const xDrawn = Math.pow(scaling, 4) * xLayer.eventXValue + (1 - Math.pow(scaling, 4)) * eventIndex;
           const eventDescription = config.eventDescription!(xLayer);
           const url = config.url(xLayer, yVal!)
           const hiddenActors = xLayer.hiddenActors
@@ -74,6 +74,17 @@ export default class DrawSpec {
 
     let width = data[1] * config.eventPadding;
     let height = data[2] * config.actorPadding;
+
+    let selectedEvent: number = data[0][0].x
+    const selectedOpacity = 1
+    const unSelectedOpacity = 0.2
+    const selectedLineSize = config.lineSize
+    const unSelectedLineSize = selectedLineSize - 3
+    const opacity = 0.9
+    const fontSize = 15
+    const transitionSpeed = 100
+    const xPadding = 0.01
+    let tooltipEvent = -1
 
     // @ts-ignore
     let svg, layer1, layer2, tooltip
@@ -105,19 +116,7 @@ export default class DrawSpec {
       .style("border-width", "2px")
       .style("border-radius", "10px")
       .style("padding", "5px")
-      .style('font', '15px sans-serif');
-
-    let selectedEvent: number = data[0][0].x
-    const selectedOpacity = 1
-    const unSelectedOpacity = 0.15
-    const selectedLineSize = config.lineSize
-    const unSelectedLineSize = selectedLineSize - 3
-    const opacity = 0.9
-    const fontSize = 15
-    const transitionSpeed = 100
-    const xPadding = 0.01
-    const actorDescSize = 15
-    let tooltipEvent = -1
+      .style('font', String(fontSize - 3) + 'px sans-serif');
 
     let actorBin: Binned[] = d3.nest()
       .key(d => d instanceof RenderedPoint ? d.z : '')
@@ -201,7 +200,7 @@ export default class DrawSpec {
       .append("text")
       .attr("class", "event_desc")
       .attr("font-family", "sans-serif")
-      .attr("font-size", fontSize)
+      .attr("font-size", (fontSize + 1))
 
     // Create a rect on top of the svg area: this rectangle recovers mouse position
     layer2
@@ -347,7 +346,7 @@ export default class DrawSpec {
               .attr("x", (d: Binned) => xScale(d.value.event[0].x))
               .attr("y", height + 60)
               .attr('id', (_: any, i: number) => i)
-              .attr("font-size", (d: Binned) => Number(d.key) === selectedEvent ? (fontSize) + "px" : (fontSize - 3) + "px")
+              .attr("font-size", (d: Binned) => Number(d.key) === selectedEvent ? (fontSize - 2) + "px" : (fontSize - 4) + "px")
               .attr('font-weight', (d: Binned) => Number(d.key) === selectedEvent ? 'bold' : 'normal')
               .text((d: Binned) => {
                 return d.value.event[0].eventValue
@@ -437,10 +436,11 @@ export default class DrawSpec {
           .style("opacity", opacity);
         // @ts-ignore
         tooltip
+          .attr("font-size", (fontSize - 10) + "px")
           .html('<b>Hidden actors:</b>' + d.hiddenActors.map(p => '<br>' + p))
           .style("left", (d3.event.pageX) + "px")
           .style("top", (d3.event.pageY - 28) + "px")
-          .style("width", "200px");
+          .style("width", "200px")
         tooltipEvent = d.x
       }
 
@@ -516,7 +516,7 @@ export default class DrawSpec {
               .append("text")
               .attr("class", "actorDescInv")
               .attr("font-family", "sans-serif")
-              .attr("font-size", actorDescSize + "px")
+              .attr("font-size", (config.lineSize + 3) + "px")
               .attr("dominant-baseline", "middle")
               .attr("opacity", 0)
               .attr("x", (d: RenderedPoint) => xScale(d.x) + 10)
@@ -581,7 +581,7 @@ export default class DrawSpec {
               .append("text")
               .attr("class", "actorDesc")
               .attr("font-family", "sans-serif")
-              .attr("font-size", actorDescSize + "px")
+              .attr("font-size", (config.lineSize + 3) + "px")
               .attr("dominant-baseline", "middle")
               .attr("x", (d: RenderedPoint) => xScale(d.x) + selectedLineSize / 2 + 10)
               .attr("y", (d: RenderedPoint) => yScale(d.y))
