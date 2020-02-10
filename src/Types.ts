@@ -151,6 +151,8 @@ export interface BaseConfig {
   lengthLoss: number;
   // Penalty for the y extent of the chart
   yExtentLoss: number;
+  // CSS-Selector indicating the DOM element to which the Storygram is appended
+  root: string;
 }
 
 export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
@@ -221,7 +223,7 @@ export interface Data {
 }
 
 export class RenderedPoint {
-  public hiddenYs: string[] = [];
+  public hiddenActors: string[] = [];
 
   public bbox: any
 

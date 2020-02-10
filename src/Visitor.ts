@@ -1,5 +1,4 @@
 import { Data, Distance, GenePool, Switch, Event, Config, Actor } from './Types';
-import { FILL_CONFIG } from 'vega-lite/build/src/mark';
 
 function visit(data: Data, actorEntryPoints: GenePool | undefined, config: Config): [Event[], GenePool] {
   actorEntryPoints = actorEntryPoints ? actorEntryPoints : new Map();
@@ -134,4 +133,4 @@ function getDistances(group: string[], center: number, visitor: string[]): Dista
 }
 
 
-export { visit, add, switchP, group, getCenter, getDistances };
+export { visit, add, remove, switchP, group, getCenter, getDistances };

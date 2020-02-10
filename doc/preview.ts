@@ -1,6 +1,6 @@
-import {Storygram} from './src/index';
-import {testRangeData, testArrayData, testTableData} from './test/testData';
-import {Config} from './src/Types';
+import {Storygram} from '../src/index';
+import {testRangeData, testArrayData, testTableData} from '../test/testData';
+import {Config} from '../src/Types';
 import {MetasonData, KurliData, WarData, BundesratData, BlockBusterdata, deNationalElf, chNationalElfFrauen} from './previewData'
 
 function drawRangeSD() {
@@ -52,7 +52,6 @@ function drawWarData() {
     filterGroupAmt: [2, undefined],
     actorSplitFunction: (ys) => ys.split(', '),
     shouldContain: ['Russia (Soviet Union)'],
-    highlight: ['Afghanistan', 'Russia (Soviet Union)']
   };
   const SD = new Storygram(data, config);
   SD.draw()
@@ -134,12 +133,11 @@ function drawBundesratExample() {
     startField: 'Amtsbeginn',
     endField: 'Amtsende',
     actorField: 'Name',
+    filterEventValue: ['1 Jan 1990', undefined],
     eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
     strokeColor: (event, actor) => actor.data.Partei as string,
     compact: true,
     eventValueScaling: 0.00000000002,
-    populationSize: 100,
-    generationAmt: 100
   };
   const SD = new Storygram(data, config);
   SD.draw()
@@ -168,10 +166,12 @@ function drawBlockbusterData() {
     actorArrayField: 'people',
     eventField: 'release_date',
     eventDescription: (l) => l.data.original_title + ' (' + l.data.vote_average + '/10)' as string,
-    filterGroupAmt: [5, undefined],
-    shouldContain: ['Leonardo DiCaprio', 'Tim Burton'],
+    filterGroupAmt: [2, undefined],
+    filterEventValue: ['1 Jan 1990', '1 Jan 2010'],
+    shouldContain: ['Leonardo DiCaprio', 'James Cameron'],
     eventValueScaling: 0.00000000005,
-    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID
+    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID,
+    verbose: true
   };
   const SD = new Storygram(data, config);
   SD.draw()
@@ -187,7 +187,8 @@ function drawNarrowBlockbusterData() {
     filterGroupAmt: [5, undefined],
     shouldContain: ['Leonardo DiCaprio', 'Tim Burton'],
     eventValueScaling: 0.00000000005,
-    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID
+    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID,
+    verbose: true
   };
   const SD = new Storygram(data, config);
   SD.draw()
@@ -223,4 +224,10 @@ function drawNationalElfCHFrauenData() {
   SD.draw()
 }
 
-drawBlockbusterData()
+drawBundesratExample()
+
+/**
+setTimeout(function() {
+  drawNarrowBlockbusterData()
+}, 1000);
+*/

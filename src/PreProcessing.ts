@@ -20,6 +20,7 @@ function inferEventValue(rawEvent: any, eventField: string | 'self' | undefined,
     if(eventField != 'self' && eventField in rawEvent) {
       eventValue = rawEvent[eventField]
     }
+    //console.log(eventValue)
     if(typeof eventValue === "number") {
       return {eventValue: eventValue, eventXValue: eventValue, type: 'number'}
     } else if(typeof eventValue === "string") {
@@ -118,9 +119,10 @@ function processEventsFirst(
   eventField?: string,
   splitFunction?: ((arg: string) => string[]) | undefined
 ) {
-  let data: Array<Record<string, any> & inferredEvent> = inputData.reduce<Record<string, any> & inferredEvent>((arr, event, i) => {
+  let data = inputData.reduce<Array<Record<string, any> & inferredEvent>>((arr, event, i: number) => {
     let moment = inferEventValue(event, eventField, i)
     if(moment) {
+      // @ts-ignore
       arr.push([event, moment])
     }
     return arr

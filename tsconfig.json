@@ -7,5 +7,11 @@
     "strict": true,
     "noImplicitAny": true,
     "lib": ["dom", "esnext"]
-  }
+  },
+     "exclude": [
+     "node_modules",
+     "doc",
+     "tests",
+     "dist"
+ ]
 }

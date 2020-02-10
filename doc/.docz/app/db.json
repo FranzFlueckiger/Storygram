@@ -1,0 +1,251 @@
+{
+  "config": {
+    "title": "Docz Example Typescript",
+    "description": "My awesome app using docz",
+    "menu": [],
+    "version": "2.0.0-rc.41",
+    "repository": null,
+    "native": false,
+    "themeConfig": {},
+    "separator": "-",
+    "typescript": true
+  },
+  "entries": [
+    {
+      "key": "README.md",
+      "value": {
+        "id": "04c6e90faac2675aa89e2176d2eec7d8",
+        "filepath": "README.md",
+        "fullpath": "C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\README.md",
+        "link": "",
+        "slug": "readme",
+        "route": "/readme",
+        "name": "Readme",
+        "menu": "",
+        "headings": [
+          {
+            "slug": "typescript-docz-example",
+            "depth": 1,
+            "value": "Typescript Docz example"
+          },
+          {
+            "slug": "using-create-docz-app",
+            "depth": 2,
+            "value": "Using  create-docz-app"
+          },
+          {
+            "slug": "download-manually",
+            "depth": 2,
+            "value": "Download manually"
+          },
+          {
+            "slug": "setup",
+            "depth": 2,
+            "value": "Setup"
+          },
+          {
+            "slug": "run",
+            "depth": 2,
+            "value": "Run"
+          }
+        ]
+      }
+    },
+    {
+      "key": "src/index.mdx",
+      "value": {
+        "name": "Getting Started",
+        "route": "/",
+        "id": "6576455a124f9aaefd860597f03a8fe4",
+        "filepath": "src/index.mdx",
+        "fullpath": "C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\src\\index.mdx",
+        "link": "",
+        "slug": "src-index",
+        "menu": "",
+        "headings": [
+          {
+            "slug": "getting-started",
+            "depth": 1,
+            "value": "Getting Started"
+          },
+          {
+            "slug": "consistency",
+            "depth": 2,
+            "value": "Consistency"
+          }
+        ]
+      }
+    },
+    {
+      "key": "src/components/Alert.mdx",
+      "value": {
+        "name": "Alert",
+        "menu": "Components",
+        "id": "411d2842c3d65e6ee7d3ec119ed4c5a0",
+        "filepath": "src/components/Alert.mdx",
+        "fullpath": "C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\src\\components\\Alert.mdx",
+        "link": "",
+        "slug": "src-components-alert",
+        "route": "/src-components-alert",
+        "headings": [
+          {
+            "slug": "alert",
+            "depth": 1,
+            "value": "Alert"
+          },
+          {
+            "slug": "properties",
+            "depth": 2,
+            "value": "Properties"
+          },
+          {
+            "slug": "basic-usage",
+            "depth": 2,
+            "value": "Basic usage"
+          },
+          {
+            "slug": "using-different-kinds",
+            "depth": 2,
+            "value": "Using different kinds"
+          }
+        ]
+      }
+    },
+    {
+      "key": "src/components/Button.mdx",
+      "value": {
+        "name": "Button",
+        "menu": "Components",
+        "id": "94c04b4e4bd29ffbdeec8755c1a4c04f",
+        "filepath": "src/components/Button.mdx",
+        "fullpath": "C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\src\\components\\Button.mdx",
+        "link": "",
+        "slug": "src-components-button",
+        "route": "/src-components-button",
+        "headings": [
+          {
+            "slug": "button",
+            "depth": 1,
+            "value": "Button"
+          },
+          {
+            "slug": "best-practices",
+            "depth": 3,
+            "value": "Best practices"
+          },
+          {
+            "slug": "properties",
+            "depth": 2,
+            "value": "Properties"
+          },
+          {
+            "slug": "basic-usage",
+            "depth": 2,
+            "value": "Basic usage"
+          },
+          {
+            "slug": "with-different-sizes",
+            "depth": 2,
+            "value": "With different sizes"
+          },
+          {
+            "slug": "with-different-colors",
+            "depth": 2,
+            "value": "With different colors"
+          },
+          {
+            "slug": "outlined",
+            "depth": 2,
+            "value": "Outlined"
+          }
+        ]
+      }
+    }
+  ],
+  "props": [
+    {
+      "key": "src/components/Alert.tsx",
+      "value": [
+        {
+          "description": "",
+          "displayName": "Alert",
+          "methods": [],
+          "props": {
+            "kind": {
+              "defaultValue": {
+                "value": "info"
+              },
+              "description": "Set this to change alert kind",
+              "name": "kind",
+              "parent": {
+                "fileName": "src/components/Alert.tsx",
+                "name": "AlertProps"
+              },
+              "required": true,
+              "type": {
+                "name": "\"info\" | \"positive\" | \"negative\" | \"warning\""
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "key": "src/components/Button.tsx",
+      "value": [
+        {
+          "description": "",
+          "displayName": "Button",
+          "methods": [],
+          "props": {
+            "scale": {
+              "defaultValue": {
+                "value": "normal"
+              },
+              "description": "",
+              "name": "scale",
+              "parent": {
+                "fileName": "src/components/Button.tsx",
+                "name": "ButtonProps"
+              },
+              "required": false,
+              "type": {
+                "name": "\"small\" | \"normal\" | \"big\""
+              }
+            },
+            "kind": {
+              "defaultValue": {
+                "value": "primary"
+              },
+              "description": "",
+              "name": "kind",
+              "parent": {
+                "fileName": "src/components/Button.tsx",
+                "name": "ButtonProps"
+              },
+              "required": false,
+              "type": {
+                "name": "\"primary\" | \"secondary\" | \"cancel\" | \"dark\" | \"gray\""
+              }
+            },
+            "outline": {
+              "defaultValue": {
+                "value": false
+              },
+              "description": "",
+              "name": "outline",
+              "parent": {
+                "fileName": "src/components/Button.tsx",
+                "name": "ButtonProps"
+              },
+              "required": false,
+              "type": {
+                "name": "boolean"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
