@@ -99,10 +99,10 @@ export default class DrawSpec {
     let selectedEvent: number = data[0][0].x
     const selectedOpacity = 1
     const unSelectedOpacity = 0.15
-    const selectedLineSize = 12
-    const unSelectedLineSize = 10
+    const selectedLineSize = config.lineSize
+    const unSelectedLineSize = selectedLineSize - 3
     const opacity = 0.9
-    const fontSize = 17
+    const fontSize = 15
     const transitionSpeed = 100
     const xPadding = 0.01
     const actorDescSize = 15
