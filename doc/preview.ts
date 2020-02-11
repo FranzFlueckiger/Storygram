@@ -52,6 +52,10 @@ function drawWarData() {
     filterGroupAmt: [2, undefined],
     actorSplitFunction: (ys) => ys.split(', '),
     shouldContain: ['Russia (Soviet Union)'],
+    strokeColor: (event, actor) => {
+      if((event.data.SideA && event.data.SideA.includes(actor.actorID)) || (event.data.SideA2nd && event.data.SideA2nd.includes(actor.actorID))) return 'Side A'
+      else return 'Side B'
+    }
   };
   const SD = new Storygram(data, config);
   SD.draw()
@@ -224,7 +228,7 @@ function drawNationalElfCHFrauenData() {
   SD.draw()
 }
 
-drawMetasonSD()
+drawKurliSD()
 
 setTimeout(function() {
   drawNarrowBlockbusterData()
