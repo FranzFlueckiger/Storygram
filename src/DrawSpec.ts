@@ -142,7 +142,7 @@ export default class DrawSpec {
 
     var color = d3.scaleOrdinal()
       .domain(colorEntries)
-      .range(d3.schemePaired)
+      .range(d3[config.colorScheme])
 
     var bisect = d3.bisector((d: RenderedPoint) => d.x).left;
 

@@ -21,7 +21,7 @@ export default class Storygram<T extends {}> {
 
   private baseConfig: BaseConfig = {
     verbose: false,
-    colorScheme: 'tableau10',
+    colorScheme: 'schemeAccent',
     lineSize: 9,
     eventDescription: l => String(l.eventValue),
     url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.eventValue) + ' ' + actor.actorID,
