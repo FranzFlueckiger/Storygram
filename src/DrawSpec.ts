@@ -341,12 +341,11 @@ export default class DrawSpec {
             update.transition()
               .duration(transitionSpeed)
               .ease(d3.easeLinear)
-              .attr("font-size", "15px")
               .attr('text-anchor', 'end')
               .attr("x", (d: Binned) => xScale(d.value.event[0].x))
               .attr("y", height + 60)
               .attr('id', (_: any, i: number) => i)
-              .attr("font-size", (d: Binned) => Number(d.key) === selectedEvent ? (fontSize - 2) + "px" : (fontSize - 4) + "px")
+              .attr("font-size", (d: Binned) => Number(d.key) === selectedEvent ? (fontSize - 2) + "px" : (fontSize - 3) + "px")
               .attr('font-weight', (d: Binned) => Number(d.key) === selectedEvent ? 'bold' : 'normal')
               .text((d: Binned) => {
                 return d.value.event[0].eventValue
@@ -381,7 +380,7 @@ export default class DrawSpec {
             .duration(transitionSpeed)
             .ease(d3.easeLinear)
             .attr("y", (d: RenderedPoint) => {
-              if(d.x === selectedEvent) return yScale(d.y) - 24
+              if(d.x === selectedEvent) return yScale(d.y) - 25.5
               else return yScale(d.y) + 0.4
             })
             .call(getTextBox),
