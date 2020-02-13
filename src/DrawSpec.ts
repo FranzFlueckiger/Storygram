@@ -77,7 +77,7 @@ export default class DrawSpec {
 
     let selectedEvent: number = data[0][0].x
     const selectedOpacity = 1
-    const unSelectedOpacity = 0.2
+    const unSelectedOpacity = 0.25
     const selectedLineSize = config.lineSize
     const unSelectedLineSize = selectedLineSize - 3
     const opacity = 0.9
@@ -106,7 +106,7 @@ export default class DrawSpec {
       .append("g")
       .attr('id', 'layer2')
       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-    tooltip = d3.select("body").append("div")
+    tooltip = d3.select(config.root).append("div")
       .attr('id', 'tooltip')
       .attr("class", "tooltip")
       .style("opacity", 0)
@@ -418,9 +418,9 @@ export default class DrawSpec {
               if(d.x === selectedEvent) return opacity
               else return 0.4
             })
-            .attr("x", (d: RenderedPoint) => xScale(d.x) + 7)
+            .attr("x", (d: RenderedPoint) => xScale(d.x) + 7.25)
             .attr("y", (d: RenderedPoint) => {
-              if(d.x === selectedEvent) return yScale(d.y) - 32
+              if(d.x === selectedEvent) return yScale(d.y) - 31
               else return yScale(d.y) - selectedLineSize / 2 - 2
             })
             .text((d: RenderedPoint) => d.hiddenActors ? d.hiddenActors.length : ''),
