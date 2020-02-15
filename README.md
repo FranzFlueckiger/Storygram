@@ -8,10 +8,10 @@
 
 The Storygram allows you to explore and visualize sequential groupings in your data.
 
-<a href="https://storygram.netlify.com/" target="_blank"></a>
-
 To install this package run
 
 ```sh
 npm i storygram
 ```
+
+<a href="https://storygram.netlify.com/" target="_blank">Link to the documentation</a>
