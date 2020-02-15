@@ -70,3 +70,9 @@ typings/
 dist/
 
 *.gitignore
+
+doc/node_modules
+doc/.cache
+doc/.docz/.cache
+doc/.docz/dist
+doc/.docz/node_modules

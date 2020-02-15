@@ -51,7 +51,8 @@ const config = {
         o: false,
         open: false,
         'open-browser': false,
-        root: 'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\.docz',
+        root:
+          'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz',
         base: '/',
         source: './',
         src: './',
@@ -70,35 +71,36 @@ const config = {
         p: 3000,
         separator: '-',
         paths: {
-          root: 'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc',
+          root:
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc',
           templates:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\node_modules\\docz-core\\dist\\templates',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\node_modules\\docz-core\\dist\\templates',
           docz:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\.docz',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz',
           cache:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\.docz\\.cache',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\.cache',
           app:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\.docz\\app',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app',
           appPackageJson:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\package.json',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\package.json',
           gatsbyConfig:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\gatsby-config.js',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\gatsby-config.js',
           gatsbyBrowser:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\gatsby-browser.js',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\gatsby-browser.js',
           gatsbyNode:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\gatsby-node.js',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\gatsby-node.js',
           gatsbySSR:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\gatsby-ssr.js',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\gatsby-ssr.js',
           importsJs:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\.docz\\app\\imports.js',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app\\imports.js',
           rootJs:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\.docz\\app\\root.jsx',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app\\root.jsx',
           indexJs:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\.docz\\app\\index.jsx',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app\\index.jsx',
           indexHtml:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\.docz\\app\\index.html',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app\\index.html',
           db:
-            'C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\.docz\\app\\db.json',
+            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app\\db.json',
         },
       },
     },

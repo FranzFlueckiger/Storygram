@@ -1,4 +1,4 @@
-# Typescript Docz example
+# The storygram
 
 ## Using `create-docz-app`
 
