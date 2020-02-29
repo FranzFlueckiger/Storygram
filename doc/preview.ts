@@ -231,5 +231,5 @@ function drawNationalElfCHFrauenData() {
 drawKurliSD()
 
 setTimeout(function() {
-  drawNarrowBlockbusterData()
+  drawBundesratExample()
 }, 1000);

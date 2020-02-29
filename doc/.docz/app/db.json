@@ -16,7 +16,7 @@
       "value": {
         "id": "04c6e90faac2675aa89e2176d2eec7d8",
         "filepath": "README.md",
-        "fullpath": "C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\README.md",
+        "fullpath": "C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\README.md",
         "link": "",
         "slug": "readme",
         "route": "/readme",
@@ -24,9 +24,9 @@
         "menu": "",
         "headings": [
           {
-            "slug": "typescript-docz-example",
+            "slug": "the-storygram",
             "depth": 1,
-            "value": "Typescript Docz example"
+            "value": "The storygram"
           },
           {
             "slug": "using-create-docz-app",
@@ -58,7 +58,7 @@
         "route": "/",
         "id": "6576455a124f9aaefd860597f03a8fe4",
         "filepath": "src/index.mdx",
-        "fullpath": "C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\src\\index.mdx",
+        "fullpath": "C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\src\\index.mdx",
         "link": "",
         "slug": "src-index",
         "menu": "",
@@ -83,7 +83,7 @@
         "menu": "Components",
         "id": "411d2842c3d65e6ee7d3ec119ed4c5a0",
         "filepath": "src/components/Alert.mdx",
-        "fullpath": "C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\src\\components\\Alert.mdx",
+        "fullpath": "C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\src\\components\\Alert.mdx",
         "link": "",
         "slug": "src-components-alert",
         "route": "/src-components-alert",
@@ -118,7 +118,7 @@
         "menu": "Components",
         "id": "94c04b4e4bd29ffbdeec8755c1a4c04f",
         "filepath": "src/components/Button.mdx",
-        "fullpath": "C:\\Users\\bassplayerch\\PROGRAMMING\\D3\\Storygram\\doc\\src\\components\\Button.mdx",
+        "fullpath": "C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\src\\components\\Button.mdx",
         "link": "",
         "slug": "src-components-button",
         "route": "/src-components-button",
