@@ -14,4 +14,6 @@ To install this package run
 npm i storygram
 ```
 
-<a href="https://storygram.netlify.com/" target="_blank">Link to the documentation</a>
+<a href="https://storygram-demo.netlify.com/" target="_blank">Live Demo</a>
+
+<a href="https://storygram.netlify.com/" target="_blank">Documentation</a>
