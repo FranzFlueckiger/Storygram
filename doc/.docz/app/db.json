@@ -1,6 +1,6 @@
 {
   "config": {
-    "title": "Docz Example Typescript",
+    "title": "Storygram Docs",
     "description": "My awesome app using docz",
     "menu": [],
     "version": "2.0.0-rc.41",
@@ -52,6 +52,31 @@
       }
     },
     {
+      "key": "src/basic_usage.mdx",
+      "value": {
+        "name": "Basic usage",
+        "route": "/basic_usage",
+        "id": "c467acbffd1a160f6bbf9a2e02440d58",
+        "filepath": "src/basic_usage.mdx",
+        "fullpath": "C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\src\\basic_usage.mdx",
+        "link": "",
+        "slug": "src-basic-usage",
+        "menu": "",
+        "headings": [
+          {
+            "slug": "basic-usage",
+            "depth": 1,
+            "value": "Basic usage"
+          },
+          {
+            "slug": "array-structure",
+            "depth": 2,
+            "value": "Array Structure"
+          }
+        ]
+      }
+    },
+    {
       "key": "src/index.mdx",
       "value": {
         "name": "Getting Started",
@@ -67,11 +92,6 @@
             "slug": "getting-started",
             "depth": 1,
             "value": "Getting Started"
-          },
-          {
-            "slug": "consistency",
-            "depth": 2,
-            "value": "Consistency"
           }
         ]
       }
@@ -241,6 +261,57 @@
               "required": false,
               "type": {
                 "name": "boolean"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "key": "src/components/Neutral.tsx",
+      "value": [
+        {
+          "description": "",
+          "displayName": "Neutral",
+          "methods": [],
+          "props": {
+            "data": {
+              "defaultValue": null,
+              "description": "",
+              "name": "data",
+              "required": true,
+              "type": {
+                "name": "any"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "key": "src/components/StorygramWrapper.tsx",
+      "value": [
+        {
+          "description": "",
+          "displayName": "StorygramWrapper",
+          "methods": [],
+          "props": {
+            "data": {
+              "defaultValue": null,
+              "description": "",
+              "name": "data",
+              "required": true,
+              "type": {
+                "name": "any"
+              }
+            },
+            "config": {
+              "defaultValue": null,
+              "description": "",
+              "name": "config",
+              "required": true,
+              "type": {
+                "name": "Config"
               }
             }
           }

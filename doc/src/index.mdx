@@ -3,6 +3,23 @@ name: Getting Started
 route: /
 ---
 
+import { Playground, Props } from 'docz'
+import StorygramGUI from './components/StorygramWrapper';
+//import {BlockBusterdata} from './previewData.ts'
+
 # Getting Started
 
-Coming soon
+The Storygram allows you to explore and visualize sequential groupings in your data.
+
+To install this package run
+
+```sh
+npm i storygram
+```
+<Playground>{console.log(BlockBusterdata)}
+  <StorygramGUI data={BlockBusterdata()} config={ {
+    dataFormat: 'array',
+    eventField: 'id',
+    actorArrayField: 'a',
+  }}></StorygramGUI>
+</Playground>

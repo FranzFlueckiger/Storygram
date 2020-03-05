@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "docz-example-typescript",
+  "name": "storygram-docs",
   "version": "2.0.0-rc.41",
   "license": "MIT",
   "files": [
@@ -16,9 +16,11 @@
   "dependencies": {
     "@emotion/core": "^10.0.14",
     "@emotion/styled": "^10.0.14",
+    "blueprintjs": "0.0.8",
     "docz": "latest",
     "react": "^16.8.6",
-    "react-dom": "^16.8.6"
+    "react-dom": "^16.8.6",
+    "storygram": "0.0.15-beta"
   },
   "devDependencies": {
     "@types/react": "^16.8.23",

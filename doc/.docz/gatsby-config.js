@@ -19,8 +19,8 @@ const config = {
   pathPrefix: '/',
 
   siteMetadata: {
-    title: 'The Storygram',
-    description: 'Storygram Documentation',
+    title: 'Storygram Docs',
+    description: 'My awesome app using docz',
   },
   plugins: [
     {
@@ -35,7 +35,7 @@ const config = {
       options: {
         themeConfig: {},
         themesDir: 'src',
-        mdxExtensions: [ '.md', '.mdx' ],
+        mdxExtensions: ['.md', '.mdx'],
         docgenConfig: {},
         menu: [],
         mdPlugins: [],
@@ -64,8 +64,8 @@ const config = {
         eb: 'master',
         'edit-branch': 'master',
         config: '',
-        title: 'The Storygram',
-        description: 'Storygram Documentation',
+        title: 'Storygram Docs',
+        description: 'My awesome app using docz',
         host: 'localhost',
         port: 3000,
         p: 3000,
