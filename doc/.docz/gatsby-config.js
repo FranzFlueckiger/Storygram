@@ -51,8 +51,7 @@ const config = {
         o: false,
         open: false,
         'open-browser': false,
-        root:
-          'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz',
+        root: '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz',
         base: '/',
         source: './',
         src: './',
@@ -71,36 +70,34 @@ const config = {
         p: 3000,
         separator: '-',
         paths: {
-          root:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc',
+          root: '/Users/franzfluckiger/Documents/Software/Storygram/doc',
           templates:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\node_modules\\docz-core\\dist\\templates',
-          docz:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/node_modules/docz-core/dist/templates',
+          docz: '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz',
           cache:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\.cache',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/.cache',
           app:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app',
           appPackageJson:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\package.json',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/package.json',
           gatsbyConfig:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\gatsby-config.js',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/gatsby-config.js',
           gatsbyBrowser:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\gatsby-browser.js',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/gatsby-browser.js',
           gatsbyNode:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\gatsby-node.js',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/gatsby-node.js',
           gatsbySSR:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\gatsby-ssr.js',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/gatsby-ssr.js',
           importsJs:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app\\imports.js',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app/imports.js',
           rootJs:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app\\root.jsx',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app/root.jsx',
           indexJs:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app\\index.jsx',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app/index.jsx',
           indexHtml:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app\\index.html',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app/index.html',
           db:
-            'C:\\Users\\thece\\OneDrive\\Documenti\\Software\\Storygram\\doc\\.docz\\app\\db.json',
+            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app/db.json',
         },
       },
     },
