@@ -51,7 +51,8 @@ const config = {
         o: false,
         open: false,
         'open-browser': false,
-        root: '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz',
+        root:
+          'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\.docz',
         base: '/',
         source: './',
         src: './',
@@ -70,34 +71,35 @@ const config = {
         p: 3000,
         separator: '-',
         paths: {
-          root: '/Users/franzfluckiger/Documents/Software/Storygram/doc',
+          root: 'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc',
           templates:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/node_modules/docz-core/dist/templates',
-          docz: '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\node_modules\\docz-core\\dist\\templates',
+          docz:
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\.docz',
           cache:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/.cache',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\.docz\\.cache',
           app:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\.docz\\app',
           appPackageJson:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/package.json',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\package.json',
           gatsbyConfig:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/gatsby-config.js',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\gatsby-config.js',
           gatsbyBrowser:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/gatsby-browser.js',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\gatsby-browser.js',
           gatsbyNode:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/gatsby-node.js',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\gatsby-node.js',
           gatsbySSR:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/gatsby-ssr.js',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\gatsby-ssr.js',
           importsJs:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app/imports.js',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\.docz\\app\\imports.js',
           rootJs:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app/root.jsx',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\.docz\\app\\root.jsx',
           indexJs:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app/index.jsx',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\.docz\\app\\index.jsx',
           indexHtml:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app/index.html',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\.docz\\app\\index.html',
           db:
-            '/Users/franzfluckiger/Documents/Software/Storygram/doc/.docz/app/db.json',
+            'C:\\Users\\bassplayerch\\PROGRAMMING\\REACT\\Storygram\\doc\\.docz\\app\\db.json',
         },
       },
     },
