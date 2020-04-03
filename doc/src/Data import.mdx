@@ -1,0 +1,64 @@
+---
+name: Importing Data
+route: /importing_data
+---
+import { Playground, Props } from 'docz'
+import StorygramGUI from './components/StorygramWrapper';
+
+# Basic usage
+
+The Storygram accepts three different data structures as input.
+
+## Array
+
+Data in the array structure consists of an array of objects, each of which contains a number or a date in which a event occurs and a array containing the involved actors. Below, a basic sample in this data structure is shown. 
+
+```sh
+data={[
+    {event: 0, actors: ['a', 'b', 'c']},
+    {event: 1, actors: ['d', 'b', 'e']},
+    {event: 2, actors: ['d', 'a']}
+  ]}
+```
+
+This data can be fed into the StorygramGUI component in the data props. Then, specify in the config props object that the dataFormat is of type array. Finally, specify the key of the eventField and the actorArray.
+
+<Playground>
+  <StorygramGUI data={[
+    {event: 0, actors: ['a', 'b', 'c']},
+    {event: 1, actors: ['d', 'b', 'e']},
+    {event: 2, actors: ['d', 'a']}
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+  }}></StorygramGUI>
+</Playground>
+
+## Table
+
+Data in the table structure consists of an array of objects, each of which contains a number or a date in which a event occurs and different fields containing the involved actors. Below, a basic sample in this data structure is shown. 
+
+```sh
+data={[
+    {event: 0, actor1: 'a', actor2: 'b', actor3: 'c'},
+    {event: 1, actor1: 'd', actor2: 'b', actor3: 'e'},
+    {event: 2, actor1: 'd', actor2: 'a', actor3: null}
+  ]}
+```
+
+This data can be fed into the StorygramGUI component in the data props. Then, specify in the config props object that the dataFormat is of type array. Finally, specify the key of the eventField and the actorArray.
+
+<Playground>
+  <StorygramGUI data={[
+    {event: 0, actor1: 'a', actor2: 'b', actor3: 'c'},
+    {event: 1, actor1: 'd', actor2: 'b', actor3: 'e'},
+    {event: 2, actor1: 'd', actor2: 'a', actor3: null}
+  ]}
+  config={ {
+    dataFormat: 'table',
+    eventField: 'event',
+    actorFields: ['actor1', 'actor2', 'actor3'],
+  }}></StorygramGUI>
+</Playground>
