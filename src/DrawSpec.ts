@@ -1,4 +1,4 @@
-import {FullConfig, Data, RenderedPoint, Event} from './Types';
+import { FullConfig, Data, RenderedPoint, Event } from './Types';
 import d3 = require('d3');
 
 interface Binned {
@@ -10,7 +10,7 @@ interface Binned {
 
 export default class DrawSpec {
 
-  private static margin = {top: 50, right: 400, bottom: 200, left: 100}
+  private static margin = { top: 50, right: 400, bottom: 200, left: 100 }
 
   public static createGrid(data: Data, config: FullConfig): [RenderedPoint[], number, number] {
     let result: RenderedPoint[] = [];
@@ -24,12 +24,12 @@ export default class DrawSpec {
     let activeActors: Set<string> = new Set()
     data.events.forEach((xLayer, eventIndex) => {
       let offset = 0;
-      if(config.compact) {
+      if (config.compact) {
         xLayer.state = xLayer.state.filter(y => y !== '')
         offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
       }
       let lastGroupedIndex: number | undefined = undefined
-      if(eventValue === xLayer.eventValue) {
+      if (eventValue === xLayer.eventValue) {
         eventValueLegend = '-'
       } else {
         eventValue = xLayer.eventValue
@@ -38,14 +38,14 @@ export default class DrawSpec {
       xLayer.state.forEach((actorID: string, actorIndex: number) => {
         const yVal = data.actors.get(actorID)
         const isGrouped = xLayer.group.some(a => a === actorID) ? 1 : 0;
-        if(isGrouped) {
+        if (isGrouped) {
           activeActors.add(actorID)
           lastGroupedIndex = actorIndex
         }
-        if(eventIndex != 0 && data.events[eventIndex - 1].remove.includes(actorID)) {
+        if (eventIndex != 0 && data.events[eventIndex - 1].remove.includes(actorID)) {
           activeActors.delete(actorID)
         }
-        if(activeActors.has(actorID) || config.continuousStart) {
+        if (activeActors.has(actorID) || config.continuousStart) {
           let yDrawn = config.compact ? (xLayer.state.length - 1) / 2 - actorIndex : actorIndex;
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(xLayer, yVal!);
@@ -57,10 +57,10 @@ export default class DrawSpec {
           const isHiglighted = config.highlight.includes(actorID) ? 1 : 0
           const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, isHiglighted);
           // this is necessary to show the hidden ys counter
-          if(lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
+          if (lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenActors = hiddenActors
             lastGroupedIndex = undefined
-          } else if(isGrouped && xLayer.state.length - 1 === actorIndex) {
+          } else if (isGrouped && xLayer.state.length - 1 === actorIndex) {
             point.hiddenActors = hiddenActors
           }
           result.push(point);
@@ -89,12 +89,7 @@ export default class DrawSpec {
     // @ts-ignore
     let svg, layer1, layer2, tooltip
 
-    if(document.getElementById("storygram")) {
-      svg = d3.select("#storygram").remove()
-    }
-
     svg = d3.select(config.root).append("svg")
-      .attr('id', 'storygram')
       .attr("width", width + this.margin.left + this.margin.right)
       .attr("height", height + this.margin.top + this.margin.bottom);
 
@@ -127,14 +122,14 @@ export default class DrawSpec {
       .key(d => d instanceof RenderedPoint ? String(d.x) : '')
       // @ts-ignore
       .rollup((p: Binned) => {
-        if(Array.isArray(p) && p.every(d => d instanceof RenderedPoint)) {
+        if (Array.isArray(p) && p.every(d => d instanceof RenderedPoint)) {
           return {
             min: d3.min(p, (d: RenderedPoint) => d.y),
             max: d3.max(p, (d: RenderedPoint) => d.y),
             event: d3.values(p)
           }
         }
-        return {min: null, max: null, event: null}
+        return { min: null, max: null, event: null }
       })
       .entries(data[0].filter(d => d.isGrouped))
 
@@ -233,11 +228,11 @@ export default class DrawSpec {
         .ease(d3.easeLinear)
         .attr("stroke", d => color(String(d.values[0].strokeColor)) as string)
         .attr('opacity', (d: Binned) => {
-          if(d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
           else return unSelectedOpacity
         })
         .attr("stroke-width", (d: Binned) => {
-          if(d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedLineSize - 1
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedLineSize - 1
           else return unSelectedLineSize
         })
         .attr("d", (d: Binned) => {
@@ -246,7 +241,7 @@ export default class DrawSpec {
             .y(p => yScale(p[1]))
             .curve(d3.curveMonotoneX)
             (d.values.reduce<Array<[number, number]>>((arr, p) => {
-              if(p.isGrouped) {
+              if (p.isGrouped) {
                 arr.push([p.x - xPadding, p.y])
                 arr.push([p.x, p.y])
                 arr.push([p.x + xPadding, p.y])
@@ -290,11 +285,11 @@ export default class DrawSpec {
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
         .attr('opacity', (d: Binned) => {
-          if(Number(d.key) === selectedEvent) return unSelectedOpacity
+          if (Number(d.key) === selectedEvent) return unSelectedOpacity
           else return unSelectedOpacity
         })
         .attr("stroke-width", (d: Binned) => {
-          if(Number(d.key) === selectedEvent) return selectedLineSize
+          if (Number(d.key) === selectedEvent) return selectedLineSize
           else return unSelectedLineSize
         })
         .attr("d", (d) => {
@@ -323,7 +318,7 @@ export default class DrawSpec {
         .attr("x", xScale(selectedEvent) + 10)
         .attr("y", -35)
         .text((d) => {
-          if(Number(d.key) === selectedEvent)
+          if (Number(d.key) === selectedEvent)
             return d.value.event[0].eventDescription
         })
 
@@ -360,7 +355,7 @@ export default class DrawSpec {
       let hiddenActors = layer2.selectAll(".hiddenActors")
         .data(groupBin.reduce<RenderedPoint[]>((arr, d) => {
           d.value.event.forEach((v: RenderedPoint) => {
-            if(v.hiddenActors.length > 0) arr.push(v)
+            if (v.hiddenActors.length > 0) arr.push(v)
           })
           return arr
         }, []), (d: RenderedPoint) => String(d.x))
@@ -380,7 +375,7 @@ export default class DrawSpec {
             .duration(transitionSpeed)
             .ease(d3.easeLinear)
             .attr("y", (d: RenderedPoint) => {
-              if(d.x === selectedEvent) return yScale(d.y) - 25.5
+              if (d.x === selectedEvent) return yScale(d.y) - 25.5
               else return yScale(d.y) + 0.4
             })
             .call(getTextBox),
@@ -394,7 +389,7 @@ export default class DrawSpec {
       let hiddenActorsBackground = layer1.selectAll(".hiddenActorsBackground")
         .data(groupBin.reduce<RenderedPoint[]>((arr, d: Binned) => {
           d.value.event.forEach((v: any) => {
-            if(v.hiddenActors.length > 0) arr.push(v)
+            if (v.hiddenActors.length > 0) arr.push(v)
           })
           return arr
         }, []), (d: RenderedPoint) => String(d.x))
@@ -414,12 +409,12 @@ export default class DrawSpec {
             .duration(transitionSpeed)
             .ease(d3.easeLinear)
             .attr('opacity', (d: RenderedPoint) => {
-              if(d.x === selectedEvent) return opacity
+              if (d.x === selectedEvent) return opacity
               else return 0.4
             })
             .attr("x", (d: RenderedPoint) => xScale(d.x) + 7.25)
             .attr("y", (d: RenderedPoint) => {
-              if(d.x === selectedEvent) return yScale(d.y) - 31
+              if (d.x === selectedEvent) return yScale(d.y) - 31
               else return yScale(d.y) - selectedLineSize / 2 - 2
             })
             .text((d: RenderedPoint) => d.hiddenActors ? d.hiddenActors.length : ''),
@@ -443,7 +438,7 @@ export default class DrawSpec {
         tooltipEvent = d.x
       }
 
-      if(tooltipEvent != selectedEvent) {
+      if (tooltipEvent != selectedEvent) {
         // @ts-ignore
         tooltip
           .html('')
@@ -452,29 +447,29 @@ export default class DrawSpec {
 
       hiddenActors.on(
         //@ts-ignore
-        "mouseover", function(d) {
+        "mouseover", function (d) {
           //@ts-ignore
           d3.select(this).style("cursor", "pointer")
         })
         .on(
           //@ts-ignore
-          "mouseout", function(d) {
+          "mouseout", function (d) {
             //@ts-ignore
             d3.select(this).style("cursor", "default");
           })
         //@ts-ignore
-        .on("click", function(d) {
+        .on("click", function (d) {
           showTooltip(d)
         })
 
       //@ts-ignore
       let actorEvents = layer1.selectAll(".actorEvent")
         .data(actorBin.filter((d: Binned) => {
-          if(d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
           return false
         }).reduce<RenderedPoint[]>((arr, d) => {
           d.values.forEach(v => {
-            if(v.isGrouped) arr.push(v)
+            if (v.isGrouped) arr.push(v)
           })
           return arr
         }, []), (d: RenderedPoint) => {
@@ -585,18 +580,18 @@ export default class DrawSpec {
               .attr("x", (d: RenderedPoint) => xScale(d.x) + selectedLineSize / 2 + 10)
               .attr("y", (d: RenderedPoint) => yScale(d.y))
               .text((d: RenderedPoint) => d.z)
-              .on("click", function(d: RenderedPoint) {
+              .on("click", function (d: RenderedPoint) {
                 window.open(d.url)
               })
               .on(
                 //@ts-ignore
-                "mouseover", function(d) {
+                "mouseover", function (d) {
                   //@ts-ignore
                   d3.select(this).style("cursor", "pointer")
                 })
               .on(
                 //@ts-ignore
-                "mouseout", function(d) {
+                "mouseout", function (d) {
                   //@ts-ignore
                   d3.select(this).style("cursor", "default");
                 })
@@ -616,7 +611,7 @@ export default class DrawSpec {
 
       function getTextBox(selection: any) {
         //@ts-ignore
-        selection.each(function(d: RenderedPoint) {d.bbox = this.getBBox()})
+        selection.each(function (d: RenderedPoint) { d.bbox = this.getBBox() })
       }
 
     }

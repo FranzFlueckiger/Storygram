@@ -5,7 +5,7 @@ route: /
 
 import { Playground, Props } from 'docz'
 import StorygramGUI from './components/StorygramWrapper';
-import {KurliData} from '../previewData.ts'
+import {MetasonData} from '../previewData.ts'
 
 # Getting Started
 
@@ -17,12 +17,18 @@ To install this package run
 npm i storygram
 ```
 
-The StoryGram visualizes a sequence of events, each of which contains a set of actors. In the example below 
+The StoryGram visualizes a sequence of events, each of which contains a set of actors. 
+
+In the example below an excerpt of the carreer of Bass Player Marcus Miller is shown. 
 
 <Playground>
-  <StorygramGUI data={KurliData()} config={ {
+  <StorygramGUI data={MetasonData()} config={ {
     dataFormat: 'array',
-    eventField: 'date',
-    actorArrayField: 'collocs',
+    eventField: 'year',
+    actorArrayField: 'participants',
+    filterGroupAmt: [2, undefined],
+    filterGroupSize: [3, undefined],
+    filterEventValue: [1988, 1993],
+    eventDescription: (event) => event.data.releaseName + ", " + event.data.year,
   }}></StorygramGUI>
 </Playground>

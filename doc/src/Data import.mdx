@@ -14,11 +14,11 @@ The Storygram accepts three different data structures as input.
 Data in the array structure consists of an array of objects, each of which contains a number or a date in which a event occurs and a array containing the involved actors. Below, a basic sample in this data structure is shown. 
 
 ```sh
-data={[
+data=[
     {event: 0, actors: ['a', 'b', 'c']},
     {event: 1, actors: ['d', 'b', 'e']},
     {event: 2, actors: ['d', 'a']}
-  ]}
+  ]
 ```
 
 This data can be fed into the StorygramGUI component in the data props. Then, specify in the config props object that the dataFormat is of type array. Finally, specify the key of the eventField and the actorArray.
@@ -41,11 +41,11 @@ This data can be fed into the StorygramGUI component in the data props. Then, sp
 Data in the table structure consists of an array of objects, each of which contains a number or a date in which a event occurs and different fields containing the involved actors. Below, a basic sample in this data structure is shown. 
 
 ```sh
-data={[
+data=[
     {event: 0, actor1: 'a', actor2: 'b', actor3: 'c'},
     {event: 1, actor1: 'd', actor2: 'b', actor3: 'e'},
     {event: 2, actor1: 'd', actor2: 'a', actor3: null}
-  ]}
+  ]
 ```
 
 This data can be fed into the StorygramGUI component in the data props. Then, specify in the config props object that the dataFormat is of type array. Finally, specify the key of the eventField and the actorArray.
@@ -60,5 +60,41 @@ This data can be fed into the StorygramGUI component in the data props. Then, sp
     dataFormat: 'table',
     eventField: 'event',
     actorFields: ['actor1', 'actor2', 'actor3'],
+  }}></StorygramGUI>
+</Playground>
+
+## Range
+
+Data in the range structure consists of an array of objects, each of which contain information of an actor and two fields indicating a start and a end moment. An actor can have multiple ranges. Below, a basic sample in this data structure is shown. 
+
+```sh
+data=[
+    {actor: 'a', start: null, end: 0},
+    {actor: 'a', start: 2,    end: null},
+    {actor: 'b', start: null, end: 1},
+    {actor: 'c', start: null, end: 0},
+    {actor: 'd', start: 1,    end: 2},
+    {actor: 'e', start: 1,    end: 1},
+  ]
+```
+
+If the startField is null or undefined, it means that the actor is grouped from the first group on. If the endField is null or undefined, it means that the actor is grouped until the last group.
+
+This data can be fed into the StorygramGUI component in the data props. Then, specify in the config props object that the dataFormat is of type range. Finally, specify the key of the actorField and the fromField and the toField.
+
+<Playground>
+  <StorygramGUI data={[
+    {actor: 'a', start: null, end: 0},
+    {actor: 'a', start: 2,    end: null},
+    {actor: 'b', start: null, end: 1},
+    {actor: 'c', start: null, end: 0},
+    {actor: 'd', start: 1,    end: 2},
+    {actor: 'e', start: 1,    end: 1},
+  ]}
+  config={ {
+    dataFormat: 'ranges',
+    actorField: 'actor',
+    startField: 'start',
+    endField: 'end'
   }}></StorygramGUI>
 </Playground>

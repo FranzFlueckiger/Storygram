@@ -13,6 +13,7 @@ const StorygramGUI: SFC<StorygramProps> = props => {
   useEffect(() => {
     props.config.root = '#' + randomString;
     let storyGram = new Storygram(props.data, props.config);
+    console.log(storyGram)
     storyGram.draw();
   }, [props.config, props.data]);
 
