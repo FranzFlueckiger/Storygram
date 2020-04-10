@@ -8,19 +8,17 @@ type StorygramProps = {
 
 const StorygramGUI: SFC<StorygramProps> = props => {
 
-  let hash = JSON.stringify(props)
-  hash = String.fromCharCode(Math.abs(hash.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0)))
+  let randomString = Math.random().toString(36).replace(/[^a-z]+/g, '');
 
   useEffect(() => {
-    props.config.root = '#' + hash;
+    props.config.root = '#' + randomString;
     let storyGram = new Storygram(props.data, props.config);
     storyGram.draw();
-    console.log(hash)
   }, [props.config, props.data]);
 
   return (
     <>
-      <div id={hash}></div>
+      <div id={randomString}></div>
     </>
   );
 };
