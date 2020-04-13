@@ -7,40 +7,50 @@ import StorygramGUI from './components/StorygramWrapper';
 
 # Filtering
 
-// check if the event contains all the given actors
-mustContain: string[];
-// check if the event contains one of the given actors
-shouldContain: string[];
+It is possible to filter the events and actors of a Storygram in different ways.
+
+## Event value filter
 // event filter (positive and Negative event ranges possible)
 filterEventValue: [number | string | undefined, number | string | undefined];
-// event filter (positive group sizes only)
-  filterGroupSize: [number | undefined, number | undefined];
-  // event filter for boolean predicates
-  filterEventCustom: (event: Event) => boolean;
-  // check if the actors interacted with the given ones at the specified depth
-  interactedWith: [string[], number | undefined];
-  // actor filter (Positive and Negative event value lifetimes possible)
-  filterEventValueLifeTime: [number | string | undefined, number | string | undefined];
-  // actor filter (Positive group amounts only)
-  filterGroupAmt: [number | undefined, number | undefined];
-  // actor filter for boolean predicates
-  filterActorCustom: (actor: Actor) => boolean;
 
-## Array Structure
-
-The most common input structure for the Storygram is probably the array structure. 
 <Playground>
-  <Neutral data={[
-    {a: ['bf', 'gf', 'kf'], id: 0},
-    {a: ['ff', 'ef', 'af', 'zf'], id: 1},
-    {a: ['ff', 'gf'], id: 2},
-    {a: ['ff', 'ef', 'cf', 'pf'], id: 3},
-    {a: ['zf', 'lf', 'bf'], id: 4},
-    {a: ['gf', 'ef', 'af', 'pf'], id: 5},
-    {a: ['bf', 'gf', 'kf'], id: 5},
-    {a: ['pf', 'ff'], id: 6},
-    {a: ['ff', 'gf', 'cf', 'af'], id: 6},
-    {a: ['ef', 'gf', 'zf'], id: 7},
-  ]}>
-    </Neutral>
+  <StorygramGUI data={[
+    {event: 0, actors: ['a', 'b', 'c']},
+    {event: 1, actors: ['d', 'b', 'e']},
+    {event: 2, actors: ['d', 'a']}
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    filterEventValue: [1, undefined]
+  }}></StorygramGUI>
 </Playground>
+
+## Group size filter
+// event filter (positive group sizes only)
+filterGroupSize: [number | undefined, number | undefined];
+
+## Actor grouping amount filter
+// actor filter (Positive group amounts only)
+filterGroupAmt: [number | undefined, number | undefined];
+
+## Actor interacted with filter
+// check if the actors interacted with the given ones at the specified depth
+interactedWith: [string[], number | undefined];
+
+## Event must contain actors filter
+// check if the event contains all the given actors
+mustContain: string[];
+
+## Event must contain actors filter
+// check if the event contains one of the given actors
+shouldContain: string[];
+
+## Custom Event filter
+// event filter for boolean predicates
+filterEventCustom: (event: Event) => boolean;
+
+## Custom actor filter
+// actor filter for boolean predicates
+filterActorCustom: (actor: Actor) => boolean;

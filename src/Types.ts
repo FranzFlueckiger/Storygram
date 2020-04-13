@@ -29,6 +29,8 @@ export interface BaseConfig {
   eventDescription: (arg: Event) => string;
   // link to a desired url from the group nodes
   url: (event: Event, actor: Actor) => string;
+  // margin around the storygram
+  margin: { top: number, right: number, bottom: number, left: number }
   // padding between the actors
   actorPadding: number;
   // padding between the events
@@ -174,5 +176,5 @@ export class RenderedPoint {
     public eventDescription: string,
     public url: string,
     public isHighlighted: number
-  ) {}
+  ) { }
 }

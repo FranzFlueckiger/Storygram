@@ -10,8 +10,6 @@ interface Binned {
 
 export default class DrawSpec {
 
-  private static margin = { top: 50, right: 400, bottom: 200, left: 100 }
-
   public static createGrid(data: Data, config: FullConfig): [RenderedPoint[], number, number] {
     let result: RenderedPoint[] = [];
     const maxYLen = data.events.reduce((max, layer) => Math.max(max, layer.state.length), 0);
@@ -90,17 +88,17 @@ export default class DrawSpec {
     let svg, layer1, layer2, tooltip
 
     svg = d3.select(config.root).append("svg")
-      .attr("width", width + this.margin.left + this.margin.right)
-      .attr("height", height + this.margin.top + this.margin.bottom);
+      .attr("width", width + config.margin.left + config.margin.right)
+      .attr("height", height + config.margin.top + config.margin.bottom);
 
     layer1 = svg
       .append("g")
       .attr('id', 'layer1')
-      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+      .attr("transform", "translate(" + config.margin.left + "," + config.margin.top + ")");
     layer2 = svg
       .append("g")
       .attr('id', 'layer2')
-      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+      .attr("transform", "translate(" + config.margin.left + "," + config.margin.top + ")");
     tooltip = d3.select(config.root).append("div")
       .attr('id', 'tooltip')
       .attr("class", "tooltip")

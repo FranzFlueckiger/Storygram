@@ -1,8 +1,8 @@
 import DrawSpec from './DrawSpec';
-import {filter} from './Filter';
-import {fit} from './Optimizer';
-import {fromArray, fromRanges, fromTable} from './PreProcessing';
-import {Config, Data, RenderedPoint, BaseConfig, FullConfig} from './Types';
+import { filter } from './Filter';
+import { fit } from './Optimizer';
+import { fromArray, fromRanges, fromTable } from './PreProcessing';
+import { Config, Data, RenderedPoint, BaseConfig, FullConfig } from './Types';
 
 /**
  * href
@@ -25,6 +25,7 @@ export default class Storygram<T extends {}> {
     lineSize: 9,
     eventDescription: l => String(l.eventValue),
     url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.eventValue) + ' ' + actor.actorID,
+    margin: { top: 50, right: 50, bottom: 50, left: 50 },
     eventPadding: 40,
     actorPadding: 30,
     eventValueScaling: 0.9,
@@ -58,12 +59,12 @@ export default class Storygram<T extends {}> {
   public config: FullConfig;
 
   public constructor(rawData: T[], config: Config) {
-    this.config = {...this.baseConfig, ...config};
+    this.config = { ...this.baseConfig, ...config };
     this.setData(rawData);
   }
 
   private setData(data: T[]): void {
-    switch(this.config.dataFormat) {
+    switch (this.config.dataFormat) {
       case 'ranges':
         this.data = fromRanges(data, this.config.actorField, this.config.startField, this.config.endField);
         break;
@@ -82,14 +83,14 @@ export default class Storygram<T extends {}> {
     this.processedData = filter(this.data, this.config);
     this.processedData = fit(this.processedData, this.config) as Data;
     this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
-    if(this.config.verbose) {
+    if (this.config.verbose) {
       console.log(this.renderedGrid);
     }
     this.isCalculated = true
   }
 
   public async draw() {
-    if(!this.isCalculated) {
+    if (!this.isCalculated) {
       this.calculate()
     }
     DrawSpec.drawD3(this.renderedGrid, this.config)

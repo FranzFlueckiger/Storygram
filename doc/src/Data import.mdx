@@ -5,9 +5,9 @@ route: /importing_data
 import { Playground, Props } from 'docz'
 import StorygramGUI from './components/StorygramWrapper';
 
-# Basic usage
+# Importing Data
 
-The Storygram accepts three different data structures as input.
+The Storygram accepts three different data structures as input. Each of those have event values that have to be numeric or strings containing a date.
 
 ## Array
 
@@ -15,9 +15,9 @@ Data in the array structure consists of an array of objects, each of which conta
 
 ```sh
 data=[
-    {event: 0, actors: ['a', 'b', 'c']},
-    {event: 1, actors: ['d', 'b', 'e']},
-    {event: 2, actors: ['d', 'a']}
+    {event: '1/4/2019', actors: ['a', 'b', 'c']},
+    {event: '2/4/2019', actors: ['d', 'b', 'e']},
+    {event: '3/4/2019', actors: ['d', 'a']}
   ]
 ```
 
@@ -25,9 +25,9 @@ This data can be fed into the StorygramGUI component in the data props. Then, sp
 
 <Playground>
   <StorygramGUI data={[
-    {event: 0, actors: ['a', 'b', 'c']},
-    {event: 1, actors: ['d', 'b', 'e']},
-    {event: 2, actors: ['d', 'a']}
+    {event: '1/4/2019', actors: ['a', 'b', 'c']},
+    {event: '2/4/2019', actors: ['d', 'b', 'e']},
+    {event: '3/4/2019', actors: ['d', 'a']}
   ]}
   config={ {
     dataFormat: 'array',
@@ -42,9 +42,9 @@ Data in the table structure consists of an array of objects, each of which conta
 
 ```sh
 data=[
-    {event: 0, actor1: 'a', actor2: 'b', actor3: 'c'},
-    {event: 1, actor1: 'd', actor2: 'b', actor3: 'e'},
-    {event: 2, actor1: 'd', actor2: 'a', actor3: null}
+    {event: '1/4/2019', actor1: 'a', actor2: 'b', actor3: 'c'},
+    {event: '2/4/2019', actor1: 'd', actor2: 'b', actor3: 'e'},
+    {event: '3/4/2019', actor1: 'd', actor2: 'a', actor3: null}
   ]
 ```
 
@@ -52,9 +52,9 @@ This data can be fed into the StorygramGUI component in the data props. Then, sp
 
 <Playground>
   <StorygramGUI data={[
-    {event: 0, actor1: 'a', actor2: 'b', actor3: 'c'},
-    {event: 1, actor1: 'd', actor2: 'b', actor3: 'e'},
-    {event: 2, actor1: 'd', actor2: 'a', actor3: null}
+    {event: '1/4/2019', actor1: 'a', actor2: 'b', actor3: 'c'},
+    {event: '2/4/2019', actor1: 'd', actor2: 'b', actor3: 'e'},
+    {event: '3/4/2019', actor1: 'd', actor2: 'a', actor3: null}
   ]}
   config={ {
     dataFormat: 'table',
@@ -69,12 +69,12 @@ Data in the range structure consists of an array of objects, each of which conta
 
 ```sh
 data=[
-    {actor: 'a', start: null, end: 0},
-    {actor: 'a', start: 2,    end: null},
-    {actor: 'b', start: null, end: 1},
-    {actor: 'c', start: null, end: 0},
-    {actor: 'd', start: 1,    end: 2},
-    {actor: 'e', start: 1,    end: 1},
+    {actor: 'a', start: null,          end: '1/4/2019'},
+    {actor: 'a', start: '3/4/2019',    end: null},
+    {actor: 'b', start: null,          end: '2/4/2019'},
+    {actor: 'c', start: null,          end: '1/4/2019'},
+    {actor: 'd', start: '2/4/2019',    end: '3/4/2019'},
+    {actor: 'e', start: '2/4/2019',    end: '2/4/2019'},
   ]
 ```
 
@@ -84,12 +84,12 @@ This data can be fed into the StorygramGUI component in the data props. Then, sp
 
 <Playground>
   <StorygramGUI data={[
-    {actor: 'a', start: null, end: 0},
-    {actor: 'a', start: 2,    end: null},
-    {actor: 'b', start: null, end: 1},
-    {actor: 'c', start: null, end: 0},
-    {actor: 'd', start: 1,    end: 2},
-    {actor: 'e', start: 1,    end: 1},
+    {actor: 'a', start: null,          end: '1/4/2019'},
+    {actor: 'a', start: '3/4/2019',    end: null},
+    {actor: 'b', start: null,          end: '2/4/2019'},
+    {actor: 'c', start: null,          end: '1/4/2019'},
+    {actor: 'd', start: '2/4/2019',    end: '3/4/2019'},
+    {actor: 'e', start: '2/4/2019',    end: '2/4/2019'},
   ]}
   config={ {
     dataFormat: 'ranges',
