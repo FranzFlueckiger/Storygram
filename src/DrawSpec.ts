@@ -43,11 +43,11 @@ export default class DrawSpec {
         if (eventIndex != 0 && data.events[eventIndex - 1].remove.includes(actorID)) {
           activeActors.delete(actorID)
         }
-        if (activeActors.has(actorID) || config.continuousStart) {
+        if (activeActors.has(actorID) || config.continuous) {
           let yDrawn = config.compact ? (xLayer.state.length - 1) / 2 - actorIndex : actorIndex;
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(xLayer, yVal!);
-          const strokeColor = config.strokeColor(xLayer, yVal!);
+          const strokeColor = config.actorColor(yVal!);
           const xDrawn = Math.pow(scaling, 4) * xLayer.eventXValue + (1 - Math.pow(scaling, 4)) * eventIndex;
           const eventDescription = config.eventDescription!(xLayer);
           const url = config.url(xLayer, yVal!)
@@ -482,8 +482,8 @@ export default class DrawSpec {
             .attr("fill", "none")
             .attr("x1", (d: RenderedPoint) => xScale(d.x))
             .attr("x2", (d: RenderedPoint) => xScale(d.x))
-            .attr("y1", (d: RenderedPoint) => yScale(d.y) - config.eventPadding / 5)
-            .attr("y2", (d: RenderedPoint) => yScale(d.y) + config.eventPadding / 5)
+            .attr("y1", (d: RenderedPoint) => yScale(d.y) - config.actorPadding / 5)
+            .attr("y2", (d: RenderedPoint) => yScale(d.y) + config.actorPadding / 5)
             .attr("stroke-opacity", opacity),
           (update: any) => {
             return update

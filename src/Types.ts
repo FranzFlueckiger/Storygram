@@ -56,9 +56,7 @@ export interface BaseConfig {
   // probability that a gene mutates (value between 0 and 1)
   mutationProbability: number;
   // whether the y-points start at the beginning or at the first grouping
-  continuousStart: boolean;
-  // whether the y-points go until the end or until the last grouping
-  continuousEnd: boolean;
+  continuous: boolean;
   // whether the graph is compacted or not
   compact: boolean;
   // TODO which actors should be highlighted
@@ -66,7 +64,7 @@ export interface BaseConfig {
   // TODO numeric field that determines the stroke width
   strokeWidth: (event: Event, actor: Actor) => number;
   // numeric field that determines the stroke width
-  strokeColor: (event: Event, actor: Actor) => string | number;
+  actorColor: (actor: Actor) => string | number;
   // TODO function that returns a string describing the actor
   tooltipText?: (arg: Event) => string;
   // check if the event contains all the given actors
