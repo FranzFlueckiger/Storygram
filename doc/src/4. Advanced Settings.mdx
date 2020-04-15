@@ -7,3 +7,34 @@ import StorygramGUI from './components/StorygramWrapper';
 
 # Advanced settings
 
+It is possible to configure the Storygram in depth.  
+
+Warning: this might have a performance impact depending on the size of your data.
+
+## Verbose
+Log information about the Storygram on the console for debug. 
+
+```sh
+verbose: boolean;
+``` 
+
+## Root
+ID of the DOM element to which the Storygram is appended.
+
+```sh
+  root: string;
+``` 
+
+## Generation amount
+The Storygram is optimised with a genetic algorithm to reduce the amount of actor crossings and other factors. With the variable generationAmt it is possible to set the number of generations of the genetic algorithm. The default value should be good enough for most applications, altough if you have a large amount of events and/or actors to show, you can raise it. This can affect performance.
+
+```sh
+  generationAmt: number;
+``` 
+
+## Population size
+The Storygram is optimised with a genetic algorithm to reduce the amount of actor crossings and other factors. With the variable populationSize it is possible to set the number of genes (Storygrams) of the genetic algorithm. The default value should be good enough for most applications, altough if you have a large amount of events and/or actors to show, you can raise it. This can affect performance.
+
+```sh
+  populationSize: number;
+``` 

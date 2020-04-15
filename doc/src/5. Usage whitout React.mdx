@@ -1,0 +1,96 @@
+---
+name: 5. Usage whitout React.js
+route: /whitout_react
+---
+import { Playground, Props } from 'docz'
+import StorygramGUI from './components/StorygramWrapper';
+
+# Usage whitout React.js
+
+It is easy to use the Storygram inside a node.js app without React.js.
+
+First, run the install comands as shown in the [initial section](/).
+
+## Usage with Typescript
+
+Import the Storygram module and the Config type.
+
+```sh
+import { Storygram, Config } from 'storygram'
+``` 
+
+Then define your data:
+
+```sh
+const data = [
+    { event: 1, actors: ['a', 'b', 'c'] },
+    { event: 2, actors: ['d', 'b', 'e'] },
+    { event: 3, actors: ['d', 'a'] }
+]
+``` 
+
+Define your configuration:
+
+```sh
+const config: Config = {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+}
+``` 
+
+Then create a Storygram object with your data and configuration:
+
+```sh
+let storyGram = new Storygram(data, config)
+``` 
+
+Finally, draw your Storygram:
+
+```sh
+storyGram.draw();
+```
+
+The complete code looks like this:
+
+```sh
+import { Storygram, Config } from 'storygram'
+
+const data = [
+    { event: 1, actors: ['a', 'b', 'c'] },
+    { event: 2, actors: ['d', 'b', 'e'] },
+    { event: 3, actors: ['d', 'a'] }
+]
+
+const config: Config = {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+}
+
+let storyGram = new Storygram(data, config)
+storyGram.draw();
+```
+
+## Usage with plain Javascript
+
+To do the same with plain Javascript type:
+
+```sh
+var Storygram = require('storygram');
+
+var data = [
+    { event: 1, actors: ['a', 'b', 'c'] },
+    { event: 2, actors: ['d', 'b', 'e'] },
+    { event: 3, actors: ['d', 'a'] }
+]
+
+var config = {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+}
+
+var storyGram = new Storygram(data, config)
+storyGram.draw();
+```
