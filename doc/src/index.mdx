@@ -17,9 +17,15 @@ To install this package run
 npm i storygram
 ```
 
+If you're working with Typescript, run
+
+```sh
+npm i @types/storygram
+```
+
 The StoryGram visualizes a sequence of events, each of which contains a set of actors. 
 
-In the example below an excerpt of the carreer of Bass Player Marcus Miller is shown. 
+In the example below an excerpt of the carreer of Bass Player Marcus Miller is shown. Data courtesy from [metason.net](https://metason.net/)
 
 <Playground>
   <StorygramGUI data={MetasonData()} config={ {
@@ -30,5 +36,6 @@ In the example below an excerpt of the carreer of Bass Player Marcus Miller is s
     filterGroupSize: [3, undefined],
     filterEventValue: [1988, 1993],
     eventDescription: (event) => event.data.releaseName + ", " + event.data.year,
+    marginRight: 200
   }}></StorygramGUI>
 </Playground>

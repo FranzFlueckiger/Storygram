@@ -9,29 +9,78 @@ import StorygramGUI from './components/StorygramWrapper';
 
 It is possible to set a range of visual options of the Storygram.
 
-## Color scheme
-  Name of the used d3 color scheme (more info at https://github.com/d3/d3-scale-chromatic)
-  ```sh
-    colorScheme:
-    | 'schemeCategory10' | 'schemeAccent' | 'schemeDark2' | 'schemePaired' | 'schemePastel1' | 'schemePastel2' | 'schemeSet1' | 'schemeSet2' | 'schemeSet3';
-  ``` 
+## Continuous
+Whether all actors should be visible from the beginning to the end of the Storygram.
+  
+```sh
+continuous: boolean;
+``` 
 
 <Playground>
   <StorygramGUI data={[
     {event: 0, actors: ['a', 'b', 'c']},
-    {event: 1, actors: ['d', 'b', 'e']},
-    {event: 2, actors: ['d', 'a']}
+    {event: 2, actors: ['e', 'b']},
+    {event: 10, actors: ['d', 'b', 'e']},
+    {event: 12, actors: ['d', 'a']}
   ]}
   config={ {
     dataFormat: 'array',
     eventField: 'event',
     actorArrayField: 'actors',
-    colorScheme: 'schemeSet1'
+    continuous: true
   }}></StorygramGUI>
 </Playground>
 
+## Compact
+Whether the Storygram is compacted around the central x-axis or not. This is useful in case the groups are of a similar size over time, like governments, soccer teams etc.
+
+  ```sh
+compact: boolean;
+``` 
+
+<Playground>
+  <StorygramGUI data={[
+    {event: 0, actors: ['a', 'b', 'c']},
+    {event: 1, actors: ['a', 'c', 'd']},
+    {event: 2, actors: ['c', 'd', 'e']},
+    {event: 3, actors: ['e', 'f', 'g']}
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    compact: true
+  }}></StorygramGUI>
+</Playground>
+
+## Actor color
+Callback that returns a string or a number indicating a color category. Note: it is not possible to assign directly a color to an actor like e.g. '#4287f5', it will get a color of the selected 
+[color scheme](/layout#color-scheme).
+
+```sh
+actorColor: (event: Event, actor: Actor) => string | number;
+```
+
+<Playground>
+  <StorygramGUI data={[
+    {actor: 'a', end: 1, team:'one'},
+    {actor: 'b', end: 2, team:'two'},
+    {actor: 'c', start: 0, team:'two'},
+    {actor: 'd', start: 2, end: 3, team:'one'},
+    {actor: 'e', start: 1, end: 2, team:'one'},
+  ]}
+  config={ {
+    dataFormat: 'ranges',
+    actorField: 'actor',
+    startField: 'start',
+    endField: 'end',
+    actorColor: (actor) => actor.data.team
+  }}></StorygramGUI>
+</Playground>
+
+
 ## Event description
-  Callback that returns a string describing the selected event. 
+  Callback that returns a string describing the selected event. Note that based on the length of the descriptions you might have to adjust also the [right margin](/layout#topbottomleftright-margin).
 
   ```sh
     eventDescription: (arg: Event) => string;
@@ -47,12 +96,13 @@ It is possible to set a range of visual options of the Storygram.
     dataFormat: 'array',
     eventField: 'event',
     actorArrayField: 'actors',
-    eventDescription: (event) => event.data.event + '. ' + event.data.description
+    eventDescription: (event) => event.data.event + '. ' + event.data.description,
+    marginRight: 150
   }}></StorygramGUI>
 </Playground>
 
 ## Url
-Url for an actor in an event.
+Every actor in every event can have a custom URL. This is done by creating a callback that has as parameters the current actor and event, and returns a URL string.
 
   ```sh
   url: (event: Event, actor: Actor) => string;
@@ -81,34 +131,32 @@ Url for an actor in an event.
     eventField: 'event',
     actorArrayField: 'actors',
     url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.eventValue) + ' ' + event.data.description + ' ' + actor.actorID,
+    marginRight: 100
   }}></StorygramGUI>
 </Playground>
 
-## Top/Bottom/Left/Right Margin
-
-Margins around the storygram. In the example below the Bottom and the Right margin is expanded to show the entire text.
+## Event value scaling
+Event value scaling factor (0.0 doesn't scale, 1.0 completely scales).
 
 ```sh
-   marginTop: number
-   marginBottom: number
-   marginLeft: number
-   marginRight: number
+eventValueScaling: number;
 ``` 
 
 <Playground>
   <StorygramGUI data={[
-    {event: '1/4/2019', actors: ['a', 'b', 'c'], description: 'First event'},
-    {event: '2/4/2019', actors: ['d', 'b', 'e'], description: 'Parallel event'},
-    {event: '3/4/2019', actors: ['d', 'a'], description: 'Second event'}
+    {event: 0, actors: ['a', 'b', 'c']},
+    {event: 2, actors: ['e', 'b']},
+    {event: 10, actors: ['d', 'b', 'e']},
+    {event: 12, actors: ['d', 'a']}
   ]}
   config={ {
     dataFormat: 'array',
     eventField: 'event',
     actorArrayField: 'actors',
-    marginBottom: 70,
-    marginRight: 80
+    eventValueScaling: 0.9
   }}></StorygramGUI>
 </Playground>
+
 
 ## Actor padding
 Padding between the actors.
@@ -173,92 +221,49 @@ Line size of the actors and groups.
   }}></StorygramGUI>
 </Playground>
 
-## Event value scaling
-Event value scaling factor (0.0 doesn't scale, 1.0 completely scales)
-
-```sh
-eventValueScaling: number;
-``` 
-
-<Playground>
-  <StorygramGUI data={[
-    {event: 0, actors: ['a', 'b', 'c']},
-    {event: 2, actors: ['e', 'b']},
-    {event: 10, actors: ['d', 'b', 'e']},
-    {event: 12, actors: ['d', 'a']}
-  ]}
-  config={ {
-    dataFormat: 'array',
-    eventField: 'event',
-    actorArrayField: 'actors',
-    eventValueScaling: 0.9
-  }}></StorygramGUI>
-</Playground>
-
-## Continuous
-Whether all actors should be visible from the beginning to the end of the Storygram.
-  
-```sh
-continuous: boolean;
-``` 
-
-<Playground>
-  <StorygramGUI data={[
-    {event: 0, actors: ['a', 'b', 'c']},
-    {event: 2, actors: ['e', 'b']},
-    {event: 10, actors: ['d', 'b', 'e']},
-    {event: 12, actors: ['d', 'a']}
-  ]}
-  config={ {
-    dataFormat: 'array',
-    eventField: 'event',
-    actorArrayField: 'actors',
-    continuous: true
-  }}></StorygramGUI>
-</Playground>
-
-## Compact
-Whether the Storygram is compacted around the central x-axis or not. This is useful in case the groups are of a similar size over time, like governments, soccer teams etc.
-
+## Color scheme
+  Name of the used [d3 color scheme](https://github.com/d3/d3-scale-chromatic).
   ```sh
-compact: boolean;
-``` 
+    colorScheme:
+    | 'schemeCategory10' | 'schemeAccent' | 'schemeDark2' | 'schemePaired' | 'schemePastel1' | 'schemePastel2' | 'schemeSet1' | 'schemeSet2' | 'schemeSet3';
+  ``` 
 
 <Playground>
   <StorygramGUI data={[
     {event: 0, actors: ['a', 'b', 'c']},
-    {event: 1, actors: ['a', 'c', 'd']},
-    {event: 2, actors: ['c', 'd', 'e']},
-    {event: 3, actors: ['e', 'f', 'g']}
+    {event: 1, actors: ['d', 'b', 'e']},
+    {event: 2, actors: ['d', 'a']}
   ]}
   config={ {
     dataFormat: 'array',
     eventField: 'event',
     actorArrayField: 'actors',
-    compact: true
+    colorScheme: 'schemeSet1'
   }}></StorygramGUI>
 </Playground>
 
-## Actor color
-Callback that returns a string or a number indicating a color category. // numeric field that determines the stroke width
+## Top/Bottom/Left/Right Margin
+
+Margins around the storygram. In the example below the Bottom and the Right margin is expanded to show the entire text.
 
 ```sh
-actorColor: (event: Event, actor: Actor) => string | number;
-```
+marginTop: number
+marginBottom: number
+marginLeft: number
+marginRight: number
+``` 
 
 <Playground>
   <StorygramGUI data={[
-    {actor: 'a', end: 1, team:'one'},
-    {actor: 'b', end: 2, team:'two'},
-    {actor: 'c', start: 0, team:'two'},
-    {actor: 'd', start: 2, end: 3, team:'one'},
-    {actor: 'e', start: 1, end: 2, team:'one'},
+    {event: '1/4/2019', actors: ['a', 'b', 'c'], description: 'First event'},
+    {event: '2/4/2019', actors: ['d', 'b', 'e'], description: 'Parallel event'},
+    {event: '3/4/2019', actors: ['d', 'a'], description: 'Second event'}
   ]}
   config={ {
-    dataFormat: 'ranges',
-    actorField: 'actor',
-    startField: 'start',
-    endField: 'end',
-    actorColor: (actor) => actor.data.team
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    marginBottom: 70,
+    marginRight: 80
   }}></StorygramGUI>
 </Playground>
