@@ -1,5 +1,5 @@
 ---
-name: Importing Data
+name: 1. Importing Data
 route: /importing_data
 ---
 import { Playground, Props } from 'docz'
@@ -104,3 +104,8 @@ This data can be fed into the StorygramGUI component in the data props. Then, sp
     endField: 'end'
   }}></StorygramGUI>
 </Playground>
+
+## Actor split callback
+
+// split function for the actor fields, is useful when one string contains e.g. many actors separated by a string
+actorSplitFunction?: ((arg: string) => string[]) | undefined;

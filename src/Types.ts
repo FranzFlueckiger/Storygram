@@ -29,8 +29,14 @@ export interface BaseConfig {
   eventDescription: (arg: Event) => string;
   // link to a desired url from the group nodes
   url: (event: Event, actor: Actor) => string;
-  // margin around the storygram
-  margin: { top: number, right: number, bottom: number, left: number }
+  // top margin of the storygram
+  marginTop: number,
+  // bottom margin of the storygram
+  marginBottom: number,
+  // left margin of the storygram
+  marginLeft: number,
+  // right margin of the storygram
+  marginRight: number,
   // padding between the actors
   actorPadding: number;
   // padding between the events
@@ -55,13 +61,13 @@ export interface BaseConfig {
   continuousEnd: boolean;
   // whether the graph is compacted or not
   compact: boolean;
-  // which actors should be highlighted
+  // TODO which actors should be highlighted
   highlight: string[];
-  // numeric field that determines the stroke width
+  // TODO numeric field that determines the stroke width
   strokeWidth: (event: Event, actor: Actor) => number;
   // numeric field that determines the stroke width
   strokeColor: (event: Event, actor: Actor) => string | number;
-  // function that returns a string describing the actor
+  // TODO function that returns a string describing the actor
   tooltipText?: (arg: Event) => string;
   // check if the event contains all the given actors
   mustContain: string[];
@@ -73,7 +79,7 @@ export interface BaseConfig {
   filterGroupSize: [number | undefined, number | undefined];
   // event filter for boolean predicates
   filterEventCustom: (event: Event) => boolean;
-  // check if the actors interacted with the given ones at the specified depth
+  // TODO check if the actors interacted with the given ones at the specified depth
   interactedWith: [string[], number | undefined];
   // actor filter (Positive and Negative event value lifetimes possible)
   filterEventValueLifeTime: [number | string | undefined, number | string | undefined];

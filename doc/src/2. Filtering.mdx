@@ -1,5 +1,5 @@
 ---
-name: Filtering
+name: 2. Filtering
 route: /filtering
 ---
 import { Playground, Props } from 'docz'
@@ -129,5 +129,26 @@ filterEventCustom: (event: Event) => boolean;
     eventField: 'event',
     actorArrayField: 'actors',
     filterEventCustom: (event) => event.data.type === 'one'
+  }}></StorygramGUI>
+</Playground>
+
+## Custom Actor filter
+Customizable filter callback that must return a boolean value, if true the actor is visible, if false it is filtered.
+```sh
+filterActorCustom: (event: Event) => boolean;
+``` 
+
+<Playground>
+  <StorygramGUI data={[
+    {actor: 'a', start: 0, end: 2, type:'one'},
+    {actor: 'b', start: 1, end: 2, type:'one'},
+    {actor: 'c', start: 0, end: 3, type:'two'},
+  ]}
+  config={ {
+    dataFormat: 'ranges',
+    actorField: 'actor',
+    startField: 'start',
+    endField: 'end',
+    filterActorCustom: (actor) => actor.data.type === 'one'
   }}></StorygramGUI>
 </Playground>

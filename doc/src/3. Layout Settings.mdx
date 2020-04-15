@@ -1,0 +1,76 @@
+---
+name: 3. Layout
+route: /layout
+---
+import { Playground, Props } from 'docz'
+import StorygramGUI from './components/StorygramWrapper';
+
+# Layout
+
+It is possible to set a range of visual options of the Storygram.
+
+## Color scheme
+  Name of the used d3 color scheme (more info at https://github.com/d3/d3-scale-chromatic)
+  ```sh
+    colorScheme:
+    | 'schemeCategory10' | 'schemeAccent' | 'schemeDark2' | 'schemePaired' | 'schemePastel1' | 'schemePastel2' | 'schemeSet1' | 'schemeSet2' | 'schemeSet3';
+  ``` 
+
+<Playground>
+  <StorygramGUI data={[
+    {event: 0, actors: ['a', 'b', 'c']},
+    {event: 1, actors: ['d', 'b', 'e']},
+    {event: 2, actors: ['d', 'a']}
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    colorScheme: 'schemeSet1'
+  }}></StorygramGUI>
+</Playground>
+
+## Event description
+  // function that returns a string describing the selected event
+  eventDescription: (arg: Event) => string;
+
+## Url
+
+  // link to a desired url from the group nodes
+  url: (event: Event, actor: Actor) => string;
+
+## Margin
+  // margin around the storygram
+  margin: { top: number, right: number, bottom: number, left: number }
+
+## Actor padding
+  // padding between the actors
+  actorPadding: number;
+
+## Event padding
+  // padding between the events
+  eventPadding: number;
+
+## Line size
+  // the line size of the lines and ticks
+  lineSize: number;
+
+## Event value scaling
+  // event value scaling factor (0 has no effect, 1 has 100% effect)
+  eventValueScaling: number;
+
+## Continuous start
+  // whether the y-points start at the beginning or at the first grouping
+  continuousStart: boolean;
+
+## Continuous end
+  // whether the y-points go until the end or until the last grouping
+  continuousEnd: boolean;
+
+## Compact
+  // whether the graph is compacted or not
+  compact: boolean;
+
+## Actor color
+  // numeric field that determines the stroke width
+  strokeColor: (event: Event, actor: Actor) => string | number;

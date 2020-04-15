@@ -88,17 +88,17 @@ export default class DrawSpec {
     let svg, layer1, layer2, tooltip
 
     svg = d3.select(config.root).append("svg")
-      .attr("width", width + config.margin.left + config.margin.right)
-      .attr("height", height + config.margin.top + config.margin.bottom);
+      .attr("width", width + config.marginLeft + config.marginRight)
+      .attr("height", height + config.marginTop + config.marginBottom);
 
     layer1 = svg
       .append("g")
       .attr('id', 'layer1')
-      .attr("transform", "translate(" + config.margin.left + "," + config.margin.top + ")");
+      .attr("transform", "translate(" + config.marginLeft + "," + config.marginTop + ")");
     layer2 = svg
       .append("g")
       .attr('id', 'layer2')
-      .attr("transform", "translate(" + config.margin.left + "," + config.margin.top + ")");
+      .attr("transform", "translate(" + config.marginLeft + "," + config.marginTop + ")");
     tooltip = d3.select(config.root).append("div")
       .attr('id', 'tooltip')
       .attr("class", "tooltip")
