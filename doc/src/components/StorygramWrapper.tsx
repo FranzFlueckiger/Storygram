@@ -1,5 +1,6 @@
 import React, { useEffect, SFC } from 'react';
 import { Storygram, Config } from 'storygram';
+import { v4 } from 'uuid'
 
 type StorygramProps = {
   data: any;

@@ -6,8 +6,7 @@
   "files": [
     "src/",
     "doczrc.js",
-    "tsconfig.json",
-    "package.json"
+    "tsconfig.json"
   ],
   "scripts": {
     "dev": "docz dev",
@@ -21,10 +20,12 @@
     "docz": "^2.3.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "storygram": "0.0.15-beta"
+    "storygram": "0.0.17-beta",
+    "uuid": "^7.0.3"
   },
   "devDependencies": {
     "@types/react": "^16.9.34",
-    "@types/react-dom": "^16.9.6"
+    "@types/react-dom": "^16.9.6",
+    "@types/uuid": "^7.0.2"
   }
 }

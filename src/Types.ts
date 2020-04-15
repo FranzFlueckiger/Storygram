@@ -98,20 +98,28 @@ export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
 export type FullConfig = BaseConfig & (RangeData | ArrayData | TableData);
 
 export class Event {
+  // sequence number of the event of all visible events
   public index?: number;
 
+  // whether the event is visible or not
   public isHidden: boolean;
 
+  // which actors to add
   public add: string[];
 
+  // which actors to remove
   public remove: string[];
 
+  // which actors to group
   public group: string[];
 
+  // which actors will be on this event, whether they are grouped or not
   public state: string[];
 
+  // whitch actor positions to switch
   public switch: Switch[] = [];
 
+  // whitch actors are hidden
   public hiddenActors: string[];
 
   public constructor(public eventValue: number | string | undefined, public eventXValue: number, public data: Record<string, unknown>) {

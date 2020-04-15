@@ -21,6 +21,8 @@ data=[
   ]
 ```
 
+Every field of the object gets fed in the 'data' attribute of its event. This allows e.g. custom filtering.
+
 This data can be fed into the StorygramGUI component in the data props. Then, specify in the config props object that the dataFormat is of type array. Finally, specify the key of the eventField and the actorArray.
 
 <Playground>
@@ -47,6 +49,8 @@ data=[
     {event: '3/4/2019', actor1: 'd', actor2: 'a', actor3: null}
   ]
 ```
+
+Every field of the object gets fed in the 'data' attribute of its event. This allows e.g. custom filtering.
 
 This data can be fed into the StorygramGUI component in the data props. Then, specify in the config props object that the dataFormat is of type array. Finally, specify the key of the eventField and the actorArray.
 
@@ -79,6 +83,8 @@ data=[
 ```
 
 If the startField is null or undefined, it means that the actor is grouped from the first group on. If the endField is null or undefined, it means that the actor is grouped until the last group.
+
+Every field of the object gets fed in the 'data' attribute of its actor. This allows e.g. custom filtering.
 
 This data can be fed into the StorygramGUI component in the data props. Then, specify in the config props object that the dataFormat is of type range. Finally, specify the key of the actorField and the fromField and the toField.
 
