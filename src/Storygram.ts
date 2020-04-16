@@ -4,21 +4,20 @@ import { fit } from './Optimizer';
 import { fromArray, fromRanges, fromTable } from './PreProcessing';
 import { Config, Data, RenderedPoint, BaseConfig, FullConfig } from './Types';
 
-/**
- * href
- */
-
 export default class Storygram<T extends {}> {
+  // Data with filtering and optimization
   public processedData!: Data;
 
+  // Data without filtering and optimization
   public data!: Data;
 
+  // Array containing a grid of rendered points, the x length and the maximal y length
   private renderedGrid!: [RenderedPoint[], number, number];
 
+  // Whether the storygram has been filtered, optimized and rendered
   private isCalculated: boolean = false;
 
-  private root: string = 'body'
-
+  // Default values
   private baseConfig: BaseConfig = {
     verbose: false,
     colorScheme: 'schemeAccent',
@@ -55,9 +54,12 @@ export default class Storygram<T extends {}> {
     amtLoss: 1,
     lengthLoss: 1,
     yExtentLoss: 0,
-    root: 'body'
+    root: 'body',
+    tooltipXDisplacement: 0,
+    tooltipYDisplacement: 0
   };
 
+  // Custom and default configuration
   public config: FullConfig;
 
   public constructor(rawData: T[], config: Config) {
@@ -81,6 +83,7 @@ export default class Storygram<T extends {}> {
     }
   }
 
+  // Filter, optimise and render the storygram
   public calculate() {
     this.processedData = filter(this.data, this.config);
     this.processedData = fit(this.processedData, this.config) as Data;
@@ -91,11 +94,16 @@ export default class Storygram<T extends {}> {
     this.isCalculated = true
   }
 
+  // Draw the storygram on the DOM. If the filter, optimization and rendering steps aren't yet made, perform these first
   public async draw() {
     if (!this.isCalculated) {
       this.calculate()
     }
-    DrawSpec.drawD3(this.renderedGrid, this.config)
+    if (this.processedData.events.length !== 0 && this.processedData.actors.size !== 0) {
+      DrawSpec.drawD3(this.renderedGrid, this.config)
+    } else {
+      console.warn('Storygram: No data after filtering')
+    }
   }
 
 }

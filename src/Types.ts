@@ -95,6 +95,10 @@ export interface BaseConfig {
   yExtentLoss: number;
   // CSS-Selector indicating the DOM element to which the Storygram is appended
   root: string;
+  // tooltip x displacement
+  tooltipXDisplacement: number;
+  // tooltip y displacement
+  tooltipYDisplacement: number;
 }
 
 export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);

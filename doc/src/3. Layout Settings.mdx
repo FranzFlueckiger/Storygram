@@ -267,3 +267,29 @@ marginRight: number
     marginRight: 80
   }}></StorygramGUI>
 </Playground>
+
+## Tooltip X/Y displacement
+
+Displacement of the tooltip from the top of the currently selected group.
+
+```sh
+marginTop: number
+marginBottom: number
+marginLeft: number
+marginRight: number
+``` 
+
+<Playground>
+  <StorygramGUI data={[
+    {event: '1/4/2019', actors: ['a', 'b', 'c'], description: 'First event'},
+    {event: '2/4/2019', actors: ['d', 'b', 'e'], description: 'Parallel event'},
+    {event: '3/4/2019', actors: ['d', 'a'], description: 'Second event'}
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    tooltipXDisplacement: 70,
+    tooltipXDisplacement: 80
+  }}></StorygramGUI>
+</Playground>

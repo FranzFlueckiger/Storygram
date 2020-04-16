@@ -1,0 +1,114 @@
+---
+name: 6. Data structure
+route: /data_structure
+---
+import { Playground, Props } from 'docz'
+import StorygramGUI from './components/StorygramWrapper';
+
+# Data structure
+
+## Storygram
+Below is shown the internal structure of a Storygram object. 
+  
+```sh
+export default class Storygram<T extends {}> {
+  // Data with filtering and optimization
+  public processedData!: Data;
+
+  // Data without filtering and optimization
+  public data!: Data;
+
+  // Array containing a grid of rendered points, the x length 
+  // and the maximal y length
+  private renderedGrid!: [RenderedPoint[], number, number];
+
+  // Whether the storygram has been filtered, optimized and rendered
+  private isCalculated: boolean = false;
+
+  // Default values
+  private baseConfig: BaseConfig = { ... };
+
+  // Custom and default configuration
+  public config: FullConfig;
+
+  public constructor(rawData: T[], config: Config) {
+    this.config = { ...this.baseConfig, ...config };
+    this.setData(rawData);
+  }
+
+  private setData(data: T[]): void { ... }
+
+  // Filter, optimise and render the storygram
+  public calculate() { ... }
+
+  // Draw the storygram on the DOM. If the filter, optimization 
+  // and rendering steps aren't yet made, perform these first
+  public async draw() { ... }
+
+}
+
+``` 
+
+
+## Event
+Below is shown the internal structure of an Event object. The whole class definition is shown, but you might want to us only the "data" attribute in the constructor. It contains all the keys of the original datum.
+  
+```sh
+export class Event {
+  // sequence number of the event of all visible events
+  public index?: number;
+
+  // whether the event is visible or not
+  public isHidden: boolean;
+
+  // which actors to add
+  public add: string[];
+
+  // which actors to remove
+  public remove: string[];
+
+  // which actors to group
+  public group: string[];
+
+  // which actors will be on this event, whether they are grouped or not
+  public state: string[];
+
+  // whitch actor positions to switch
+  public switch: Switch[] = [];
+
+  // whitch actors are hidden
+  public hiddenActors: string[];
+
+  public constructor(
+    public eventValue: number | string | undefined, 
+    public eventXValue: number, 
+    public data: Record<string, unknown>
+    ) {
+    this.isHidden = false;
+    this.add = [];
+    this.remove = [];
+    this.group = [];
+    this.state = [];
+    this.hiddenActors = [];
+  }
+}
+``` 
+
+## Actor
+Below is shown the internal structure of an Actor object. The whole class definition is shown, but you might want to us only the "data" attribute in the constructor. It contains all the keys of the original datum.
+  
+```sh
+export class Actor {
+  public layers: Event[];
+
+  public isHidden: boolean;
+
+  public constructor(
+    public actorID: string, 
+    public data: Record<string, unknown>
+    ) {
+    this.isHidden = false;
+    this.layers = [];
+  }
+}
+``` 
