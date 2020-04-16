@@ -1,0 +1,32 @@
+---
+name: 6. Data structure
+route: /data_structure
+---
+import { Playground, Props } from 'docz'
+import StorygramGUI from './components/StorygramWrapper';
+
+# Data structure
+
+Below are explained the internal structures of the Storygram's components.
+
+## Event
+Whether all actors should be visible from the beginning to the end of the Storygram.
+  
+```sh
+continuous: boolean;
+``` 
+
+<Playground>
+  <StorygramGUI data={[
+    {event: 0, actors: ['a', 'b', 'c']},
+    {event: 2, actors: ['e', 'b']},
+    {event: 10, actors: ['d', 'b', 'e']},
+    {event: 12, actors: ['d', 'a']}
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    continuous: true
+  }}></StorygramGUI>
+</Playground>

@@ -116,6 +116,14 @@ This data can be fed into the StorygramGUI component in the data props. Then, sp
 
 When working with datestrings as eventvalues, simply put them in the event field as shown below. Note: the right and bottom margin is extended to show the full date.
 
+```sh
+data=[
+    {event: '1/4/2019', actors: ['a', 'b', 'c']},
+    {event: '2/4/2019', actors: ['d', 'b', 'e']},
+    {event: '3/4/2019', actors: ['d', 'a']}
+  ]
+```
+
 <Playground>
   <StorygramGUI data={[
     {event: '1/4/2019', actors: ['a', 'b', 'c']},
@@ -127,13 +135,21 @@ When working with datestrings as eventvalues, simply put them in the event field
     eventField: 'event',
     actorArrayField: 'actors',
     marginRight: 80,
-    marginBottom: 60,
+    marginBottom: 70,
   }}></StorygramGUI>
 </Playground>
 
 ## Actor split callback
 
 If the data is in [array](/importing_data#array) or [table](/importing_data#table) structure but every element still contains many actors separated for example by a comma, it is possible to further split those with a actor split callback that returns a string array. 
+
+```sh
+data=[
+    {event: 0, actors1: 'a,z', actors2: 'b,y', actors3: 'c'},
+    {event: 1, actors1: 'd,x', actors2: 'b', actors3: 'e,y'},
+    {event: 2, actors1: 'd,k,z', actors2: 'a,y,x'}
+  ]
+```
 
 ```sh
 actorSplitFunction?: ((arg: string) => string[]) | undefined;
