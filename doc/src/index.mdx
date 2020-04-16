@@ -28,14 +28,21 @@ The StoryGram visualizes a sequence of events, each of which contains a set of a
 In the example below an excerpt of the carreer of Bass Player Marcus Miller is shown. Data courtesy from [metason.net](https://metason.net/)
 
 <Playground>
-  <StorygramGUI data={MetasonData()} config={ {
+  <StorygramGUI 
+  data={MetasonData()} 
+  config={{
     dataFormat: 'array',
-    eventField: 'year',
+    eventField: 'release_year',
     actorArrayField: 'participants',
-    filterGroupAmt: [2, undefined],
-    filterGroupSize: [3, undefined],
-    filterEventValue: [1988, 1993],
-    eventDescription: (event) => event.data.releaseName + ", " + event.data.year,
-    marginRight: 200
-  }}></StorygramGUI>
+    filterGroupAmt: [3, undefined],
+    filterGroupSize: [5, 40],
+    filterEventValue: [1988, 1997],
+    eventDescription: event =>
+      event.data.release_title + ', ' + event.data.release_year,
+    url: (event, actor) =>
+      'https://music.metason.net/artistinfo?name=' + String(actor.actorID),
+    filterActorCustom: actor => actor.actorID !== 'Marcus Miller',
+    marginRight: 300,
+  }}
+  ></StorygramGUI>
 </Playground>
