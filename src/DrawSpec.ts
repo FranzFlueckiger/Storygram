@@ -103,7 +103,8 @@ export default class DrawSpec {
       .attr('id', 'tooltip')
       .attr("class", "tooltip")
       .style("opacity", 0)
-      .style('position', 'absolute')
+      // todo fix this, should be absolute or relative
+      .style('position', 'static')
       .style("background-color", "white")
       .style("border", "solid")
       .style("border-width", "2px")
@@ -412,7 +413,7 @@ export default class DrawSpec {
             })
             .attr("x", (d: RenderedPoint) => xScale(d.x) + 7.25)
             .attr("y", (d: RenderedPoint) => {
-              if (d.x === selectedEvent) return yScale(d.y) - 31
+              if (d.x === selectedEvent) return yScale(d.y) - 32.5;
               else return yScale(d.y) - selectedLineSize / 2 - 2
             })
             .text((d: RenderedPoint) => d.hiddenActors ? d.hiddenActors.length : ''),

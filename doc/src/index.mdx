@@ -27,6 +27,7 @@ The StoryGram visualizes a sequence of events, each of which contains a set of a
 
 In the example below an excerpt of the career of Bass Player Marcus Miller is shown. Data courtesy from [metason.net](https://metason.net/).
 
+<Playground>
 <StorygramGUI 
   data={MetasonData()}
   config={{
@@ -34,7 +35,7 @@ In the example below an excerpt of the career of Bass Player Marcus Miller is sh
     eventField: 'release_year',
     actorArrayField: 'participants',
     filterGroupAmt: [3, undefined],
-    filterGroupSize: [30, 15],
+    filterGroupSize: [5, 15],
     filterEventValue: [1982, 1989],
     eventDescription: event =>
       event.data.release_title + ', ' + event.data.release_year,
@@ -44,3 +45,4 @@ In the example below an excerpt of the career of Bass Player Marcus Miller is sh
     marginRight: 300,
   }}
 ></StorygramGUI>
+</Playground>
