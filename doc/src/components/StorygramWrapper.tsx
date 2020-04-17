@@ -15,7 +15,7 @@ const StorygramGUI: SFC<StorygramProps> = props => {
   useLayoutEffect(() => {
     props.config.root = '#' + randomString;
     let storyGram = new Storygram(props.data, props.config);
-    storyGram.draw();
+    setTimeout(() => storyGram.draw(), 50);
   }, [props.config, props.data, isDrawn, props.config.root]);
 
   useEffect(() => {
