@@ -23,7 +23,9 @@
     "eslint": "^6.8.0",
     "jest": "^24.9.0",
     "ts-jest": "^24.2.0",
-    "typescript": "^3.7.4"
+    "typescript": "^3.7.4",
+    "minimist": ">=0.2.1",
+    "acorn": ">=7.1.1"
   },
   "lint-staged": {
     "*.ts": [
