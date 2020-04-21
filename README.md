@@ -1,7 +1,7 @@
 # The Storygram
 
 <p align="center">
-    <img alt="Parcel" src="https://raw.githubusercontent.com/FranzFlueckiger/Storygram/master/doc/src/media/storyGram_Blockbuster.png" width="749">
+    <img alt="Parcel" src="https://raw.githubusercontent.com/FranzFlueckiger/Storygram/master/doc/src/components/storyGram_Blockbuster.png" width="749">
 </p>
 
 The Storygram allows you to explore and visualize sequential groupings in your data.
