@@ -1,5 +1,5 @@
 import { FullConfig, Data, RenderedPoint, Event } from './Types';
-import d3 = require('d3');
+import * as d3 from 'd3';
 
 interface Binned {
   key: string

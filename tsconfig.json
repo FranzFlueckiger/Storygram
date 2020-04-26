@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "module": "commonjs",
+    "module": "ES2015",
     "declaration": true,
     "outDir": "./dist",
+    // "outFile": "./build/build.js",
     "strict": true,
     "noImplicitAny": true,
-    "lib": ["dom", "esnext"],
+    "lib": ["dom", "esnext", "es6", "es7"],
     "allowUmdGlobalAccess": true
   },
      "exclude": [

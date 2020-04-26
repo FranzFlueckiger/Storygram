@@ -8,7 +8,8 @@
     "test": "jest",
     "build": "tsc --project tsconfig.json",
     "pack_test": "npm run test && npm run build && npm pack",
-    "publish_test": "npm run test && npm run build && npm publish"
+    "publish_test": "npm run test && npm run build && npm publish",
+    "build_browser": "parcel build src/index.ts --global Storygram"
   },
   "keywords": [],
   "author": "Franz Flückiger, ZHaW",
