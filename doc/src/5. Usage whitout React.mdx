@@ -72,9 +72,9 @@ let storyGram = new Storygram(data, config)
 storyGram.draw();
 ```
 
-## Usage with plain Javascript
+## Usage with node.js without Typescript
 
-To do the same with plain Javascript type:
+To do the same with node.js without Typescript type:
 
 ```sh
 var Storygram = require('storygram');
@@ -93,4 +93,29 @@ var config = {
 
 var storyGram = new Storygram(data, config)
 storyGram.draw();
+```
+
+## Embedding in HTML page
+To embed the Storygram in a html page type:
+
+```sh
+(...)
+  <body>
+    <script src="https://unpkg.com/storygram/dist/index.min.js"></script>
+    <script>
+      const data = [
+        { event: 1, actors: ['a', 'b', 'c'] },
+        { event: 2, actors: ['d', 'b', 'e'] },
+        { event: 3, actors: ['d', 'a'] },
+      ];
+      const config = {
+        dataFormat: 'array',
+        eventField: 'event',
+        actorArrayField: 'actors',
+      };
+      let storyGram = new Storygram.Storygram(data, config);
+      storyGram.draw();
+    </script>
+  </body>
+(...)
 ```
