@@ -8,7 +8,9 @@
     "strict": true,
     "noImplicitAny": true,
     "lib": ["dom", "esnext", "es6", "es7"],
-    "allowUmdGlobalAccess": true
+    "allowUmdGlobalAccess": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
   },
      "exclude": [
      "node_modules",
