@@ -1,50 +1,121 @@
 ---
-name: 0. Getting Started
+name: 0. Installation
 route: /
 ---
-
 import { Playground, Props } from 'docz'
 import StorygramGUI from './components/StorygramWrapper';
-import {MetasonData} from '../previewData.ts'
 
-# Getting Started
+# Installation
 
-The Storygram allows you to explore and visualize sequential groupings in your data.
+It is easy to use the Storygram inside a node.js app without React.js.
 
-To install this package run
+First, run the install comands as shown in the [initial section](/).
 
-```sh
-npm i storygram
-```
+## Usage with Typescript
 
-If you're working with Typescript, run
+Import the Storygram module and the Config type.
 
 ```sh
-npm i @types/storygram
-```
+import { Storygram, Config } from 'storygram'
+``` 
 
-The StoryGram visualizes a sequence of events, each of which contains a set of actors. 
+Then define your data:
 
-Make shure to give a look to our [examples](https://storygram-demo.netlify.app/).
+```sh
+const data = [
+    { event: 1, actors: ['a', 'b', 'c'] },
+    { event: 2, actors: ['d', 'b', 'e'] },
+    { event: 3, actors: ['d', 'a'] }
+]
+``` 
 
-In the example below an excerpt of the career of Bass Player Marcus Miller is shown. Data courtesy from [metason.net](https://metason.net/). 
+Define your configuration:
 
-<Playground>
-<StorygramGUI 
-  data={MetasonData()}
-  config={{
+```sh
+const config: Config = {
     dataFormat: 'array',
-    eventField: 'release_year',
-    actorArrayField: 'participants',
-    filterGroupAmt: [3, undefined],
-    filterGroupSize: [5, 15],
-    filterEventValue: [1982, 1989],
-    eventDescription: event =>
-      event.data.release_title + ', ' + event.data.release_year,
-    url: (event, actor) =>
-      'https://music.metason.net/artistinfo?name=' + String(actor.actorID),
-    filterActorCustom: actor => actor.actorID !== 'Marcus Miller',
-    marginRight: 300,
-  }}
-></StorygramGUI>
-</Playground>
+    eventField: 'event',
+    actorArrayField: 'actors',
+}
+``` 
+
+Then create a Storygram object with your data and configuration:
+
+```sh
+let storyGram = new Storygram(data, config)
+``` 
+
+Finally, draw your Storygram:
+
+```sh
+storyGram.draw();
+```
+
+The complete code looks like this:
+
+```sh
+import { Storygram, Config } from 'storygram'
+
+const data = [
+    { event: 1, actors: ['a', 'b', 'c'] },
+    { event: 2, actors: ['d', 'b', 'e'] },
+    { event: 3, actors: ['d', 'a'] }
+]
+
+const config: Config = {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+}
+
+let storyGram = new Storygram(data, config)
+storyGram.draw();
+```
+
+## Usage with node.js without Typescript
+
+To do the same with node.js without Typescript type:
+
+```sh
+var Storygram = require('storygram');
+
+var data = [
+    { event: 1, actors: ['a', 'b', 'c'] },
+    { event: 2, actors: ['d', 'b', 'e'] },
+    { event: 3, actors: ['d', 'a'] }
+]
+
+var config = {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+}
+
+var storyGram = new Storygram(data, config)
+storyGram.draw();
+```
+
+## Embedding in HTML page
+To embed the Storygram in a html page type:
+
+```sh
+(...)
+  <body>
+    <script src="https://unpkg.com/storygram/dist/index.min.js"></script>
+    <script>
+      const data = [
+        { event: 1, actors: ['a', 'b', 'c'] },
+        { event: 2, actors: ['d', 'b', 'e'] },
+        { event: 3, actors: ['d', 'a'] },
+      ];
+      const config = {
+        dataFormat: 'array',
+        eventField: 'event',
+        actorArrayField: 'actors',
+      };
+      let storyGram = new Storygram.Storygram(data, config);
+      storyGram.draw();
+    </script>
+  </body>
+(...)
+```
