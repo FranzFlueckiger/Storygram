@@ -1,6 +1,6 @@
 {
   "name": "storygram",
-  "version": "0.0.25-beta",
+  "version": "0.0.26-beta",
   "description": "",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -9,7 +9,7 @@
     "build": "tsc --project tsconfig.json",
     "pack_test": "npm run test && npm run build && npm run build_browser && npm pack",
     "publish_test": "npm run test && npm run build && npm run build_browser && npm publish",
-    "build_browser": "parcel build src/index.ts --global Storygram -o dist/index.min.js"
+    "build_browser": "parcel build src/index.ts --global Storygram -o dist/storygram.min.js"
   },
   "keywords": [],
   "author": "Franz Flückiger, ZHaW",
