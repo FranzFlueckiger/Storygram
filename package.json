@@ -2,8 +2,8 @@
   "name": "storygram",
   "version": "0.0.25-beta",
   "description": "",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
     "build": "tsc --project tsconfig.json",
