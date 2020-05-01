@@ -7,9 +7,7 @@ import StorygramGUI from './components/StorygramWrapper';
 
 # Installation
 
-It is easy to use the Storygram inside a node.js app without React.js.
-
-First, run the install comands as shown in the [initial section](/).
+Welcome to the Storygram Documentation!
 
 ## Usage with Typescript
 
@@ -101,7 +99,9 @@ To embed the Storygram in a html page type:
 ```sh
 (...)
   <body>
-    <script src="https://unpkg.com/storygram/dist/index.min.js"></script>
+    <h1>My first Storygram!</h1>
+
+    <script src="https://unpkg.com/storygram/dist/storygram.min.js"></script>
     <script>
       const data = [
         { event: 1, actors: ['a', 'b', 'c'] },
@@ -119,3 +119,5 @@ To embed the Storygram in a html page type:
   </body>
 (...)
 ```
+
+It will append a 'svg' for the storyGram and a 'div' for the tooltip.

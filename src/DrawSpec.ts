@@ -44,7 +44,7 @@ export default class DrawSpec {
           activeActors.delete(actorID)
         }
         if (activeActors.has(actorID) || config.continuous) {
-          let yDrawn = config.compact ? (xLayer.state.length - 1) / 2 - actorIndex : actorIndex;
+          let yDrawn = config.compact ? actorIndex - (xLayer.state.length - 1) / 2 : actorIndex;
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(xLayer, yVal!);
           const strokeColor = config.actorColor(yVal!);
