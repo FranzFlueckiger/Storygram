@@ -1,5 +1,6 @@
 node_modules
-tests
 doc
 .cache
 dist/preview*
+test
+src
