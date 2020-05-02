@@ -20,22 +20,22 @@ export default class DrawSpec {
     let eventValueLegend: string
     let eventValue: number | string | undefined
     let activeActors: Set<string> = new Set()
-    data.events.forEach((xLayer, eventIndex) => {
+    data.events.forEach((event, eventIndex) => {
       let offset = 0;
       if (config.compact) {
-        xLayer.state = xLayer.state.filter(y => y !== '')
-        offset = xLayer.state.length % 2 === 0 ? -0.5 : 0;
+        event.state = event.state.filter(y => y !== '')
+        offset = event.state.length % 2 === 0 ? -0.5 : 0;
       }
       let lastGroupedIndex: number | undefined = undefined
-      if (eventValue === xLayer.eventValue) {
+      if (eventValue === event.eventValue) {
         eventValueLegend = '-'
       } else {
-        eventValue = xLayer.eventValue
-        eventValueLegend = String(xLayer.eventValue)
+        eventValue = event.eventValue
+        eventValueLegend = String(event.eventValue)
       }
-      xLayer.state.forEach((actorID: string, actorIndex: number) => {
-        const yVal = data.actors.get(actorID)
-        const isGrouped = xLayer.group.some(a => a === actorID) ? 1 : 0;
+      event.state.forEach((actorID: string, actorIndex: number) => {
+        const actor = data.actors.get(actorID)
+        const isGrouped = event.group.some(a => a === actorID) ? 1 : 0;
         if (isGrouped) {
           activeActors.add(actorID)
           lastGroupedIndex = actorIndex
@@ -44,21 +44,21 @@ export default class DrawSpec {
           activeActors.delete(actorID)
         }
         if (activeActors.has(actorID) || config.continuous) {
-          let yDrawn = config.compact ? actorIndex - (xLayer.state.length - 1) / 2 : actorIndex;
+          let yDrawn = config.compact ? actorIndex - (event.state.length - 1) / 2 : actorIndex;
           yDrawn += offset;
-          const strokeWidth = config.strokeWidth(xLayer, yVal!);
-          const strokeColor = config.actorColor(yVal!);
-          const xDrawn = Math.pow(scaling, 4) * xLayer.eventXValue + (1 - Math.pow(scaling, 4)) * eventIndex;
-          const eventDescription = config.eventDescription!(xLayer);
-          const url = config.url(xLayer, yVal!)
-          const hiddenActors = xLayer.hiddenActors
+          const strokeWidth = config.strokeWidth(event, actor!);
+          const strokeColor = config.actorColor(event, actor!);
+          const xDrawn = Math.pow(scaling, 4) * event.eventXValue + (1 - Math.pow(scaling, 4)) * eventIndex;
+          const eventDescription = config.eventDescription!(event);
+          const url = config.url(event, actor!)
+          const hiddenActors = event.hiddenActors
           const isHiglighted = config.highlight.includes(actorID) ? 1 : 0
           const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, isHiglighted);
           // this is necessary to show the hidden ys counter
           if (lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenActors = hiddenActors
             lastGroupedIndex = undefined
-          } else if (isGrouped && xLayer.state.length - 1 === actorIndex) {
+          } else if (isGrouped && event.state.length - 1 === actorIndex) {
             point.hiddenActors = hiddenActors
           }
           result.push(point);
@@ -68,12 +68,12 @@ export default class DrawSpec {
     return [result, xLen, maxYLen];
   }
 
-  public static drawD3(data: [RenderedPoint[], number, number], config: FullConfig) {
+  public static drawD3(renderedPoints: [RenderedPoint[], number, number], config: FullConfig, data: Data) {
 
-    let width = data[1] * config.eventPadding;
-    let height = data[2] * config.actorPadding;
+    let width = renderedPoints[1] * config.eventPadding;
+    let height = renderedPoints[2] * config.actorPadding;
 
-    let selectedEvent: number = data[0][0].x
+    let selectedEvent: number = renderedPoints[0][0].x
     const selectedOpacity = 1
     const unSelectedOpacity = 0.25
     const selectedLineSize = config.lineSize
@@ -104,7 +104,7 @@ export default class DrawSpec {
       .attr("class", "tooltip")
       .style("opacity", 0)
       // todo fix this, should be absolute or relative
-      .style('position', 'static')
+      .style('position', config.tooltipPosition)
       .style("background-color", "white")
       .style("border", "solid")
       .style("border-width", "2px")
@@ -114,7 +114,7 @@ export default class DrawSpec {
 
     let actorBin: Binned[] = d3.nest()
       .key(d => d instanceof RenderedPoint ? d.z : '')
-      .entries(data[0])
+      .entries(renderedPoints[0])
 
     let groupBin: Binned[] = d3.nest()
       //Todo this 'casting' is ugly, numeric key?
@@ -130,9 +130,9 @@ export default class DrawSpec {
         }
         return { min: null, max: null, event: null }
       })
-      .entries(data[0].filter(d => d.isGrouped))
+      .entries(renderedPoints[0].filter(d => d.isGrouped))
 
-    var colorEntries = data[0].map(d => String(d.strokeColor))
+    var colorEntries = renderedPoints[0].map(d => String(d.strokeColor))
 
     var color = d3.scaleOrdinal()
       .domain(colorEntries)
@@ -141,11 +141,11 @@ export default class DrawSpec {
     var bisect = d3.bisector((d: RenderedPoint) => d.x).left;
 
     let xScale = d3.scaleLinear()
-      .domain([d3.min(data[0].map(d => d.x))!, d3.max(data[0].map(d => d.x))!])
+      .domain([d3.min(renderedPoints[0].map(d => d.x))!, d3.max(renderedPoints[0].map(d => d.x))!])
       .range([0, width]);
 
     let yScale = d3.scaleLinear()
-      .domain([d3.min(data[0].map(d => d.y))!, d3.max(data[0].map(d => d.y))!])
+      .domain([d3.min(renderedPoints[0].map(d => d.y))!, d3.max(renderedPoints[0].map(d => d.y))!])
       .range([height, 0]);
 
     // actor lines
@@ -212,9 +212,9 @@ export default class DrawSpec {
     function mousemove() {
       // recover coordinate we need
       var x0 = xScale.invert(d3.mouse(d3.event.currentTarget)[0]);
-      var i = bisect(data[0], x0, 1);
-      var d0 = data[0][i - 1].x
-      var d1 = data[0][i].x
+      var i = bisect(renderedPoints[0], x0, 1);
+      var d0 = renderedPoints[0][i - 1].x
+      var d1 = renderedPoints[0][i].x
       var d = x0 - d0 > d1 - x0 ? d1 : d0;
       selectedEvent = d
       drawAll()
@@ -430,6 +430,10 @@ export default class DrawSpec {
         // @ts-ignore
         tooltip
           .attr("font-size", (fontSize - 10) + "px")
+          /* .html('<b>Hidden actors:</b>' + d.hiddenActors.map(hiddenActor => {
+            const event = data.events.find(event => config.eventDescription(event) === d.eventDescription)
+            return '<br><a href="' + config.url(event!, hiddenActor) + '">' + hiddenActor + '</a>'
+          })) */
           .html('<b>Hidden actors:</b>' + d.hiddenActors.map(p => '<br>' + p))
           .style("left", (d3.event.pageX) + "px")
           .style("top", (d3.event.pageY - 28) + "px")

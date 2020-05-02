@@ -12,7 +12,7 @@ export default class Storygram<T extends {}> {
   public data!: Data;
 
   // Array containing a grid of rendered points, the x length and the maximal y length
-  private renderedGrid!: [RenderedPoint[], number, number];
+  public renderedGrid!: [RenderedPoint[], number, number];
 
   // Whether the storygram has been filtered, optimized and rendered
   private isCalculated: boolean = false;
@@ -40,7 +40,7 @@ export default class Storygram<T extends {}> {
     compact: false,
     highlight: [],
     strokeWidth: (event, actor) => 0,
-    actorColor: (actor) => actor.actorID,
+    actorColor: (event, actor) => actor.actorID,
     mustContain: [],
     shouldContain: [],
     interactedWith: [[], 0],
@@ -55,8 +55,7 @@ export default class Storygram<T extends {}> {
     lengthLoss: 1,
     yExtentLoss: 0,
     root: 'body',
-    tooltipXDisplacement: 0,
-    tooltipYDisplacement: 0
+    tooltipPosition: 'relative'
   };
 
   // Custom and default configuration
@@ -100,7 +99,7 @@ export default class Storygram<T extends {}> {
       this.calculate()
     }
     if (this.processedData.events.length !== 0 && this.processedData.actors.size !== 0) {
-      DrawSpec.drawD3(this.renderedGrid, this.config)
+      DrawSpec.drawD3(this.renderedGrid, this.config, this.processedData)
     } else {
       console.warn('Storygram: No data after filtering')
     }

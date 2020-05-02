@@ -14,6 +14,7 @@ const StorygramGUI: SFC<StorygramProps> = props => {
 
   useLayoutEffect(() => {
     props.config.root = '#' + randomString;
+    props.config.tooltipPosition = 'static'
     let storyGram = new Storygram(props.data, props.config);
     setTimeout(() => storyGram.draw(), 50);
   }, [props.config, props.data, isDrawn, props.config.root]);

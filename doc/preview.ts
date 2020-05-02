@@ -1,7 +1,7 @@
 import {Storygram} from '../src/index';
 import {testRangeData, testArrayData, testTableData} from '../test/testData';
 import {Config} from '../src/Types';
-import {MetasonData, KurliData, WarData, BundesratData, BlockBusterdata, deNationalElf, chNationalElfFrauen} from './previewData'
+import {MetasonData} from './previewData'
 
 function drawRangeSD() {
   const config: Config = {
@@ -36,28 +36,6 @@ function drawTableSD() {
     filterGroupAmt: [2, undefined]
   };
   const SD = new Storygram(testTableData(), config);
-  SD.draw()
-}
-
-/**
- * Data found on https://www.prio.org/Data/Armed-Conflict/
- */
-function drawWarData() {
-  const data = WarData()
-  const config: Config = {
-    dataFormat: 'table',
-    eventField: 'YEAR',
-    actorFields: ['SideA', 'SideA2nd', 'SideB', 'SideB2nd'],
-    eventDescription: (event) => 'War in ' + event.data.Location + ', ' + String(event.eventValue),
-    filterGroupAmt: [2, undefined],
-    actorSplitFunction: (ys) => ys.split(', '),
-    shouldContain: ['Russia (Soviet Union)'],
-    strokeColor: (event, actor) => {
-      if((event.data.SideA && event.data.SideA.includes(actor.actorID)) || (event.data.SideA2nd && event.data.SideA2nd.includes(actor.actorID))) return 'Side A'
-      else return 'Side B'
-    }
-  };
-  const SD = new Storygram(data, config);
   SD.draw()
 }
 
@@ -115,38 +93,6 @@ function drawMetasonNarrowSD() {
   SD.draw()
 }
 
-function drawKurliSD() {
-  const data = KurliData()
-  const config: Config = {
-    dataFormat: 'array',
-    eventField: 'date',
-    actorArrayField: 'collocs',
-    compact: true,
-    eventValueScaling: 0.004
-  }
-  const SD = new Storygram(data, config);
-  SD.draw()
-}
-
-/**
- * Data found on https://de.wikipedia.org/wiki/Liste_der_Mitglieder_des_Schweizerischen_Bundesrates#Bundesr%C3%A4te
- */
-function drawBundesratExample() {
-  const data = BundesratData()
-  const config: Config = {
-    dataFormat: 'ranges',
-    startField: 'Amtsbeginn',
-    endField: 'Amtsende',
-    actorField: 'Name',
-    filterEventValue: ['1 Jan 1990', undefined],
-    eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
-    strokeColor: (event, actor) => actor.data.Partei as string,
-    compact: true,
-    eventValueScaling: 0.002,
-  };
-  const SD = new Storygram(data, config);
-  SD.draw()
-}
 
 function drawPaperExample() {
   const data = [
@@ -164,72 +110,4 @@ function drawPaperExample() {
   SD.draw()
 }
 
-function drawBlockbusterData() {
-  const data = BlockBusterdata()
-  const config: Config = {
-    dataFormat: 'array',
-    actorArrayField: 'people',
-    eventField: 'release_date',
-    eventDescription: (l) => l.data.original_title + ' (' + l.data.vote_average + '/10)' as string,
-    filterGroupAmt: [2, undefined],
-    filterEventValue: ['1 Jan 1990', '1 Jan 2010'],
-    shouldContain: ['Leonardo DiCaprio', 'James Cameron'],
-    eventValueScaling: 0.0025,
-    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID,
-    verbose: true
-  };
-  const SD = new Storygram(data, config);
-  SD.draw()
-}
-
-function drawNarrowBlockbusterData() {
-  const data = BlockBusterdata()
-  const config: Config = {
-    dataFormat: 'array',
-    actorArrayField: 'people',
-    eventField: 'release_date',
-    eventDescription: (l) => l.data.original_title + ' (' + l.data.vote_average + '/10)' as string,
-    filterGroupAmt: [5, undefined],
-    shouldContain: ['Leonardo DiCaprio', 'Tim Burton'],
-    eventValueScaling: 0.003,
-    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.data.original_title) + ' ' + actor.actorID,
-    verbose: true
-  };
-  const SD = new Storygram(data, config);
-  SD.draw()
-}
-
-function drawNationalElfDEData() {
-  const data = deNationalElf()
-  const config: Config = {
-    dataFormat: 'ranges',
-    actorField: 'Name',
-    startField: 'von',
-    endField: 'bis',
-    compact: true,
-    verbose: true
-  };
-  const SD = new Storygram(data, config);
-  SD.draw()
-}
-
-function drawNationalElfCHFrauenData() {
-  const data = chNationalElfFrauen()
-  const config: Config = {
-    dataFormat: 'ranges',
-    actorField: 'Name',
-    startField: 'Debüt',
-    endField: 'letzter Einsatz',
-    compact: true,
-    eventValueScaling: 0.0025,
-    verbose: true
-  };
-  const SD = new Storygram(data, config);
-  SD.draw()
-}
-
-drawKurliSD()
-
-setTimeout(function() {
-  drawBundesratExample()
-}, 1000);
+drawMetasonSD()

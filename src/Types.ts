@@ -20,7 +20,7 @@ export interface ArrayData {
 export interface BaseConfig {
   // should information be shown on the console
   verbose: boolean;
-  // name of the vega color scheme (more info at https://vega.github.io/vega/docs/schemes/)
+  // name of the d3 color scheme
   colorScheme:
   | 'schemeCategory10' | 'schemeAccent' | 'schemeDark2' | 'schemePaired' | 'schemePastel1' | 'schemePastel2' | 'schemeSet1' | 'schemeSet2' | 'schemeSet3';
   // split function for the actor fields, is useful when one string contains e.g. many actors separated by a string
@@ -64,7 +64,7 @@ export interface BaseConfig {
   // TODO numeric field that determines the stroke width
   strokeWidth: (event: Event, actor: Actor) => number;
   // numeric field that determines the stroke width
-  actorColor: (actor: Actor) => string | number;
+  actorColor: (event: Event, actor: Actor) => string | number;
   // TODO function that returns a string describing the actor
   tooltipText?: (arg: Event) => string;
   // check if the event contains all the given actors
@@ -95,10 +95,8 @@ export interface BaseConfig {
   yExtentLoss: number;
   // CSS-Selector indicating the DOM element to which the Storygram is appended
   root: string;
-  // tooltip x displacement
-  tooltipXDisplacement: number;
-  // tooltip y displacement
-  tooltipYDisplacement: number;
+  //tooltip position 
+  tooltipPosition: 'static' | 'relative' | 'absolute'
 }
 
 export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
