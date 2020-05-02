@@ -1,20 +1,27 @@
 ---
-name: 3. Filtering
-route: /filtering
+name: 7. FAQ
+route: /faq
 ---
 import { Playground, Props } from 'docz'
 import StorygramGUI from './components/StorygramWrapper';
 
-# Storygram is not showing up.
+# FAQ
+
+## Storygram is not showing up
 
 * Check the console; if there is a warning "Storygram: No data after filtering" then you have filtered out all events and/or actors
 * If you have set the root parameter in the config object, make sure that it is a valid css selector and that the DOM element it points on exists
 * Set verbose: true in the config object. You'll get additional information about data import problems, missing keys, corrupted events or actors and filtering issues
 
-# Storygram is appended at the end of my page
+## Storygram is appended at the end of my page
 
 * By default, the Storygram is appended at the body tag of your html document. Change the root parameter in your config object to select the correct DOM element to which it should be appended
 
-# Storygram jumps in size
+## Storygram jumps in size
 
-* The Storygram will always show all events and actors that pass filtering, which can result in big changes in size. It is important to get used to the filtering methods to be able to control these changes.
+* The Storygram will always show all events and actors that pass filtering, which can result in big changes in size. It is important to get used to the filtering methods to be able to control these changes
+
+## Events are too near
+
+* Adapt the eventPadding parameter of the config object
+* Set the parameter eventValueScaling to a very low value, for example  0.001

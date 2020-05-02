@@ -461,7 +461,7 @@ export default class DrawSpec {
             d3.select(this).style("cursor", "default");
           })
         //@ts-ignore
-        .on("click", function (d) {
+        .on("mouseover", function (d) {
           showTooltip(d)
         })
 
