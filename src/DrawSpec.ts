@@ -68,7 +68,13 @@ export default class DrawSpec {
     return [result, xLen, maxYLen];
   }
 
-  public static drawD3(renderedPoints: [RenderedPoint[], number, number], config: FullConfig, data: Data) {
+  public static remove(config: FullConfig) {
+    if (document.getElementById("storygram" + config.uid)) {
+      d3.select("#storygram" + config.uid).remove()
+    }
+  }
+
+  public static drawD3(renderedPoints: [RenderedPoint[], number, number], config: FullConfig) {
 
     let width = renderedPoints[1] * config.eventPadding;
     let height = renderedPoints[2] * config.actorPadding;
@@ -87,7 +93,14 @@ export default class DrawSpec {
     // @ts-ignore
     let svg, layer1, layer2, tooltip
 
-    svg = d3.select(config.root).append("svg")
+    const root = d3.select(config.root);
+
+    if (document.getElementById("storygram" + config.uid)) {
+      d3.select("#storygram" + config.uid).remove();
+    }
+    
+    svg = root.append("svg")
+      .attr('id', config.uid)
       .attr("width", width + config.marginLeft + config.marginRight)
       .attr("height", height + config.marginTop + config.marginBottom);
 

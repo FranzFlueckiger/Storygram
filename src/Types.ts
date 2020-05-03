@@ -18,6 +18,8 @@ export interface ArrayData {
 }
 
 export interface BaseConfig {
+  // unique identifier
+  uid: string;
   // should information be shown on the console
   verbose: boolean;
   // name of the d3 color scheme

@@ -3,8 +3,8 @@ import { filter } from './Filter';
 import { fit } from './Optimizer';
 import { fromArray, fromRanges, fromTable } from './PreProcessing';
 import { Config, Data, RenderedPoint, BaseConfig, FullConfig } from './Types';
-
-export default class Storygram<T extends {}> {
+import {uuid} from 'uuidv4'
+export default class Storygram {
   // Data with filtering and optimization
   public processedData!: Data;
 
@@ -19,6 +19,7 @@ export default class Storygram<T extends {}> {
 
   // Default values
   private baseConfig: BaseConfig = {
+    uid: uuid(),
     verbose: false,
     colorScheme: 'schemeAccent',
     lineSize: 9,
@@ -55,18 +56,23 @@ export default class Storygram<T extends {}> {
     lengthLoss: 1,
     yExtentLoss: 0,
     root: 'body',
-    tooltipPosition: 'relative'
+    tooltipPosition: 'absolute'
   };
 
   // Custom and default configuration
-  public config: FullConfig;
+  public config!: FullConfig;
 
-  public constructor(rawData: T[], config: Config) {
-    this.config = { ...this.baseConfig, ...config };
+  public constructor(rawData: any[], config: Config) {
+    this.setConfig(config)
     this.setData(rawData);
   }
 
-  private setData(data: T[]): void {
+  public setConfig(config: Config) {
+    this.config = { ...this.baseConfig, ...config };
+    this.isCalculated = false
+  }
+
+  public setData(data: any[]): void {
     switch (this.config.dataFormat) {
       case 'ranges':
         this.data = fromRanges(data, this.config.actorField, this.config.startField, this.config.endField);
@@ -80,10 +86,11 @@ export default class Storygram<T extends {}> {
       default:
         console.error('Please specify a data format of type ranges, table or array');
     }
+    this.isCalculated = false
   }
 
   // Filter, optimise and render the storygram
-  public calculate() {
+  private calculate() {
     this.processedData = filter(this.data, this.config);
     this.processedData = fit(this.processedData, this.config) as Data;
     this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
@@ -98,11 +105,16 @@ export default class Storygram<T extends {}> {
     if (!this.isCalculated) {
       this.calculate()
     }
+    this.remove()
     if (this.processedData.events.length !== 0 && this.processedData.actors.size !== 0) {
-      DrawSpec.drawD3(this.renderedGrid, this.config, this.processedData)
+      DrawSpec.drawD3(this.renderedGrid, this.config)
     } else {
       console.warn('Storygram: No data after filtering')
     }
+  }
+
+  public async remove() {
+    DrawSpec.remove(this.config)
   }
 
 }

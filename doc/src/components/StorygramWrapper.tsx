@@ -10,20 +10,19 @@ type StorygramProps = {
 const StorygramGUI: SFC<StorygramProps> = props => {
 
   let randomString = Math.random().toString(36).replace(/[^a-z]+/g, '');
-  let isDrawn = false
+  let storyGram: any;
 
   useLayoutEffect(() => {
     props.config.root = '#' + randomString;
     props.config.tooltipPosition = 'static'
-    let storyGram = new Storygram(props.data, props.config);
+    storyGram = new Storygram(props.data, props.config);
     setTimeout(() => storyGram.draw(), 50);
-  }, [props.config, props.data, isDrawn, props.config.root]);
+  }, [props.config, props.data, props.config.root]);
+
 
   useEffect(() => {
-    setTimeout(() => {
-      isDrawn = true
-    }, 0)
-  }, [])
+    storyGram.remove()
+  }, []);
 
   return (
     <>
