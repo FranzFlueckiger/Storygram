@@ -3,7 +3,7 @@ import { Storygram, Config } from 'storygram';
 import { v4 } from 'uuid'
 
 type StorygramProps = {
-  data: any;
+  data: any[];
   config: Config;
 };
 
@@ -18,7 +18,6 @@ const StorygramGUI: SFC<StorygramProps> = props => {
     storyGram = new Storygram(props.data, props.config);
     setTimeout(() => storyGram.draw(), 50);
   }, [props.config, props.data, props.config.root]);
-
 
   useEffect(() => {
     storyGram.remove()
