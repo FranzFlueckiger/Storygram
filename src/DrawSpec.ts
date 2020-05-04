@@ -94,15 +94,28 @@ export default class DrawSpec {
     let svg, layer1, layer2, tooltip
 
     const root = d3.select(config.root);
-
-    if (document.getElementById("storygram" + config.uid)) {
-      d3.select("#storygram" + config.uid).remove();
+    if (!document.getElementById("storygram" + config.uid)) {
+      svg = root.append("svg")
+        .attr('id', "storygram" + config.uid)
+        .attr("width", width + config.marginLeft + config.marginRight)
+        .attr("height", height + config.marginTop + config.marginBottom);
+      
+      tooltip = root.append("div")
+        .attr('id', 'tooltip' + config.uid)
+        .attr("class", "tooltip")
+        .style("opacity", 0)
+        // todo fix this, should be absolute or relative
+        .style('position', config.tooltipPosition)
+        .style("background-color", "white")
+        .style("border", "solid")
+        .style("border-width", "2px")
+        .style("border-radius", "10px")
+        .style("padding", "5px")
+        .style('font', String(fontSize - 3) + 'px sans-serif');
+    } else {
+      svg = root.select("storygram" + config.uid)
+      tooltip = root.select("tooltip" + config.uid)
     }
-    
-    svg = root.append("svg")
-      .attr('id', config.uid)
-      .attr("width", width + config.marginLeft + config.marginRight)
-      .attr("height", height + config.marginTop + config.marginBottom);
 
     layer1 = svg
       .append("g")
@@ -112,18 +125,6 @@ export default class DrawSpec {
       .append("g")
       .attr('id', 'layer2')
       .attr("transform", "translate(" + config.marginLeft + "," + config.marginTop + ")");
-    tooltip = d3.select(config.root).append("div")
-      .attr('id', 'tooltip')
-      .attr("class", "tooltip")
-      .style("opacity", 0)
-      // todo fix this, should be absolute or relative
-      .style('position', config.tooltipPosition)
-      .style("background-color", "white")
-      .style("border", "solid")
-      .style("border-width", "2px")
-      .style("border-radius", "10px")
-      .style("padding", "5px")
-      .style('font', String(fontSize - 3) + 'px sans-serif');
 
     let actorBin: Binned[] = d3.nest()
       .key(d => d instanceof RenderedPoint ? d.z : '')

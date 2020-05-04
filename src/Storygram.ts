@@ -101,7 +101,7 @@ export default class Storygram {
   }
 
   // Draw the storygram on the DOM. If the filter, optimization and rendering steps aren't yet made, perform these first
-  public async draw() {
+  public draw() {
     if (!this.isCalculated) {
       this.calculate()
     }
@@ -113,7 +113,7 @@ export default class Storygram {
     }
   }
 
-  public async remove() {
+  public remove() {
     DrawSpec.remove(this.config)
   }
 
