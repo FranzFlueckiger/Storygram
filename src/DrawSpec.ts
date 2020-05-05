@@ -22,7 +22,7 @@ export default class DrawSpec {
     let activeActors: Set<string> = new Set()
     data.events.forEach((event, eventIndex) => {
       let offset = 0;
-      if (config.compact) { 
+      if (config.compact) {
         event.state = event.state.filter(y => y !== '')
         offset = event.state.length % 2 === 0 ? -0.5 : 0;
       }
@@ -72,6 +72,7 @@ export default class DrawSpec {
   public static remove(config: FullConfig) {
     if (document.getElementById("storygram" + config.uid)) {
       d3.select("#storygram" + config.uid).remove()
+      d3.select("#tooltip" + config.uid).remove()
     }
   }
 
@@ -100,7 +101,7 @@ export default class DrawSpec {
         .attr('id', "storygram" + config.uid)
         .attr("width", width + config.marginLeft + config.marginRight)
         .attr("height", height + config.marginTop + config.marginBottom);
-      
+
       tooltip = root.append("div")
         .attr('id', 'tooltip' + config.uid)
         .attr("class", "tooltip")
@@ -323,7 +324,7 @@ export default class DrawSpec {
         .attr('y1', 0)
         .attr('x2', xScale(selectedEvent))
         .attr('y2', height)
-        
+
       event_desc
         .data(groupBin.filter(d => Number(d.key) === selectedEvent))
         // todo

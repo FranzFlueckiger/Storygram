@@ -1,6 +1,6 @@
 {
   "name": "storygram",
-  "version": "0.0.37-beta",
+  "version": "0.0.38-beta",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
