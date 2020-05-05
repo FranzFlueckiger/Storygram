@@ -3,7 +3,7 @@ import { Storygram, Config } from 'storygram';
 import { v4 } from 'uuid'
 
 type StorygramProps = {
-  data: any;
+  data: any[];
   config: Config;
 };
 
