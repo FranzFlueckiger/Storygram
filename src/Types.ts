@@ -31,6 +31,8 @@ export interface BaseConfig {
   eventDescription: (arg: Event) => string;
   // link to a desired url from the group nodes
   url: (event: Event, actor: Actor) => string;
+  // link to a desired url from selected event
+  eventUrl: (event: Event) => string
   // top margin of the storygram
   marginTop: number,
   // bottom margin of the storygram
@@ -98,7 +100,9 @@ export interface BaseConfig {
   // CSS-Selector indicating the DOM element to which the Storygram is appended
   root: string;
   //tooltip position 
-  tooltipPosition: 'static' | 'relative' | 'absolute'
+  tooltipPosition: 'static' | 'relative' | 'absolute';
+  // title of the tooltip showing the hidden actors
+  hiddenActorsTooltipTitle: string;
 }
 
 export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
@@ -191,6 +195,7 @@ export class RenderedPoint {
     public eventValue: number | string,
     public eventDescription: string,
     public url: string,
+    public eventUrl: string,
     public isHighlighted: number
   ) { }
 }

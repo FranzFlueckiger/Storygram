@@ -15,6 +15,7 @@ const StorygramGUI: SFC<StorygramProps> = ({ data, config }) => {
 
   useEffect(() => {
     storyGram.config.root = "#" + root
+    storyGram.config.tooltipPosition = 'static'
     storyGram.draw();
     return () => storyGram.remove()
   }, [config, data, root]);

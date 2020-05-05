@@ -1,7 +1,7 @@
-import {Storygram} from '../src/index';
-import {testRangeData, testArrayData, testTableData} from '../test/testData';
-import {Config} from '../src/Types';
-import {MetasonData} from './previewData'
+import {Storygram} from './src/index';
+import {testRangeData, testArrayData, testTableData} from './test/testData';
+import {Config} from './src/Types';
+import {MetasonData} from './doc/previewData'
 
 function drawRangeSD() {
   const config: Config = {
@@ -9,6 +9,7 @@ function drawRangeSD() {
     actorField: 'id',
     startField: 'from',
     endField: 'to',
+    filterGroupAmt: [3, undefined],
   };
   const SD = new Storygram(testRangeData(), config);
   SD.draw()
@@ -19,7 +20,7 @@ function drawArraySD() {
     dataFormat: 'array',
     actorArrayField: 'a',
     eventField: 'id',
-    filterGroupAmt: [3, undefined],
+    filterGroupAmt: [4, undefined],
     compact: false,
     verbose: true
   };
@@ -48,19 +49,7 @@ function drawMetasonSD() {
     dataFormat: 'array',
     eventField: 'year',
     actorArrayField: 'participants',
-    filterGroupAmt: [2, undefined],
-    filterGroupSize: [3, undefined],
-    filterEventValue: [1988, 1993],
     eventDescription: (event) => event.data.releaseName + ", " + event.data.year,
-    filterEventCustom: (event) => {
-      const name: string = event.data.releaseName as string
-      return !name.includes('compilation') &&
-        !name.toLowerCase().includes('best of') &&
-        !name.toLowerCase().includes('collection') &&
-        !name.toLowerCase().includes('greatest hits') &&
-        !name.toLowerCase().includes('super hits') &&
-        !name.toLowerCase().includes('remaster')
-    }
   }
   const SD = new Storygram(data, config);
   SD.draw()
@@ -72,6 +61,7 @@ function drawMetasonSD() {
 function drawMetasonNarrowSD() {
   const data = MetasonData()
   const config: Config = {
+    verbose: true,
     dataFormat: 'array',
     eventField: 'year',
     actorArrayField: 'participants',
@@ -93,7 +83,6 @@ function drawMetasonNarrowSD() {
   SD.draw()
 }
 
-
 function drawPaperExample() {
   const data = [
     {politicians: ['y0', 'y1', 'y2'], election_nr: 1990},
@@ -110,4 +99,5 @@ function drawPaperExample() {
   SD.draw()
 }
 
-drawMetasonSD()
+drawRangeSD()
+ 

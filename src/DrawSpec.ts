@@ -22,7 +22,7 @@ export default class DrawSpec {
     let activeActors: Set<string> = new Set()
     data.events.forEach((event, eventIndex) => {
       let offset = 0;
-      if (config.compact) {
+      if (config.compact) { 
         event.state = event.state.filter(y => y !== '')
         offset = event.state.length % 2 === 0 ? -0.5 : 0;
       }
@@ -51,9 +51,10 @@ export default class DrawSpec {
           const xDrawn = Math.pow(scaling, 4) * event.eventXValue + (1 - Math.pow(scaling, 4)) * eventIndex;
           const eventDescription = config.eventDescription!(event);
           const url = config.url(event, actor!)
+          const eventUrl = config.eventUrl(event)
           const hiddenActors = event.hiddenActors
           const isHiglighted = config.highlight.includes(actorID) ? 1 : 0
-          const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, isHiglighted);
+          const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, eventUrl, isHiglighted);
           // this is necessary to show the hidden ys counter
           if (lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenActors = hiddenActors
@@ -217,7 +218,7 @@ export default class DrawSpec {
       .style("pointer-events", "all")
       .attr("class", "rect_pointerID")
       .attr('width', width)
-      .attr('height', height)
+      .attr('height', height + config.marginBottom)
       .on('mousemove', mousemove)
 
     drawAll()
@@ -322,9 +323,25 @@ export default class DrawSpec {
         .attr('y1', 0)
         .attr('x2', xScale(selectedEvent))
         .attr('y2', height)
-
+        
       event_desc
         .data(groupBin.filter(d => Number(d.key) === selectedEvent))
+        // todo
+        .on("click", function (d) {
+          window.open(d.value.event[0].eventUrl)
+        })
+        .on(
+          //@ts-ignore
+          "mouseover", function (d) {
+            //@ts-ignore
+            d3.select(this).style("cursor", "pointer")
+          })
+        .on(
+          //@ts-ignore
+          "mouseout", function (d) {
+            //@ts-ignore
+            d3.select(this).style("cursor", "default");
+          })
         .transition()
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
@@ -346,7 +363,8 @@ export default class DrawSpec {
             .attr("font-family", "sans-serif")
         },
           (update: any) => {
-            update.transition()
+            update
+              .transition()
               .duration(transitionSpeed)
               .ease(d3.easeLinear)
               .attr('text-anchor', 'end')
@@ -444,11 +462,7 @@ export default class DrawSpec {
         // @ts-ignore
         tooltip
           .attr("font-size", (fontSize - 10) + "px")
-          /* .html('<b>Hidden actors:</b>' + d.hiddenActors.map(hiddenActor => {
-            const event = data.events.find(event => config.eventDescription(event) === d.eventDescription)
-            return '<br><a href="' + config.url(event!, hiddenActor) + '">' + hiddenActor + '</a>'
-          })) */
-          .html('<b>Hidden actors:</b>' + d.hiddenActors.map(p => '<br>' + p))
+          .html('<b>' + config.hiddenActorsTooltipTitle + ':</b>' + d.hiddenActors.map(p => '<br>' + p))
           .style("left", (d3.event.pageX) + "px")
           .style("top", (d3.event.pageY - 28) + "px")
           .style("width", "200px")
@@ -466,7 +480,7 @@ export default class DrawSpec {
         //@ts-ignore
         "mouseover", function (d) {
           //@ts-ignore
-          d3.select(this).style("cursor", "pointer")
+          showTooltip(d)
         })
         .on(
           //@ts-ignore
@@ -474,10 +488,6 @@ export default class DrawSpec {
             //@ts-ignore
             d3.select(this).style("cursor", "default");
           })
-        //@ts-ignore
-        .on("mouseover", function (d) {
-          showTooltip(d)
-        })
 
       //@ts-ignore
       let actorEvents = layer1.selectAll(".actorEvent")
