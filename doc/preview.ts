@@ -1,7 +1,7 @@
-import {Storygram} from './src/index';
-import {testRangeData, testArrayData, testTableData} from './test/testData';
-import {Config} from './src/Types';
-import {MetasonData} from './doc/previewData'
+import {Storygram} from '../src/index';
+import {testRangeData, testArrayData, testTableData} from '../test/testData';
+import {Config} from '../src/Types';
+import {MetasonData} from './previewData'
 
 function drawRangeSD() {
   const config: Config = {
@@ -10,6 +10,7 @@ function drawRangeSD() {
     startField: 'from',
     endField: 'to',
     filterGroupAmt: [3, undefined],
+    highlight: ['kf', 'af']
   };
   const SD = new Storygram(testRangeData(), config);
   SD.draw()
@@ -22,11 +23,12 @@ function drawArraySD() {
     eventField: 'id',
     filterGroupAmt: [4, undefined],
     compact: false,
-    verbose: true
+    verbose: true,
+    highlight: ['ef']
   };
   const SD = new Storygram(testArrayData(), config);
   SD.draw()
-}
+} 
 
 function drawTableSD() {
   const config: Config = {
@@ -99,5 +101,5 @@ function drawPaperExample() {
   SD.draw()
 }
 
-drawRangeSD()
+drawArraySD()
  

@@ -91,6 +91,33 @@ Default value: (event, actor) => actor.actorID
 </Playground>
 
 
+## Highlight
+Array containing the actors that are highlighted.
+
+```sh
+highlight: string[];
+```
+
+```sh
+Default value: []
+```
+
+<Playground>
+  <StorygramGUI data={[
+    {event: 0, actors: ['a', 'b', 'c']},
+    {event: 1, actors: ['a', 'c', 'd']},
+    {event: 2, actors: ['c', 'd', 'e']},
+    {event: 3, actors: ['e', 'f', 'g']}
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    highlight: ['b', 'd']
+  }}></StorygramGUI>
+</Playground>
+
+
 ## Event description
   Callback that returns a string describing the selected event. Note that based on the length of the descriptions you might have to adjust also the [right margin](/layout#topbottomleftright-margin).
 

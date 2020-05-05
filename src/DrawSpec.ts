@@ -91,6 +91,7 @@ export default class DrawSpec {
     const transitionSpeed = 100
     const xPadding = 0.01
     let tooltipEvent = -1
+    let highlightedActors = JSON.parse(JSON.stringify(config.highlight))
 
     // @ts-ignore
     let svg, layer1, layer2, tooltip
@@ -175,12 +176,14 @@ export default class DrawSpec {
 
     // actor highlight lines
     let actorsHighlighted = layer1.selectAll(".actorsHighlighted")
-      .data(actorBin).enter()
+      .data(actorBin.filter(actorB => {
+        return highlightedActors.includes(actorB.key)
+      })).enter()
       .append("path")
+      .style("stroke-dasharray", "2,5")
       .attr("class", "actorHighlighted")
-      .attr('stroke-linecap', 'round')
       .attr("fill", "none")
-      .attr("stroke-width", 2)
+      .attr("stroke-width", unSelectedLineSize)
 
     // group lines
     let groups = layer1.selectAll(".groups")
@@ -242,6 +245,36 @@ export default class DrawSpec {
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
         .attr("stroke", d => color(String(d.values[0].strokeColor)) as string)
+        .attr('opacity', (d: Binned) => {
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
+          else return unSelectedOpacity
+        })
+        .attr("stroke-width", (d: Binned) => {
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedLineSize - 1
+          else return unSelectedLineSize
+        })
+        .attr("d", (d: Binned) => {
+          return d3.line()
+            .x(p => xScale(p[0]))
+            .y(p => yScale(p[1]))
+            .curve(d3.curveMonotoneX)
+            (d.values.reduce<Array<[number, number]>>((arr, p) => {
+              if (p.isGrouped) {
+                arr.push([p.x - xPadding, p.y])
+                arr.push([p.x, p.y])
+                arr.push([p.x + xPadding, p.y])
+              } else {
+                arr.push([p.x, p.y])
+              }
+              return arr
+            }, []))
+        })
+
+      actorsHighlighted
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("stroke", "black")
         .attr('opacity', (d: Binned) => {
           if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
           else return unSelectedOpacity
@@ -492,17 +525,15 @@ export default class DrawSpec {
 
       //@ts-ignore
       let actorEvents = layer1.selectAll(".actorEvent")
-        .data(actorBin.filter((d: Binned) => {
-          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
-          return false
-        }).reduce<RenderedPoint[]>((arr, d) => {
-          d.values.forEach(v => {
-            if (v.isGrouped) arr.push(v)
+        .data(actorBin.filter((d: Binned) => d.values.some(v => v.x === selectedEvent && v.isGrouped))
+          .reduce<RenderedPoint[]>((arr, d) => {
+            d.values.forEach(v => {
+              if (v.isGrouped) arr.push(v)
+            })
+            return arr
+          }, []), (d: RenderedPoint) => {
+            return String(d.x) + ' ' + String(d.y) + ' ' + d.z
           })
-          return arr
-        }, []), (d: RenderedPoint) => {
-          return String(d.x) + ' ' + String(d.y) + ' ' + d.z
-        })
         .join(
           (enter: any) => enter.append("line")
             .attr("class", "actorEvent")
@@ -613,15 +644,21 @@ export default class DrawSpec {
               })
               .on(
                 //@ts-ignore
-                "mouseover", function (d) {
+                "mouseover", function (d: RenderedPoint) {
                   //@ts-ignore
+                  if (!highlightedActors.includes(d.z)) highlightedActors.push(d.z)
+                  // @ts-ignore
                   d3.select(this).style("cursor", "pointer")
+                  drawAll()
                 })
               .on(
                 //@ts-ignore
-                "mouseout", function (d) {
+                "mouseout", function (d: RenderedPoint) {
                   //@ts-ignore
+                  highlightedActors = highlightedActors.filter(h => h !== d.z || config.highlight.includes(d.z))
+                  // @ts-ignore
                   d3.select(this).style("cursor", "default");
+                  drawAll()
                 })
           },
           (update: any) => {
