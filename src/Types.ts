@@ -33,6 +33,8 @@ export interface BaseConfig {
   url: (event: Event, actor: Actor) => string;
   // link to a desired url from selected event
   eventUrl: (event: Event) => string
+  // whether the url opens a new tab or not
+  urlOpensNewTab: boolean,
   // top margin of the storygram
   marginTop: number,
   // bottom margin of the storygram

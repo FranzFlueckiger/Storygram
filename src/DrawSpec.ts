@@ -362,7 +362,8 @@ export default class DrawSpec {
         .data(groupBin.filter(d => Number(d.key) === selectedEvent))
         // todo
         .on("click", function (d) {
-          window.open(d.value.event[0].eventUrl)
+          if (config.urlOpensNewTab) window.open(d.value.event[0].eventUrl)
+          else window.open(d.value.event[0].eventUrl, "_self")
         })
         .on(
           //@ts-ignore
@@ -640,7 +641,8 @@ export default class DrawSpec {
               .attr("y", (d: RenderedPoint) => yScale(d.y))
               .text((d: RenderedPoint) => d.z)
               .on("click", function (d: RenderedPoint) {
-                window.open(d.url)
+                if(config.urlOpensNewTab) window.open(d.url)
+                else window.open(d.url, "_self")
               })
               .on(
                 //@ts-ignore

@@ -113,7 +113,7 @@ Default value: []
     dataFormat: 'array',
     eventField: 'event',
     actorArrayField: 'actors',
-    highlight: ['b', 'd']
+    highlight: ['c', 'd']
   }}></StorygramGUI>
 </Playground>
 
@@ -186,7 +186,7 @@ Default value: (event, actor) => 'https://www.google.ch/search?q=' + String(even
 Every event can have a custom URL. This is done by creating a callback that has as parameter the current event, and returns a URL string. The event URL is accessed by clicking on the event description on the top.
 
   ```sh
-  eventUrl: (event: Event, actor: Actor) => string;
+  eventUrl: (event: Event) => string;
   ``` 
   
 ```sh
@@ -362,6 +362,46 @@ Default value: 'schemeAccent'
     actorArrayField: 'actors',
     filterGroupAmt: [2, undefined],
     hiddenActorsTooltipTitle: 'Hidden letters'
+  }}></StorygramGUI>
+</Playground>
+
+## Url opens new tab
+
+Boolean that indicates if a new tab should be opened by clicking on the Storygram.
+
+```sh
+urlOpensNewTab: boolean
+``` 
+  
+```sh
+Default value: true
+```
+
+<Playground>
+  <StorygramGUI data={[
+    {
+      event: 2002, 
+    actors: ['USA', 'Germany', 'Japan'], 
+    description: 'Olympic Games'
+    },
+    {
+      event: 2006, 
+      actors: ['Greece', 'Senegal', 'Nicaragua'], 
+      description: 'FIFA Cup'
+      },
+    {
+      event: 2004, 
+      actors: ['Greece', 'Germany'], 
+      description: 'UEFA Cup'
+      }
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.eventValue) + ' ' + event.data.description + ' ' + actor.actorID,
+    marginRight: 100,
+    urlOpensNewTab: true
   }}></StorygramGUI>
 </Playground>
 

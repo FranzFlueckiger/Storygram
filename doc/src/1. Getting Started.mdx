@@ -29,6 +29,7 @@ In the example below an excerpt of the career of Bass Player Marcus Miller is sh
       event.data.release_title + ', ' + event.data.release_year,
     url: (event, actor) =>
       'https://music.metason.net/artistinfo?name=' + String(actor.actorID),
+    eventUrl: (event) => 'https://www.google.ch/search?q=' + event.data.release_title + " " + event.eventValue,
     filterActorCustom: actor => actor.actorID !== 'Marcus Miller',
     marginRight: 300,
   }}
