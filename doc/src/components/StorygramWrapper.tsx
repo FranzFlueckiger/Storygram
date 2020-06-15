@@ -7,25 +7,22 @@ type StorygramProps = {
   config: Config;
 };
 
-const StorygramGUI: SFC<StorygramProps> = props => {
+const StorygramGUI: SFC<StorygramProps> = ({ data, config }) => {
 
-  let randomString = Math.random().toString(36).replace(/[^a-z]+/g, '');
-  let storyGram: any;
+  const storyGram = new Storygram(data, config)
 
-  useLayoutEffect(() => {
-    props.config.root = '#' + randomString;
-    props.config.tooltipPosition = 'static'
-    storyGram = new Storygram(props.data, props.config);
-    setTimeout(() => storyGram.draw(), 50);
-  }, [props.config, props.data, props.config.root]);
+  const root = "storygramRoot-" + Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
 
   useEffect(() => {
-    storyGram.remove()
-  }, []);
+    storyGram.config.root = "#" + root
+    storyGram.config.tooltipPosition = 'static'
+    storyGram.draw();
+    return () => storyGram.remove()
+  }, [config, data, root]);
 
   return (
     <>
-      <div id={randomString}></div>
+      <div id={root}></div>
     </>
   );
 };

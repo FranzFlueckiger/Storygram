@@ -25,18 +25,17 @@ export default class Storygram {
     lineSize: 9,
     eventDescription: l => String(l.eventValue),
     url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.eventValue) + ' ' + actor.actorID,
+    eventUrl: (event) => 'https://www.google.ch/search?q=' + String(event.eventValue),
     marginTop: 50,
     marginBottom: 50,
     marginLeft: 50,
+    urlOpensNewTab: true,
     marginRight: 50,
     eventPadding: 40,
     actorPadding: 30,
     eventValueScaling: 0.9,
     generationAmt: 30,
     populationSize: 50,
-    selectionRate: 0.25,
-    selectionSeverity: 8,
-    mutationProbability: 0.025,
     continuous: false,
     compact: false,
     highlight: [],
@@ -56,7 +55,11 @@ export default class Storygram {
     lengthLoss: 1,
     yExtentLoss: 0,
     root: 'body',
-    tooltipPosition: 'absolute'
+    tooltipPosition: 'absolute',
+    hiddenActorsTooltipTitle: 'Hidden actors',
+    selectionRate: 0.25,
+    selectionSeverity: 8,
+    mutationProbability: 0.025,
   };
 
   // Custom and default configuration

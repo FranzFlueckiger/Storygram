@@ -51,9 +51,10 @@ export default class DrawSpec {
           const xDrawn = Math.pow(scaling, 4) * event.eventXValue + (1 - Math.pow(scaling, 4)) * eventIndex;
           const eventDescription = config.eventDescription!(event);
           const url = config.url(event, actor!)
+          const eventUrl = config.eventUrl(event)
           const hiddenActors = event.hiddenActors
           const isHiglighted = config.highlight.includes(actorID) ? 1 : 0
-          const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, isHiglighted);
+          const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, eventUrl, isHiglighted);
           // this is necessary to show the hidden ys counter
           if (lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenActors = hiddenActors
@@ -71,6 +72,7 @@ export default class DrawSpec {
   public static remove(config: FullConfig) {
     if (document.getElementById("storygram" + config.uid)) {
       d3.select("#storygram" + config.uid).remove()
+      d3.select("#tooltip" + config.uid).remove()
     }
   }
 
@@ -89,6 +91,7 @@ export default class DrawSpec {
     const transitionSpeed = 100
     const xPadding = 0.01
     let tooltipEvent = -1
+    let highlightedActors = JSON.parse(JSON.stringify(config.highlight))
 
     // @ts-ignore
     let svg, layer1, layer2, tooltip
@@ -99,7 +102,7 @@ export default class DrawSpec {
         .attr('id', "storygram" + config.uid)
         .attr("width", width + config.marginLeft + config.marginRight)
         .attr("height", height + config.marginTop + config.marginBottom);
-      
+
       tooltip = root.append("div")
         .attr('id', 'tooltip' + config.uid)
         .attr("class", "tooltip")
@@ -173,12 +176,14 @@ export default class DrawSpec {
 
     // actor highlight lines
     let actorsHighlighted = layer1.selectAll(".actorsHighlighted")
-      .data(actorBin).enter()
+      .data(actorBin.filter(actorB => {
+        return highlightedActors.includes(actorB.key)
+      })).enter()
       .append("path")
+      .style("stroke-dasharray", "2,5")
       .attr("class", "actorHighlighted")
-      .attr('stroke-linecap', 'round')
       .attr("fill", "none")
-      .attr("stroke-width", 2)
+      .attr("stroke-width", unSelectedLineSize)
 
     // group lines
     let groups = layer1.selectAll(".groups")
@@ -217,7 +222,7 @@ export default class DrawSpec {
       .style("pointer-events", "all")
       .attr("class", "rect_pointerID")
       .attr('width', width)
-      .attr('height', height)
+      .attr('height', height + config.marginBottom)
       .on('mousemove', mousemove)
 
     drawAll()
@@ -240,6 +245,36 @@ export default class DrawSpec {
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
         .attr("stroke", d => color(String(d.values[0].strokeColor)) as string)
+        .attr('opacity', (d: Binned) => {
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
+          else return unSelectedOpacity
+        })
+        .attr("stroke-width", (d: Binned) => {
+          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedLineSize - 1
+          else return unSelectedLineSize
+        })
+        .attr("d", (d: Binned) => {
+          return d3.line()
+            .x(p => xScale(p[0]))
+            .y(p => yScale(p[1]))
+            .curve(d3.curveMonotoneX)
+            (d.values.reduce<Array<[number, number]>>((arr, p) => {
+              if (p.isGrouped) {
+                arr.push([p.x - xPadding, p.y])
+                arr.push([p.x, p.y])
+                arr.push([p.x + xPadding, p.y])
+              } else {
+                arr.push([p.x, p.y])
+              }
+              return arr
+            }, []))
+        })
+
+      actorsHighlighted
+        .transition()
+        .duration(transitionSpeed)
+        .ease(d3.easeLinear)
+        .attr("stroke", "black")
         .attr('opacity', (d: Binned) => {
           if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
           else return unSelectedOpacity
@@ -325,6 +360,23 @@ export default class DrawSpec {
 
       event_desc
         .data(groupBin.filter(d => Number(d.key) === selectedEvent))
+        // todo
+        .on("click", function (d) {
+          if (config.urlOpensNewTab) window.open(d.value.event[0].eventUrl)
+          else window.open(d.value.event[0].eventUrl, "_self")
+        })
+        .on(
+          //@ts-ignore
+          "mouseover", function (d) {
+            //@ts-ignore
+            d3.select(this).style("cursor", "pointer")
+          })
+        .on(
+          //@ts-ignore
+          "mouseout", function (d) {
+            //@ts-ignore
+            d3.select(this).style("cursor", "default");
+          })
         .transition()
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
@@ -346,7 +398,8 @@ export default class DrawSpec {
             .attr("font-family", "sans-serif")
         },
           (update: any) => {
-            update.transition()
+            update
+              .transition()
               .duration(transitionSpeed)
               .ease(d3.easeLinear)
               .attr('text-anchor', 'end')
@@ -444,11 +497,7 @@ export default class DrawSpec {
         // @ts-ignore
         tooltip
           .attr("font-size", (fontSize - 10) + "px")
-          /* .html('<b>Hidden actors:</b>' + d.hiddenActors.map(hiddenActor => {
-            const event = data.events.find(event => config.eventDescription(event) === d.eventDescription)
-            return '<br><a href="' + config.url(event!, hiddenActor) + '">' + hiddenActor + '</a>'
-          })) */
-          .html('<b>Hidden actors:</b>' + d.hiddenActors.map(p => '<br>' + p))
+          .html('<b>' + config.hiddenActorsTooltipTitle + ':</b>' + d.hiddenActors.map(p => '<br>' + p))
           .style("left", (d3.event.pageX) + "px")
           .style("top", (d3.event.pageY - 28) + "px")
           .style("width", "200px")
@@ -466,7 +515,7 @@ export default class DrawSpec {
         //@ts-ignore
         "mouseover", function (d) {
           //@ts-ignore
-          d3.select(this).style("cursor", "pointer")
+          showTooltip(d)
         })
         .on(
           //@ts-ignore
@@ -474,24 +523,18 @@ export default class DrawSpec {
             //@ts-ignore
             d3.select(this).style("cursor", "default");
           })
-        //@ts-ignore
-        .on("mouseover", function (d) {
-          showTooltip(d)
-        })
 
       //@ts-ignore
       let actorEvents = layer1.selectAll(".actorEvent")
-        .data(actorBin.filter((d: Binned) => {
-          if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return true
-          return false
-        }).reduce<RenderedPoint[]>((arr, d) => {
-          d.values.forEach(v => {
-            if (v.isGrouped) arr.push(v)
+        .data(actorBin.filter((d: Binned) => d.values.some(v => v.x === selectedEvent && v.isGrouped))
+          .reduce<RenderedPoint[]>((arr, d) => {
+            d.values.forEach(v => {
+              if (v.isGrouped) arr.push(v)
+            })
+            return arr
+          }, []), (d: RenderedPoint) => {
+            return String(d.x) + ' ' + String(d.y) + ' ' + d.z
           })
-          return arr
-        }, []), (d: RenderedPoint) => {
-          return String(d.x) + ' ' + String(d.y) + ' ' + d.z
-        })
         .join(
           (enter: any) => enter.append("line")
             .attr("class", "actorEvent")
@@ -598,19 +641,26 @@ export default class DrawSpec {
               .attr("y", (d: RenderedPoint) => yScale(d.y))
               .text((d: RenderedPoint) => d.z)
               .on("click", function (d: RenderedPoint) {
-                window.open(d.url)
+                if(config.urlOpensNewTab) window.open(d.url)
+                else window.open(d.url, "_self")
               })
               .on(
                 //@ts-ignore
-                "mouseover", function (d) {
+                "mouseover", function (d: RenderedPoint) {
                   //@ts-ignore
+                  if (!highlightedActors.includes(d.z)) highlightedActors.push(d.z)
+                  // @ts-ignore
                   d3.select(this).style("cursor", "pointer")
+                  drawAll()
                 })
               .on(
                 //@ts-ignore
-                "mouseout", function (d) {
+                "mouseout", function (d: RenderedPoint) {
                   //@ts-ignore
+                  highlightedActors = highlightedActors.filter(h => h !== d.z || config.highlight.includes(d.z))
+                  // @ts-ignore
                   d3.select(this).style("cursor", "default");
+                  drawAll()
                 })
           },
           (update: any) => {

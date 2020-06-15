@@ -16,6 +16,10 @@ Whether all actors should be visible from the beginning to the end of the Storyg
 continuous: boolean;
 ``` 
 
+```sh
+Default value: false
+```
+
 <Playground>
   <StorygramGUI data={[
     {event: 0, actors: ['a', 'b', 'c']},
@@ -37,6 +41,10 @@ Whether the Storygram is compacted around the central x-axis or not. This is use
   ```sh
 compact: boolean;
 ``` 
+
+```sh
+Default value: false
+```
 
 <Playground>
   <StorygramGUI data={[
@@ -61,6 +69,10 @@ Callback that returns a string or a number indicating a color category. Note: it
 actorColor: (event: Event, actor: Actor) => string | number;
 ```
 
+```sh
+Default value: (event, actor) => actor.actorID
+```
+
 <Playground>
   <StorygramGUI data={[
     {actor: 'a', end: 1, team:'one'},
@@ -79,12 +91,43 @@ actorColor: (event: Event, actor: Actor) => string | number;
 </Playground>
 
 
+## Highlight
+Array containing the actors that are highlighted.
+
+```sh
+highlight: string[];
+```
+
+```sh
+Default value: []
+```
+
+<Playground>
+  <StorygramGUI data={[
+    {event: 0, actors: ['a', 'b', 'c']},
+    {event: 1, actors: ['a', 'c', 'd']},
+    {event: 2, actors: ['c', 'd', 'e']},
+    {event: 3, actors: ['e', 'f', 'g']}
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    highlight: ['c', 'd']
+  }}></StorygramGUI>
+</Playground>
+
+
 ## Event description
   Callback that returns a string describing the selected event. Note that based on the length of the descriptions you might have to adjust also the [right margin](/layout#topbottomleftright-margin).
 
   ```sh
     eventDescription: (arg: Event) => string;
   ``` 
+
+```sh
+Default value: event => String(event.eventValue)
+```
 
 <Playground>
   <StorygramGUI data={[
@@ -106,7 +149,11 @@ Every actor in every event can have a custom URL. This is done by creating a cal
 
   ```sh
   url: (event: Event, actor: Actor) => string;
-  ``` 
+  ```
+  
+```sh
+Default value: (event, actor) => 'https://www.google.ch/search?q=' + String(event.eventValue) + ' ' + actor.actorID
+``` 
 
 <Playground>
   <StorygramGUI data={[
@@ -135,11 +182,53 @@ Every actor in every event can have a custom URL. This is done by creating a cal
   }}></StorygramGUI>
 </Playground>
 
+## Event Url
+Every event can have a custom URL. This is done by creating a callback that has as parameter the current event, and returns a URL string. The event URL is accessed by clicking on the event description on the top.
+
+  ```sh
+  eventUrl: (event: Event) => string;
+  ``` 
+  
+```sh
+Default value: (event) => 'https://www.google.ch/search?q=' + String(event.eventValue)
+``` 
+
+<Playground>
+  <StorygramGUI data={[
+    {
+      event: 2002, 
+    actors: ['USA', 'Germany', 'Japan'], 
+    description: 'Olympic Games'
+    },
+    {
+      event: 2006, 
+      actors: ['Greece', 'Senegal', 'Nicaragua'], 
+      description: 'FIFA Cup'
+      },
+    {
+      event: 2004, 
+      actors: ['Greece', 'Germany'], 
+      description: 'UEFA Cup'
+      }
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    eventUrl: (event) => 'https://www.google.ch/search?q=' + event.data.description + String(event.eventValue),
+    marginRight: 100
+  }}></StorygramGUI>
+</Playground>
+
 ## Event value scaling
 Event value scaling factor (0.0 doesn't scale, 1.0 completely scales).
 
 ```sh
 eventValueScaling: number;
+``` 
+
+```sh
+Default value: 0.9
 ``` 
 
 <Playground>
@@ -165,6 +254,10 @@ Padding between the actors.
   actorPadding: number;
 ``` 
 
+```sh
+Default value: 30
+``` 
+
 <Playground>
   <StorygramGUI data={[
     {event: 0, actors: ['a', 'b', 'c']},
@@ -184,6 +277,10 @@ Padding between the events.
 
 ```sh
   eventPadding: number;
+``` 
+
+```sh
+Default value: 40
 ``` 
 
 <Playground>
@@ -207,6 +304,10 @@ Line size of the actors and groups.
   lineSize: number;
 ``` 
 
+```sh
+Default value: 9
+``` 
+
 <Playground>
   <StorygramGUI data={[
     {event: 0, actors: ['a', 'b', 'c']},
@@ -227,6 +328,10 @@ Line size of the actors and groups.
     colorScheme:
     | 'schemeCategory10' | 'schemeAccent' | 'schemeDark2' | 'schemePaired' | 'schemePastel1' | 'schemePastel2' | 'schemeSet1' | 'schemeSet2' | 'schemeSet3';
   ``` 
+  
+```sh
+Default value: 'schemeAccent'
+``` 
 
 <Playground>
   <StorygramGUI data={[
@@ -242,6 +347,64 @@ Line size of the actors and groups.
   }}></StorygramGUI>
 </Playground>
 
+## Hidden Actors Tooltip Title
+  Title of the tooltip displaying the hidden actors.
+
+<Playground>
+  <StorygramGUI data={[
+    {event: 0, actors: ['a', 'b', 'c']},
+    {event: 1, actors: ['d', 'b', 'e']},
+    {event: 2, actors: ['d', 'a']}
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    filterGroupAmt: [2, undefined],
+    hiddenActorsTooltipTitle: 'Hidden letters'
+  }}></StorygramGUI>
+</Playground>
+
+## Url opens new tab
+
+Boolean that indicates if a new tab should be opened by clicking on the Storygram.
+
+```sh
+urlOpensNewTab: boolean
+``` 
+  
+```sh
+Default value: true
+```
+
+<Playground>
+  <StorygramGUI data={[
+    {
+      event: 2002, 
+    actors: ['USA', 'Germany', 'Japan'], 
+    description: 'Olympic Games'
+    },
+    {
+      event: 2006, 
+      actors: ['Greece', 'Senegal', 'Nicaragua'], 
+      description: 'FIFA Cup'
+      },
+    {
+      event: 2004, 
+      actors: ['Greece', 'Germany'], 
+      description: 'UEFA Cup'
+      }
+  ]}
+  config={ {
+    dataFormat: 'array',
+    eventField: 'event',
+    actorArrayField: 'actors',
+    url: (event, actor) => 'https://www.google.ch/search?q=' + String(event.eventValue) + ' ' + event.data.description + ' ' + actor.actorID,
+    marginRight: 100,
+    urlOpensNewTab: true
+  }}></StorygramGUI>
+</Playground>
+
 ## Top/Bottom/Left/Right Margin
 
 Margins around the storygram. In the example below the Bottom and the Right margin is expanded to show the entire text.
@@ -252,6 +415,10 @@ marginBottom: number
 marginLeft: number
 marginRight: number
 ``` 
+  
+```sh
+Default value: 50
+```
 
 <Playground>
   <StorygramGUI data={[
