@@ -198,6 +198,8 @@ export class RenderedPoint {
     public eventDescription: string,
     public url: string,
     public eventUrl: string,
-    public isHighlighted: number
+    public isHighlighted: number,
+    public actor: Actor,
+    public event: Event
   ) { }
 }
