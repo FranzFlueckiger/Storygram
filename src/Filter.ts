@@ -21,8 +21,8 @@ function isInRange(p: number, range: [number | string | undefined, number | stri
 function filterEvents(data: Data, config: Config): Data {
   const actors: Map<string, Actor> = new Map();
   let filterEventValue: [string | number | undefined, string | number | undefined] = [
-    config.filterEventValue![0] ? inferEventValue(config.filterEventValue![0], 'self', 0)!.eventXValue : undefined,
-    config.filterEventValue![1] ? inferEventValue(config.filterEventValue![1], 'self', 0)!.eventXValue : undefined
+    config.filterEventValue![0] ? inferEventValue({from: config.filterEventValue![0]}, 'from', 0)!.eventXValue : undefined,
+    config.filterEventValue![1] ? inferEventValue({to: config.filterEventValue![1]}, 'to', 0)!.eventXValue : undefined
   ]
   const events = data.events.filter(event => {
     let isContained = true;

@@ -26,7 +26,7 @@ export interface BaseConfig {
   colorScheme:
   | 'schemeCategory10' | 'schemeAccent' | 'schemeDark2' | 'schemePaired' | 'schemePastel1' | 'schemePastel2' | 'schemeSet1' | 'schemeSet2' | 'schemeSet3';
   // split function for the actor fields, is useful when one string contains e.g. many actors separated by a string
-  actorSplitFunction?: ((arg: string) => string[]) | undefined;
+  actorSplitFunction?: ((arg: string | string[]) => string[]) | undefined;
   // function that returns a string describing the selected event
   eventDescription: (arg: Event) => string;
   // link to a desired url from the group nodes
@@ -199,5 +199,11 @@ export class RenderedPoint {
     public url: string,
     public eventUrl: string,
     public isHighlighted: number
-  ) { }
+  ) {}
+}
+
+export type InferredEvent = {
+  eventValue: number | string | undefined,
+  eventXValue: number
+  type: "index" | "number" | 'datestring' | 'numberstring'
 }
