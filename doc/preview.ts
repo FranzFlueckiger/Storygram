@@ -24,7 +24,9 @@ function drawArraySD() {
     filterGroupAmt: [4, undefined],
     compact: false,
     verbose: true,
-    highlight: ['ef']
+    highlight: ['ef'],
+    marginLeft: 500,
+    marginTop: 500
   };
   const SD = new Storygram(testArrayData(), config);
   SD.draw()

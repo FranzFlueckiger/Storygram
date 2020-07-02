@@ -54,7 +54,7 @@ export default class DrawSpec {
           const eventUrl = config.eventUrl(event)
           const hiddenActors = event.hiddenActors
           const isHiglighted = config.highlight.includes(actorID) ? 1 : 0
-          const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, eventUrl, isHiglighted);
+          const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, eventUrl, isHiglighted, actor!, event);
           // this is necessary to show the hidden ys counter
           if (lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
             result[result.length - 1].hiddenActors = hiddenActors
@@ -387,7 +387,6 @@ export default class DrawSpec {
             return d.value.event[0].eventDescription
         })
 
-
       //xAxis description
       // @ts-ignore
       let xAxis = layer1.selectAll(".xAxis")
@@ -498,7 +497,7 @@ export default class DrawSpec {
         tooltip
           .attr("font-size", (fontSize - 10) + "px")
           .html('<b>' + config.hiddenActorsTooltipTitle + ':</b>' + d.hiddenActors.map(p => '<br>' + p))
-          .style("left", (d3.event.pageX) + "px")
+          .style("left", (d3.event.pageX + 10) + "px")
           .style("top", (d3.event.pageY - 28) + "px")
           .style("width", "200px")
         tooltipEvent = d.x

@@ -99,7 +99,7 @@ export default class Storygram {
   }
 
   // Filter, optimise and render the storygram
-  private calculate() {
+  public calculate() {
     this.processedData = filter(this.data, this.config);
     this.processedData = fit(this.processedData, this.config) as Data;
     this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
