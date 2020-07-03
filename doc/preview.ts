@@ -21,10 +21,10 @@ function drawArraySD() {
     dataFormat: 'array',
     actorArrayField: 'a',
     eventField: 'id',
-    filterGroupAmt: [4, undefined],
     compact: true,
     verbose: true,
     highlight: ['ef'],
+    filterEventValue: ['1', 3]
   };
   const SD = new Storygram(testArrayData(), config);
   SD.draw()
@@ -114,10 +114,11 @@ function drawBundesratExample() {
     actorColor: (event, actor) => actor.data.Partei as string,
     compact: true,
     verbose: true,
-    eventValueScaling: 0.002
+    eventValueScaling: 0.002,
+    filterEventValue: [undefined, '1998-11-03']
   };
   const SD = new Storygram(data, config);
   SD.draw()
 }
 
-drawBundesratExample()
+drawArraySD()

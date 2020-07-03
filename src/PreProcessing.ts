@@ -41,48 +41,58 @@ function parseDateString(eventValue: any) {
   if(!Number.isNaN(eventXValue)) return eventXValue
 }
 
-function inferEventValue(rawEvent: any, eventField: string | undefined, index: number, config: Config): InferredEvent | undefined {
-  if(!eventField) {
+export function inferEventValuesFromFilter(config: Config): [number, number] {
+  let firstVal = config.filterEventValue![0]
+  let secondVal = config.filterEventValue![1];
+  if (config.inferredEventType === 'datestring') {
+    if (!firstVal || firstVal === Number.MIN_SAFE_INTEGER) firstVal = '1700-01-02'
+    if (!secondVal || secondVal === Number.MAX_SAFE_INTEGER) secondVal = '4000-12-29'
+    return [parseDateString(firstVal)!, parseDateString(secondVal)!]
+  } else if (config.inferredEventType === 'numberstring') {
+    if (typeof firstVal === 'string') firstVal = parseNumberString(firstVal)!
+    if (typeof secondVal === 'string') secondVal = parseNumberString(secondVal)!
+  }
+  return [parseNumber(firstVal)!, parseNumber(secondVal)!]
+}
+
+export function inferEventValue(rawEvent: any, eventField: string | undefined, index: number, config: Config, fromFilter?: boolean): InferredEvent | undefined {
+  if (!eventField) {
     console.warn('Event field ' + eventField + ' not found, skipping.', rawEvent)
     return undefined
   }
   else {
     let eventValue = rawEvent
-    if(eventField in rawEvent) {
+    if (typeof rawEvent !== 'number' && eventField in rawEvent) {
       eventValue = rawEvent[eventField]
-      if(!config.inferredEventType) autoInferEventType(eventValue, index, config)
-      console.log(config.inferredEventType)
-      let eventXValue;
-      switch(config.inferredEventType) {
-        case 'number':
-          eventXValue = parseNumber(eventValue)
-          if(eventXValue) return {eventValue: eventValue, eventXValue: eventValue}
-          else console.log("Event value couldn't be parsed as number.", rawEvent)
-          break;
-        case 'numberstring':
-          eventXValue = parseNumberString(eventValue)
-          if(eventXValue) return {eventValue: eventValue, eventXValue: eventValue}
-          else console.log("Event value couldn't be parsed as numberstring.", rawEvent)
-          break;
-        case 'datestring':
-          eventXValue = parseDateString(eventValue)
-          if(eventXValue) return {eventValue: eventValue, eventXValue: eventValue}
-          else console.log("Event value couldn't be parsed as datestring.", rawEvent)
-          break;
-        case 'index':
-          eventXValue = parseIndex(eventValue, index)
-          if(eventXValue) return {eventValue: eventValue, eventXValue: eventValue}
-          else console.log("Event value couldn't be parsed as index.", rawEvent)
-          break;
-        default:
-          break;
-      }
-    } else {
-      console.error("Event value can't be inferred on field " + eventField, rawEvent)
-      return undefined
+    }
+    if (!config.inferredEventType) autoInferEventType(eventValue, index, config)
+    let eventXValue;
+    switch (config.inferredEventType) {
+      case fromFilter || 'number':
+        eventXValue = parseNumber(eventValue)
+        if (typeof eventXValue === 'number') return { eventValue, eventXValue }
+        else console.log("Event value couldn't be parsed as number.", rawEvent)
+        break;
+      case 'numberstring':
+        eventXValue = parseNumberString(eventValue)
+        if (typeof eventXValue === 'number') return { eventValue, eventXValue }
+        else console.log("Event value couldn't be parsed as numberstring.", rawEvent)
+        break;
+      case 'datestring':
+        eventXValue = parseDateString(eventValue)
+        if (typeof eventXValue === 'number') return { eventValue, eventXValue }
+        else console.log("Event value couldn't be parsed as datestring.", rawEvent)
+        break;
+      case 'index':
+        eventXValue = parseIndex(eventValue, index)
+        if (typeof eventXValue === 'number') return { eventValue, eventXValue }
+        else console.log("Event value couldn't be parsed as index.", rawEvent)
+        break;
+      default:
+        console.error("Event value can't be inferred on field " + eventField, rawEvent)
+        break;
     }
   }
-}
 }
 
 /**
@@ -91,7 +101,7 @@ function inferEventValue(rawEvent: any, eventField: string | undefined, index: n
  * undefined and null values. This form of input contains no additional
  * information of the events except for the id.
  */
-function processActorsFirst(
+export function processActorsFirst(
   data: any[],
   config: BaseConfig & RangeData
 ): Data {
@@ -151,7 +161,7 @@ function remapEventsFromActors(
  * undefined and null values. This form of input contains no additional
  * information of the actors except for the id.
  */
-function processEventsFirst(
+export function processEventsFirst(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   inputData: Record<string, any>[],
   actorField: string | string[],
@@ -214,5 +224,3 @@ function extractActorsFromField(
     ),
   ];
 }
-
-export {processActorsFirst, processEventsFirst, inferEventValue, inferActorID};

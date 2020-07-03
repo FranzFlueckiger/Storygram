@@ -1,5 +1,5 @@
 import {Config, Data, Actor} from './Types';
-import {inferEventValue} from './PreProcessing';
+import { inferEventValue, inferEventValuesFromFilter } from './PreProcessing';
 
 function filter(data: Data, config: Config): Data {
   if(config.verbose) console.log('Before Filtering', data);
@@ -20,10 +20,7 @@ function isInRange(p: number, range: [number | string | undefined, number | stri
 
 function filterEvents(data: Data, config: Config): Data {
   const actors: Map<string, Actor> = new Map();
-  let filterEventValue: [string | number | undefined, string | number | undefined] = [
-    config.filterEventValue![0] ? inferEventValue({from: config.filterEventValue![0]}, 'from', 0, config)!.eventXValue : undefined,
-    config.filterEventValue![1] ? inferEventValue({to: config.filterEventValue![1]}, 'to', 0, config)!.eventXValue : undefined
-  ]
+  let filterEventValue: [number, number] = inferEventValuesFromFilter(config)
   const events = data.events.filter(event => {
     let isContained = true;
     if(config.mustContain && config.mustContain.length) {

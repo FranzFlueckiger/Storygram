@@ -2,16 +2,16 @@
 
 export function testArrayData() {
   return [
-    {a: ['bf', 'gf', 'kf'], id: 0},
-    {a: ['ff', 'ef', 'af', 'zf'], id: 1},
-    {a: ['ff', 'gf'], id: 2},
-    {a: ['ff', 'ef', 'cf', 'pf'], id: 3},
-    {a: ['zf', 'lf', 'bf'], id: 4},
-    {a: ['gf', 'ef', 'af', 'pf'], id: 5},
-    {a: ['bf', 'gf', 'kf'], id: 5},
-    {a: ['pf', 'ff'], id: 6},
-    {a: ['ff', 'gf', 'cf', 'af'], id: 6},
-    {a: ['ef', 'gf', 'zf'], id: 7},
+    {a: ['bf', 'gf', 'kf'], id: '0'},
+    {a: ['ff', 'ef', 'af', 'zf'], id: '1'},
+    {a: ['ff', 'gf'], id: '2'},
+    {a: ['ff', 'ef', 'cf', 'pf'], id: '3'},
+    {a: ['zf', 'lf', 'bf'], id: '4'},
+    {a: ['gf', 'ef', 'af', 'pf'], id: '5'},
+    {a: ['bf', 'gf', 'kf'], id: '5'},
+    {a: ['pf', 'ff'], id: '6'},
+    {a: ['ff', 'gf', 'cf', 'af'], id: '6'},
+    {a: ['ef', 'gf', 'zf'], id: '7'},
   ];
 }
 
