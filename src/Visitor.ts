@@ -1,41 +1,63 @@
-import { Data, Distance, GenePool, Switch, Event, Config, Actor } from './Types';
+import {Data, Distance, GenePool, Switch, Event, Config, Actor} from './Types';
 
 function visit(data: Data, actorEntryPoints: GenePool | undefined, config: Config): [Event[], GenePool] {
+  let result;
+  if(config.compact) {
+    result = visitCompact(data, actorEntryPoints, config)
+  } else {
+    result = visitExpanded(data, actorEntryPoints, config)
+  }
+  return result;
+}
+
+function visitCompact(data: Data, actorEntryPoints: GenePool | undefined, config: Config): [Event[], GenePool] {
   actorEntryPoints = actorEntryPoints ? actorEntryPoints : new Map();
-  if (actorEntryPoints.size === 0 && !config.compact) {
+  let visitor: string[]
+  let prevIndex: number
+  visitor = [];
+  prevIndex = -1;
+  // traverse events
+  let events = data.events.reduce((acc: Event[], event: Event, i: number) => {
+    if(!event.isHidden) {
+      if(i != 0) {
+        data.events[prevIndex].remove.forEach(a => (visitor = remove(a, visitor)));
+      }
+      event.add.forEach(actorID => {
+        const actor: Actor = data.actors.get(actorID)!;
+        if(!actor.isHidden) {
+          const entryPoint = actorEntryPoints!.get(actorID);
+          if(!entryPoint) {
+            const entryPoint = Math.random()
+            actorEntryPoints!.set(actorID, entryPoint);
+          }
+          visitor = add(actorID, entryPoint!, visitor);
+        }
+      });
+      event.switch = group(event.group, visitor);
+      event.state = [...visitor];
+      acc.push(event);
+    }
+    prevIndex++
+    return acc;
+  }, [])
+  return [events, actorEntryPoints];
+}
+
+function visitExpanded(data: Data, actorEntryPoints: GenePool | undefined, config: Config): [Event[], GenePool] {
+  actorEntryPoints = actorEntryPoints ? actorEntryPoints : new Map();
+  if(actorEntryPoints.size === 0) {
     data.actors.forEach(y => {
-      if (!y.isHidden) actorEntryPoints!.set(y.actorID, Math.random())
+      if(!y.isHidden) actorEntryPoints!.set(y.actorID, Math.random())
     })
   }
   let visitor: string[]
   let prevIndex: number
-  if (config.compact) {
-    visitor = [];
-    prevIndex = -1;
-  } else {
-    visitor = Array.from(actorEntryPoints!)
-      .sort((a, b) => a[1] - b[1])
-      .map(y => y[0])
-  }
+  visitor = Array.from(actorEntryPoints!)
+    .sort((a, b) => a[1] - b[1])
+    .map(y => y[0])
   // traverse events
   let events = data.events.reduce((acc: Event[], event: Event, i: number) => {
-    if (!event.isHidden) {
-      if (config.compact) {
-        if (i != 0) {
-          data.events[prevIndex].remove.forEach(a => (visitor = remove(a, visitor)));
-        }
-        event.add.forEach(actorID => {
-          const actor: Actor = data.actors.get(actorID)!;
-          if (!actor.isHidden) {
-            const entryPoint = actorEntryPoints!.get(actorID);
-            if (!entryPoint) {
-              const entryPoint = Math.random()
-              actorEntryPoints!.set(actorID, entryPoint);
-            }
-            visitor = add(actorID, entryPoint!, visitor);
-          }
-        });
-      }
+    if(!event.isHidden) {
       event.switch = group(event.group, visitor);
       event.state = [...visitor];
       acc.push(event);
@@ -77,18 +99,18 @@ function group(group: string[], visitor: string[]): Switch[] {
   // looping strategies for backward and forward searching
   const strategies = new Map();
   // first element is the descending edge, the second one the ascending
-  strategies.set(1, { init: 1, comp: (i: number) => i < visitor.length });
-  strategies.set(-1, { init: 0, comp: (i: number) => i >= 0 });
+  strategies.set(1, {init: 1, comp: (i: number) => i < visitor.length});
+  strategies.set(-1, {init: 0, comp: (i: number) => i >= 0});
   // Check for every y that has to be grouped if it is adjacent, else switch.
   // Since the distances are sorted for their absolute values, begin grouping
   // from the nearest to the farthest
   dists.forEach(p => {
     const direction: number = -Math.sign(p.distance);
-    if (direction != 0) {
+    if(direction != 0) {
       const strategy = strategies.get(direction);
       const index: number = visitor.indexOf(p.p);
-      for (let i = edges[strategy.init]; strategy.comp(i); i += direction) {
-        if (
+      for(let i = edges[strategy.init]; strategy.comp(i); i += direction) {
+        if(
           (index >= edges[0] && index <= edges[1]) ||
           (edges[1] === 0 && direction === 1) ||
           (edges[0] === visitor.length - 1 && direction === -1)
@@ -97,10 +119,10 @@ function group(group: string[], visitor: string[]): Switch[] {
           // if the edges are at the end of the visitor and the direction points
           // to it, then p is adjacent
           break;
-        } else if (!dists.some(a => a.p === visitor[i])) {
+        } else if(!dists.some(a => a.p === visitor[i])) {
           // if the visited y is a non-grouped element, then switch it
           // with the current element p
-          const switchY: Switch = { target: i, prev: index };
+          const switchY: Switch = {target: i, prev: index};
           switches.push(switchY);
           switchP(switchY, visitor);
           break;
@@ -127,10 +149,10 @@ function getDistances(group: string[], center: number, visitor: string[]): Dista
     .map(p => {
       const i = visitor.indexOf(p);
       const distance = center - i;
-      return { p, distance };
+      return {p, distance};
     })
     .sort((a, b) => Math.abs(a.distance) - Math.abs(b.distance));
 }
 
 
-export { visit, add, remove, switchP, group, getCenter, getDistances };
+export {visit, add, remove, switchP, group, getCenter, getDistances};

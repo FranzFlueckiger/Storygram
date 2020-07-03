@@ -203,3 +203,9 @@ export class RenderedPoint {
     public event: Event
   ) { }
 }
+
+export type InferredEvent = {
+  eventValue: number | string | undefined,
+  eventXValue: number,
+  type: "index" | "number" | 'datestring' | 'numberstring'
+}

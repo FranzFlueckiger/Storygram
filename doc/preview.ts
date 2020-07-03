@@ -1,7 +1,7 @@
 import {Storygram} from '../src/index';
 import {testRangeData, testArrayData, testTableData} from '../test/testData';
 import {Config} from '../src/Types';
-import {MetasonData} from './previewData'
+import {MetasonData, BundesratData} from './previewData'
 
 function drawRangeSD() {
   const config: Config = {
@@ -22,15 +22,13 @@ function drawArraySD() {
     actorArrayField: 'a',
     eventField: 'id',
     filterGroupAmt: [4, undefined],
-    compact: false,
+    compact: true,
     verbose: true,
     highlight: ['ef'],
-    marginLeft: 500,
-    marginTop: 500
   };
   const SD = new Storygram(testArrayData(), config);
   SD.draw()
-} 
+}
 
 function drawTableSD() {
   const config: Config = {
@@ -51,9 +49,11 @@ function drawMetasonSD() {
   const data = MetasonData()
   const config: Config = {
     dataFormat: 'array',
-    eventField: 'year',
+    eventField: 'release_year',
     actorArrayField: 'participants',
-    eventDescription: (event) => event.data.releaseName + ", " + event.data.year,
+    eventDescription: (event) => event.data.release_title + ", " + event.data.release_year,
+    filterEventValue: [1995, 2001],
+    filterGroupAmt: [2, undefined]
   }
   const SD = new Storygram(data, config);
   SD.draw()
@@ -67,14 +67,14 @@ function drawMetasonNarrowSD() {
   const config: Config = {
     verbose: true,
     dataFormat: 'array',
-    eventField: 'year',
+    eventField: 'release_year',
     actorArrayField: 'participants',
     filterGroupAmt: [3, undefined],
     filterEventValue: [2008, 2018],
     eventValueScaling: 0.7,
-    eventDescription: (event) => event.data.releaseName + ", " + event.data.year,
+    eventDescription: (event) => event.data.release_title + ", " + event.data.release_year,
     filterEventCustom: (event) => {
-      const name: string = event.data.releaseName as string
+      const name: string = event.data.release_title as string
       return !name.includes('compilation') &&
         !name.toLowerCase().includes('best of') &&
         !name.toLowerCase().includes('collection') &&
@@ -103,5 +103,21 @@ function drawPaperExample() {
   SD.draw()
 }
 
-drawArraySD()
- 
+function drawBundesratExample() {
+  const data = BundesratData
+  const config: Config = {
+    dataFormat: 'ranges',
+    startField: 'Gewaehlt',
+    endField: 'Zuruecktritt',
+    actorField: 'Name',
+    eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
+    actorColor: (event, actor) => actor.data.Partei as string,
+    compact: true,
+    verbose: true,
+    eventValueScaling: 0.002
+  };
+  const SD = new Storygram(data, config);
+  SD.draw()
+}
+
+drawMetasonNarrowSD()

@@ -22,12 +22,12 @@ function inferEventValue(rawEvent: any, eventField: string | undefined, index: n
         }
         eventXValue = Date.parse(eventValue)
         if(Number.isNaN(eventXValue)) {
-          console.error("Event value " + rawEvent + ', ' + eventValue + " at index " + index + " couldn't be parsed as number or date.")
+          console.error("Event value couldn't be parsed as number or date.", rawEvent)
         }
         return {eventValue: eventValue, eventXValue, type: 'datestring'}
       }
     } else {
-      console.error("Event value " + rawEvent + ', ' + eventValue + " at index " + index + " can't be inferred.")
+      console.error("Event value can't be inferred.", rawEvent)
       return undefined
     }
   }
@@ -54,7 +54,7 @@ function processActorsFirst(
     if(to) rawEvents.set(to.eventXValue, to);
     const dActorField = d[actorField];
     if(typeof dActorField != 'string') {
-      console.warn(`Value of actorField (${dActorField}) of actor nr. ${i} should be of type string.`);
+      console.warn(`Value of actorField should be of type string.`, d);
     }
     actors.set(inferActorID(dActorField), new Actor(String(dActorField), d));
   });

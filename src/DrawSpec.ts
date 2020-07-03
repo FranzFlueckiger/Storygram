@@ -1,5 +1,6 @@
 import { FullConfig, Data, RenderedPoint, Event } from './Types';
 import * as d3 from 'd3';
+import {getCompactedLocation} from './Optimizer';
 
 interface Binned {
   key: string
@@ -24,7 +25,6 @@ export default class DrawSpec {
       let offset = 0;
       if (config.compact) {
         event.state = event.state.filter(y => y !== '')
-        offset = event.state.length % 2 === 0 ? -0.5 : 0;
       }
       let lastGroupedIndex: number | undefined = undefined
       if (eventValue === event.eventValue) {
@@ -44,7 +44,7 @@ export default class DrawSpec {
           activeActors.delete(actorID)
         }
         if (activeActors.has(actorID) || config.continuous) {
-          let yDrawn = config.compact ? actorIndex - (event.state.length - 1) / 2 : actorIndex;
+          let yDrawn = config.compact ? getCompactedLocation(actorIndex, event.state.length) : actorIndex;
           yDrawn += offset;
           const strokeWidth = config.strokeWidth(event, actor!);
           const strokeColor = config.actorColor(event, actor!);

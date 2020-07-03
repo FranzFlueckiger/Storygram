@@ -1,7 +1,6 @@
 import {Child, FullConfig, Data, GenePool, Event} from './Types';
 import {visit} from './Visitor';
 
-
 function fit(data: Data, config: FullConfig) {
   let best: Child | undefined;
   let population: Child[];
@@ -25,7 +24,6 @@ function fit(data: Data, config: FullConfig) {
   }
 }
 
-
 function getGeneration(data: Data, yEntryPoints: Array<Map<string, number>> | undefined, config: FullConfig): Child[] {
   const population: Child[] = [];
   // Compute new generation
@@ -39,7 +37,6 @@ function getGeneration(data: Data, yEntryPoints: Array<Map<string, number>> | un
   return population.sort((a, b) => a.loss - b.loss);
 }
 
-
 function select(population: Child[], config: FullConfig): Child[] {
   const parents = [];
   const length = population.length * config.selectionRate;
@@ -51,7 +48,6 @@ function select(population: Child[], config: FullConfig): Child[] {
   }
   return parents;
 }
-
 
 function mate(parents: Child[], config: FullConfig): GenePool[] {
   const genes = [];
@@ -72,7 +68,6 @@ function mate(parents: Child[], config: FullConfig): GenePool[] {
   return genes;
 }
 
-
 function mutate(data: Data, genes: GenePool[], config: FullConfig) {
   genes.forEach((_, i) => {
     data.events.forEach(x => {
@@ -89,15 +84,14 @@ function mutate(data: Data, genes: GenePool[], config: FullConfig) {
   return genes;
 }
 
-
 function getLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
   let score = 0;
-  score += getSwitchAmountLoss(child, config);
-  score += getSwitchSizeLoss(child, config);
+  score += getSwitchAmountLoss(child, config) * config.amtLoss;
+  score += getSwitchSizeLoss(child, config) * config.lengthLoss;
   if(config.compact) {
-    score += getLinearLoss(child, config, data)
+    score += getLinearLoss(child) * config.linearLoss
   } else {
-    score += getYExtentLoss(child, config, data)
+    score += getYExtentLoss(child, config) * config.yExtentLoss
   }
   return score;
 }
@@ -107,7 +101,7 @@ function getSwitchAmountLoss(child: [Event[], GenePool], config: FullConfig): nu
     // Penalty for the amount of switches
     return (acc += xLayer.switch.length);
   }, 0)
-  ) * config.amtLoss;
+  );
 }
 
 function getSwitchSizeLoss(child: [Event[], GenePool], config: FullConfig): number {
@@ -120,50 +114,41 @@ function getSwitchSizeLoss(child: [Event[], GenePool], config: FullConfig): numb
         }
         return a;
       }, 0));
-  }, 0) * config.lengthLoss;
+  }, 0);
 }
 
-function getYExtentLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
+function getYExtentLoss(child: [Event[], GenePool], config: FullConfig): number {
   return child[0].reduce((max, x) => {
     return Math.max(max, x.state.length)
-  }, 0) * config.yExtentLoss
+  }, 0)
 }
 
-function getLinearLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
+function getLinearLoss(child: [Event[], GenePool]): number {
   let score = 0;
-  const xLayers: Event[] = child[0];
-  const maxLen = xLayers.reduce((acc, c) => Math.max(acc, c.state.length), 0);
-  let prevVector = getStateVector(xLayers[0], maxLen, config);
-  for(let i = 1; i < xLayers.length; i++) {
-    const vector = getStateVector(xLayers[i], maxLen, config);
-    for(let j = 0; j < maxLen; j++) {
-      if(prevVector[j] != vector[j]) score++;
-    }
-    prevVector = vector;
+  const events: Event[] = child[0];
+  for(let i = 1; i < events.length; i++) {
+    score += compareCompactedEventStates(events[i - 1].state, events[i].state)
   }
   return score;
 }
 
-function getStateVector(xLayer: Event, maxLen: number, config: FullConfig): string[] {
-  const stateVector: string[] = [];
-  for(let i = 0; i < maxLen; i++) {
-    let yPoint = '';
-    // todo should be config.centered, must be implemented
-    if(config.compact) {
-      const stateLen = xLayer.state.length;
-      const entry = Math.floor((maxLen - stateLen - (stateLen % 2)) / 2);
-      if(i >= entry || i <= maxLen - entry) {
-        yPoint = xLayer.state[i - entry];
-      }
-    } else {
-      yPoint = xLayer.state[i];
-    }
-    if(!yPoint) {
-      yPoint = '';
-    }
-    stateVector.push(yPoint);
-  }
-  return stateVector;
+function compareCompactedEventStates(vec1: string[], vec2: string[]) {
+  const indexMap = vec1.reduce<Map<number, string>>((obj, v, i) =>
+    obj.set(getCompactedLocation(i, vec1.length), v), new Map())
+  return vec2.reduce((acc, v, i) => {
+    const loc = getCompactedLocation(i, vec2.length)
+    if(indexMap.has(loc) && indexMap.get(loc) !== v) acc++
+    return acc
+  }, 0)
+}
+
+export function getCompactedLocation(position: number, arrayLength: number) {
+  const offset = (arrayLength % 2) / 2 - 0.5
+  return position - (arrayLength - 1) / 2 + offset
+}
+
+function isActorVisible(actorID: string, event: Event) {
+
 }
 
 export {fit};
