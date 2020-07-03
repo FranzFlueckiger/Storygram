@@ -120,4 +120,4 @@ function drawBundesratExample() {
   SD.draw()
 }
 
-drawMetasonNarrowSD()
+drawBundesratExample()

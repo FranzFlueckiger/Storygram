@@ -1,36 +1,88 @@
-import {Data, Event, Actors, Actor, InferredEvent} from './Types';
+import {Data, Event, Actors, Actor, InferredEvent, Config, RangeData, BaseConfig} from './Types';
 
 function inferActorID(rawActor: any) {
   return String(rawActor)
 }
 
-function inferEventValue(rawEvent: any, eventField: string | undefined, index: number): InferredEvent | undefined {
+function autoInferEventType(eventValue: any, index: number, config: Config) {
+  switch('number') {
+    case typeof parseNumber(eventValue):
+      config.inferredEventType = 'number'
+      break;
+    case typeof parseNumberString(eventValue):
+      config.inferredEventType = 'numberstring'
+      break;
+    case typeof parseDateString(eventValue):
+      config.inferredEventType = 'datestring'
+      break;
+    case typeof parseIndex(eventValue, index):
+      config.inferredEventType = 'index'
+      break;
+    default:
+      break;
+  }
+}
+
+function parseIndex(eventValue: any, index: number) {
+  if(index) return index
+}
+
+function parseNumberString(eventValue: any) {
+  let eventXValue = Number(eventValue)
+  if(!Number.isNaN(eventXValue)) return eventXValue
+}
+
+function parseNumber(eventValue: any) {
+  if(typeof eventValue === 'number') return eventValue
+}
+
+function parseDateString(eventValue: any) {
+  let eventXValue = Date.parse(eventValue)
+  if(!Number.isNaN(eventXValue)) return eventXValue
+}
+
+function inferEventValue(rawEvent: any, eventField: string | undefined, index: number, config: Config): InferredEvent | undefined {
   if(!eventField) {
-    console.warn('Event field not found, skipping.', rawEvent)
+    console.warn('Event field ' + eventField + ' not found, skipping.', rawEvent)
     return undefined
   }
   else {
     let eventValue = rawEvent
     if(eventField in rawEvent) {
       eventValue = rawEvent[eventField]
-      if(typeof eventValue === "number") {
-        return {eventValue: eventValue, eventXValue: eventValue, type: 'number'}
-      } else if(typeof eventValue === "string") {
-        let eventXValue = Number(eventValue)
-        if(!Number.isNaN(eventXValue)) {
-          return {eventValue: eventValue, eventXValue, type: 'numberstring'}
-        }
-        eventXValue = Date.parse(eventValue)
-        if(Number.isNaN(eventXValue)) {
-          console.error("Event value couldn't be parsed as number or date.", rawEvent)
-        }
-        return {eventValue: eventValue, eventXValue, type: 'datestring'}
+      if(!config.inferredEventType) autoInferEventType(eventValue, index, config)
+      console.log(config.inferredEventType)
+      let eventXValue;
+      switch(config.inferredEventType) {
+        case 'number':
+          eventXValue = parseNumber(eventValue)
+          if(eventXValue) return {eventValue: eventValue, eventXValue: eventValue}
+          else console.log("Event value couldn't be parsed as number.", rawEvent)
+          break;
+        case 'numberstring':
+          eventXValue = parseNumberString(eventValue)
+          if(eventXValue) return {eventValue: eventValue, eventXValue: eventValue}
+          else console.log("Event value couldn't be parsed as numberstring.", rawEvent)
+          break;
+        case 'datestring':
+          eventXValue = parseDateString(eventValue)
+          if(eventXValue) return {eventValue: eventValue, eventXValue: eventValue}
+          else console.log("Event value couldn't be parsed as datestring.", rawEvent)
+          break;
+        case 'index':
+          eventXValue = parseIndex(eventValue, index)
+          if(eventXValue) return {eventValue: eventValue, eventXValue: eventValue}
+          else console.log("Event value couldn't be parsed as index.", rawEvent)
+          break;
+        default:
+          break;
       }
     } else {
-      console.error("Event value can't be inferred.", rawEvent)
+      console.error("Event value can't be inferred on field " + eventField, rawEvent)
       return undefined
     }
   }
+}
 }
 
 /**
@@ -41,15 +93,16 @@ function inferEventValue(rawEvent: any, eventField: string | undefined, index: n
  */
 function processActorsFirst(
   data: any[],
-  actorField: string,
-  fromField: string,
-  toField: string
+  config: BaseConfig & RangeData
 ): Data {
   const rawEvents: Map<number, InferredEvent> = new Map();
   const actors: Actors = new Map();
+  const fromField = config.startField
+  const toField = config.endField
+  const actorField = config.actorField
   data.forEach((d, i) => {
-    const from = inferEventValue(d, fromField, i)
-    const to = inferEventValue(d, toField, i)
+    const from = inferEventValue(d, fromField, i, config)
+    const to = inferEventValue(d, toField, i, config)
     if(from) rawEvents.set(from.eventXValue, from);
     if(to) rawEvents.set(to.eventXValue, to);
     const dActorField = d[actorField];
@@ -59,7 +112,7 @@ function processActorsFirst(
     actors.set(inferActorID(dActorField), new Actor(String(dActorField), d));
   });
   const sortedEvents = Array.from(rawEvents).sort((a, b) => a[0] - b[0]).filter(d => d);
-  const events: Event[] = remapEventsFromActors(sortedEvents, data, actorField, fromField, toField, actors)
+  const events: Event[] = remapEventsFromActors(sortedEvents, data, actorField, fromField, toField, actors, config)
   return {events, actors};
 }
 
@@ -69,13 +122,14 @@ function remapEventsFromActors(
   actorField: string,
   fromField: string,
   toField: string,
-  actors: Actors
+  actors: Actors,
+  config: Config
 ): Event[] {
   return sortedEvents.map((rawEvent, i) => {
     const event = new Event(rawEvent![1].eventValue, rawEvent[0], {});
     data.forEach((d) => {
-      const from = inferEventValue(d, fromField, i);
-      const to = inferEventValue(d, toField, i);
+      const from = inferEventValue(d, fromField, i, config);
+      const to = inferEventValue(d, toField, i, config);
       if(
         ((!from || from.eventXValue <= rawEvent[0])) &&
         ((!to || to.eventXValue >= rawEvent[0]))
@@ -102,11 +156,12 @@ function processEventsFirst(
   inputData: Record<string, any>[],
   actorField: string | string[],
   splitFunction: ((arg: string) => string[]) | ((arg: string[]) => string[]),
-  eventField?: string
+  config: Config,
+  eventField: string | undefined
 ) {
   let data = inputData
     .reduce<Array<[Record<string, any>, InferredEvent]>>((arr, event, i: number) => {
-      let moment = inferEventValue(event, eventField, i)
+      let moment = inferEventValue(event, eventField, i, config)
       if(moment) {
         arr.push([event, moment])
       }

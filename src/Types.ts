@@ -105,6 +105,8 @@ export interface BaseConfig {
   tooltipPosition: 'static' | 'relative' | 'absolute';
   // title of the tooltip showing the hidden actors
   hiddenActorsTooltipTitle: string;
+  // automatically inferred data type of the first encountered (valid) event
+  inferredEventType: InferredEventType
 }
 
 export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
@@ -206,6 +208,7 @@ export class RenderedPoint {
 
 export type InferredEvent = {
   eventValue: number | string | undefined,
-  eventXValue: number,
-  type: "index" | "number" | 'datestring' | 'numberstring'
+  eventXValue: number
 }
+
+export type InferredEventType = "index" | "number" | 'datestring' | 'numberstring' | undefined
