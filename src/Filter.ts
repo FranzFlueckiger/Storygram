@@ -1,5 +1,5 @@
 import {Config, Data, Actor} from './Types';
-import { inferEventValuesFromFilter } from './PreProcessing';
+import {inferEventValuesFromFilter} from './PreProcessing';
 
 function filter(data: Data, config: Config): Data {
   if(config.verbose) console.log('Before Filtering', data);
@@ -23,13 +23,13 @@ function filterEvents(data: Data, config: Config): Data {
   let filterEventValue: [number, number] = inferEventValuesFromFilter(config)
   const events = data.events.filter(event => {
     let isContained = true;
-    if(config.mustContain && config.mustContain.length) {
-      isContained = config.mustContain.every(query => {
+    if(config.shouldContain && config.shouldContain.length) {
+      isContained = config.shouldContain.some(query => {
         return event.group.includes(query);
       });
     }
-    if(config.shouldContain && config.shouldContain.length) {
-      isContained = config.shouldContain.some(query => {
+    if(config.mustContain && config.mustContain.length) {
+      isContained = config.mustContain.every(query => {
         return event.group.includes(query);
       });
     }

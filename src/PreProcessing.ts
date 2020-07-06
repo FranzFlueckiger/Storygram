@@ -207,7 +207,7 @@ function extractActorsFromField(
   actorFields: string[],
   splitFunction: ((arg: string) => string[]) | ((arg: string[]) => string[])
 ): string[] {
-  return [
+  return actorFields !== null ? [
     ...Array.from(
       actorFields.reduce<Set<string>>((acc, actorField) => {
         if(event[actorField]) {
@@ -223,5 +223,5 @@ function extractActorsFromField(
         return acc;
       }, new Set())
     ),
-  ];
+  ] : [];
 }

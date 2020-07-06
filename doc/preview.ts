@@ -1,6 +1,6 @@
-import {Storygram} from '../src/index';
-import {testRangeData, testArrayData, testTableData} from '../test/testData';
-import {Config} from '../src/Types';
+import {Storygram} from './src/index';
+import {testRangeData, testArrayData, testTableData} from './test/testData';
+import {Config} from './src/Types';
 import {MetasonData, BundesratData} from './previewData'
 
 function drawRangeSD() {

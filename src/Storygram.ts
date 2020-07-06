@@ -85,13 +85,23 @@ export default class Storygram {
         break;
       case 'table':
         const splitFuncTable = this.config.actorSplitFunction ?
-          this.config.actorSplitFunction : (arg: string | string[]) =>
-            typeof arg === 'string' ? [arg] : arg
+          this.config.actorSplitFunction :
+          (arg: string | string[]) =>
+            arg === null ?
+              [] :
+              typeof arg === 'string' ?
+                [arg] :
+                arg
         this.data = processEventsFirst(data, this.config.actorFields, splitFuncTable, this.config, this.config.eventField);
         break;
       case 'array':
         const splitFuncArray = (arg: string[]) => {
-          return arg.reduce((arr, a) => this.config.actorSplitFunction ? arr.concat(this.config.actorSplitFunction(a)) : arr.concat(a), new Array<string>())
+          return arg.length !== null ?
+            arg.reduce((arr, a) =>
+              this.config.actorSplitFunction ?
+                arr.concat(this.config.actorSplitFunction(a)) :
+                arr.concat(a), new Array<string>()) :
+            []
         }
         this.data = processEventsFirst(data, [this.config.actorArrayField], splitFuncArray, this.config, this.config.eventField);
         break;
@@ -112,9 +122,9 @@ export default class Storygram {
     if(!this.isCalculated) {
       this.calculate()
     }
-    this.processedData = fit(this.processedData, this.config) as Data;
+    this.processedData = fit(this.processedData, this.config);
     this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
-    if (this.config.verbose) {
+    if(this.config.verbose) {
       console.log(this.renderedGrid);
     }
     this.remove()
