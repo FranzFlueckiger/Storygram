@@ -12,7 +12,7 @@ test('filter group size and amt', () => {
     filterGroupAmt: [2, 2],
   };
   const KD = new Storygram(testArrayData(), config);
-  const newData: Data = filter(KD.data, KD.config);
+  const newData: Data = KD.processedData;
   expect(newData.events.length).toEqual(2);
   const layersFF = "[{\"eventValue\":\"1\",\"eventXValue\":1,\"data\":{\"a\":[\"ff\",\"ef\",\"af\",\"zf\"],\"id\":\"1\"},\"switch\":[],\"isHidden\":true,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"ef\",\"af\",\"zf\"],\"state\":[],\"hiddenActors\":[]},{\"eventValue\":\"2\",\"eventXValue\":2,\"data\":{\"a\":[\"ff\",\"gf\"],\"id\":\"2\"},\"switch\":[],\"isHidden\":false,\"add\":[\"ff\"],\"remove\":[],\"group\":[\"ff\"],\"state\":[],\"hiddenActors\":[\"gf\"],\"index\":0},{\"eventValue\":\"3\",\"eventXValue\":3,\"data\":{\"a\":[\"ff\",\"ef\",\"cf\",\"pf\"],\"id\":\"3\"},\"switch\":[],\"isHidden\":true,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"ef\",\"cf\"],\"state\":[],\"hiddenActors\":[\"pf\"]},{\"eventValue\":\"6\",\"eventXValue\":6,\"data\":{\"a\":[\"pf\",\"ff\"],\"id\":\"6\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[\"ff\"],\"group\":[\"ff\"],\"state\":[],\"hiddenActors\":[\"pf\"],\"index\":1},{\"eventValue\":\"6\",\"eventXValue\":6,\"data\":{\"a\":[\"ff\",\"gf\",\"cf\",\"af\"],\"id\":\"6\"},\"switch\":[],\"isHidden\":true,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"cf\",\"af\"],\"state\":[],\"hiddenActors\":[\"gf\"]}]"
   expect(newData.actors.get('ff')!.isHidden).toEqual(false);
@@ -34,7 +34,7 @@ test('filter XValue and XValue lifetime', () => {
     filterEventValue: [2, 4],
   };
   const KD = new Storygram(testArrayData(), config);
-  const newData = filter(KD.data, KD.config);
+  const newData = KD.processedData;
   expect(newData.events.length).toEqual(2);
   const layersFF = "[{\"eventValue\":\"1\",\"eventXValue\":1,\"data\":{\"a\":[\"ff\",\"ef\",\"af\",\"zf\"],\"id\":\"1\"},\"switch\":[],\"isHidden\":true,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"af\"],\"state\":[],\"hiddenActors\":[\"ef\",\"zf\"]},{\"eventValue\":\"2\",\"eventXValue\":2,\"data\":{\"a\":[\"ff\",\"gf\"],\"id\":\"2\"},\"switch\":[],\"isHidden\":false,\"add\":[\"ff\"],\"remove\":[],\"group\":[\"ff\"],\"state\":[],\"hiddenActors\":[\"gf\"],\"index\":0},{\"eventValue\":\"3\",\"eventXValue\":3,\"data\":{\"a\":[\"ff\",\"ef\",\"cf\",\"pf\"],\"id\":\"3\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[\"ff\"],\"group\":[\"ff\"],\"state\":[],\"hiddenActors\":[\"ef\",\"cf\",\"pf\"],\"index\":1},{\"eventValue\":\"6\",\"eventXValue\":6,\"data\":{\"a\":[\"pf\",\"ff\"],\"id\":\"6\"},\"switch\":[],\"isHidden\":true,\"add\":[],\"remove\":[],\"group\":[\"ff\"],\"state\":[],\"hiddenActors\":[\"pf\"]},{\"eventValue\":\"6\",\"eventXValue\":6,\"data\":{\"a\":[\"ff\",\"gf\",\"cf\",\"af\"],\"id\":\"6\"},\"switch\":[],\"isHidden\":true,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"af\"],\"state\":[],\"hiddenActors\":[\"gf\",\"cf\"]}]"
   expect(newData.actors.get('ff')!.isHidden).toEqual(false);
@@ -61,7 +61,7 @@ test('filter custom X filter', () => {
     filterEventCustom: event => Number(event.eventValue) % 2 === 0,
   };
   const KD = new Storygram(testArrayData(), config);
-  const newData: Data = filter(KD.data, KD.config);
+  const newData: Data = KD.processedData;
   expect(newData.events.length).toEqual(5);
   const layersFF = "[{\"eventValue\":\"1\",\"eventXValue\":1,\"data\":{\"a\":[\"ff\",\"ef\",\"af\",\"zf\"],\"id\":\"1\"},\"switch\":[],\"isHidden\":true,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"ef\",\"af\",\"zf\"],\"state\":[],\"hiddenActors\":[]},{\"eventValue\":\"2\",\"eventXValue\":2,\"data\":{\"a\":[\"ff\",\"gf\"],\"id\":\"2\"},\"switch\":[],\"isHidden\":false,\"add\":[\"ff\"],\"remove\":[],\"group\":[\"ff\",\"gf\"],\"state\":[],\"hiddenActors\":[],\"index\":1},{\"eventValue\":\"3\",\"eventXValue\":3,\"data\":{\"a\":[\"ff\",\"ef\",\"cf\",\"pf\"],\"id\":\"3\"},\"switch\":[],\"isHidden\":true,\"add\":[],\"remove\":[],\"group\":[\"ff\",\"ef\",\"cf\",\"pf\"],\"state\":[],\"hiddenActors\":[]},{\"eventValue\":\"6\",\"eventXValue\":6,\"data\":{\"a\":[\"pf\",\"ff\"],\"id\":\"6\"},\"switch\":[],\"isHidden\":false,\"add\":[\"pf\"],\"remove\":[\"pf\"],\"group\":[\"pf\",\"ff\"],\"state\":[],\"hiddenActors\":[],\"index\":3},{\"eventValue\":\"6\",\"eventXValue\":6,\"data\":{\"a\":[\"ff\",\"gf\",\"cf\",\"af\"],\"id\":\"6\"},\"switch\":[],\"isHidden\":false,\"add\":[\"cf\",\"af\"],\"remove\":[\"gf\",\"ff\",\"cf\",\"af\"],\"group\":[\"ff\",\"gf\",\"cf\",\"af\"],\"state\":[],\"hiddenActors\":[],\"index\":4}]"
   expect(newData.actors.get('ff')!.isHidden).toEqual(false);
@@ -82,7 +82,7 @@ test('filter custom Y filter', () => {
     filterActorCustom: actor => actor.layers.some(l => l.eventValue === '0'),
   };
   const KD = new Storygram(testArrayData(), config);
-  const newData: Data = filter(KD.data, KD.config);
+  const newData: Data = KD.processedData;
   expect(newData.events.length).toEqual(7);
   const layersGF = "[{\"eventValue\":\"0\",\"eventXValue\":0,\"data\":{\"a\":[\"bf\",\"gf\",\"kf\"],\"id\":\"0\"},\"switch\":[],\"isHidden\":false,\"add\":[\"bf\",\"gf\",\"kf\"],\"remove\":[],\"group\":[\"bf\",\"gf\",\"kf\"],\"state\":[],\"hiddenActors\":[],\"index\":0},{\"eventValue\":\"2\",\"eventXValue\":2,\"data\":{\"a\":[\"ff\",\"gf\"],\"id\":\"2\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[],\"group\":[\"gf\"],\"state\":[],\"hiddenActors\":[\"ff\"],\"index\":1},{\"eventValue\":\"5\",\"eventXValue\":5,\"data\":{\"a\":[\"gf\",\"ef\",\"af\",\"pf\"],\"id\":\"5\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[],\"group\":[\"gf\"],\"state\":[],\"hiddenActors\":[\"ef\",\"af\",\"pf\"],\"index\":3},{\"eventValue\":\"5\",\"eventXValue\":5,\"data\":{\"a\":[\"bf\",\"gf\",\"kf\"],\"id\":\"5\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[\"bf\",\"kf\"],\"group\":[\"bf\",\"gf\",\"kf\"],\"state\":[],\"hiddenActors\":[],\"index\":4},{\"eventValue\":\"6\",\"eventXValue\":6,\"data\":{\"a\":[\"ff\",\"gf\",\"cf\",\"af\"],\"id\":\"6\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[],\"group\":[\"gf\"],\"state\":[],\"hiddenActors\":[\"ff\",\"af\",\"cf\"],\"index\":5},{\"eventValue\":\"7\",\"eventXValue\":7,\"data\":{\"a\":[\"ef\",\"gf\",\"zf\"],\"id\":\"7\"},\"switch\":[],\"isHidden\":false,\"add\":[],\"remove\":[\"gf\"],\"group\":[\"gf\"],\"state\":[],\"hiddenActors\":[\"ef\",\"zf\"],\"index\":6}]"
   expect(newData.actors.get('gf')!.isHidden).toEqual(false);

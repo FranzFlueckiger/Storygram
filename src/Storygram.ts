@@ -13,13 +13,13 @@ export default class Storygram {
   public data!: Data;
 
   // Array containing a grid of rendered points, the x length and the maximal y length
-  public renderedGrid!: [RenderedPoint[], number, number];
+  private renderedGrid!: [RenderedPoint[], number, number];
 
   // Whether the storygram has been filtered, optimized and rendered
   private isCalculated: boolean = false;
 
   // Default values
-  private baseConfig: BaseConfig = {
+  public baseConfig: BaseConfig = {
     uid: uuid(),
     verbose: false,
     colorScheme: 'schemeAccent',
@@ -68,8 +68,9 @@ export default class Storygram {
   public config!: FullConfig;
 
   public constructor(rawData: any[], config: Config) {
-    this.setConfig(config)
+    this.setConfig(config);
     this.setData(rawData);
+    this.calculate();
   }
 
   public setConfig(config: Config) {
@@ -100,21 +101,21 @@ export default class Storygram {
     this.isCalculated = false
   }
 
-  // Filter, optimise and render the storygram
+  // Imports the data and applies filtering
   public calculate() {
     this.processedData = filter(this.data, this.config);
-    this.processedData = fit(this.processedData, this.config) as Data;
-    this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
-    if(this.config.verbose) {
-      console.log(this.renderedGrid);
-    }
     this.isCalculated = true
   }
 
-  // Draw the storygram on the DOM. If the filter, optimization and rendering steps aren't yet made, perform these first
+  // Draw the storygram on the DOM. If the importation and filtering steps aren't yet made, perform these first
   public draw() {
     if(!this.isCalculated) {
       this.calculate()
+    }
+    this.processedData = fit(this.processedData, this.config) as Data;
+    this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
+    if (this.config.verbose) {
+      console.log(this.renderedGrid);
     }
     this.remove()
     if(this.processedData.events.length !== 0 && this.processedData.actors.size !== 0) {
