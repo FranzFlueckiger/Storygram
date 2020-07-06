@@ -6,7 +6,7 @@ import {MetasonData, BundesratData} from './previewData'
 function drawRangeSD() {
   const config: Config = {
     dataFormat: 'ranges',
-    actorField: 'id',
+    actorField: 'c',
     startField: 'from',
     endField: 'to',
     filterGroupAmt: [3, undefined],
@@ -121,4 +121,4 @@ function drawBundesratExample() {
   SD.draw()
 }
 
-drawArraySD()
+drawRangeSD()

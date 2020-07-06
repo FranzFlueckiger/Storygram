@@ -1,5 +1,5 @@
 import {Config, Data, Actor} from './Types';
-import { inferEventValue, inferEventValuesFromFilter } from './PreProcessing';
+import { inferEventValuesFromFilter } from './PreProcessing';
 
 function filter(data: Data, config: Config): Data {
   if(config.verbose) console.log('Before Filtering', data);

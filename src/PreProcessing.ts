@@ -55,7 +55,7 @@ export function inferEventValuesFromFilter(config: Config): [number, number] {
   return [parseNumber(firstVal)!, parseNumber(secondVal)!]
 }
 
-export function inferEventValue(rawEvent: any, eventField: string | undefined, index: number, config: Config, fromFilter?: boolean): InferredEvent | undefined {
+export function inferEventValue(rawEvent: any, eventField: string | undefined, index: number, config: Config, fromRanges?: boolean): InferredEvent | undefined {
   if (!eventField) {
     console.warn('Event field ' + eventField + ' not found, skipping.', rawEvent)
     return undefined
@@ -65,10 +65,11 @@ export function inferEventValue(rawEvent: any, eventField: string | undefined, i
     if (typeof rawEvent !== 'number' && eventField in rawEvent) {
       eventValue = rawEvent[eventField]
     }
+    if(eventValue === null && fromRanges) return
     if (!config.inferredEventType) autoInferEventType(eventValue, index, config)
     let eventXValue;
     switch (config.inferredEventType) {
-      case fromFilter || 'number':
+      case 'number':
         eventXValue = parseNumber(eventValue)
         if (typeof eventXValue === 'number') return { eventValue, eventXValue }
         else console.log("Event value couldn't be parsed as number.", rawEvent)
@@ -111,8 +112,8 @@ export function processActorsFirst(
   const toField = config.endField
   const actorField = config.actorField
   data.forEach((d, i) => {
-    const from = inferEventValue(d, fromField, i, config)
-    const to = inferEventValue(d, toField, i, config)
+    const from = inferEventValue(d, fromField, i, config, true)
+    const to = inferEventValue(d, toField, i, config, true)
     if(from) rawEvents.set(from.eventXValue, from);
     if(to) rawEvents.set(to.eventXValue, to);
     const dActorField = d[actorField];
