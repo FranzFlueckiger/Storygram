@@ -81,9 +81,19 @@ export default class Storygram {
   public setData(data: any[]): void {
     switch(this.config.dataFormat) {
       case 'ranges':
+        if(
+          this.config.actorField === null ||
+          this.config.startField === null ||
+          this.config.endField === null) {
+          this.data = {events: [], actors: new Map()}
+        }
         this.data = processActorsFirst(data, this.config);
         break;
       case 'table':
+        if(
+          this.config.actorFields === null) {
+          this.data = {events: [], actors: new Map()}
+        }
         const splitFuncTable = this.config.actorSplitFunction ?
           this.config.actorSplitFunction :
           (arg: string | string[]) =>
@@ -95,6 +105,10 @@ export default class Storygram {
         this.data = processEventsFirst(data, this.config.actorFields, splitFuncTable, this.config, this.config.eventField);
         break;
       case 'array':
+        if(
+          this.config.actorArrayField === null) {
+          this.data = {events: [], actors: new Map()}
+        }
         const splitFuncArray = (arg: string[]) => {
           return arg.length !== null ?
             arg.reduce((arr, a) =>
