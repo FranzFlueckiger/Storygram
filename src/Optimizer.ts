@@ -2,14 +2,13 @@ import {Child, FullConfig, Data, GenePool, Event} from './Types';
 import {visit} from './Visitor';
 
 function fit(data: Data, config: FullConfig) {
-  let best: Child;
+  let best: Child | undefined;
   let population: Child[];
   let newGenes: Array<Map<string, number>> | undefined;
   for(let i = 0; i < config.generationAmt; i++) {
     population = getGeneration(data, newGenes, config);
     for(const child of population) {
-      // @ts-ignore
-      if(best === null || child.loss < best.loss) {
+      if(!best || child.loss < best.loss) {
         best = child;
         if(config.verbose) {
           console.log(best);
@@ -20,7 +19,9 @@ function fit(data: Data, config: FullConfig) {
     newGenes = mate(parents, config);
     newGenes = mutate(data, newGenes, config);
   }
-  return {events: best!.events, actors: data.actors};
+  if(best) {
+    return {events: best.events, actors: data.actors};
+  }
 }
 
 function getGeneration(data: Data, yEntryPoints: Array<Map<string, number>> | undefined, config: FullConfig): Child[] {

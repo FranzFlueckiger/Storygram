@@ -122,7 +122,7 @@ export default class Storygram {
     if(!this.isCalculated) {
       this.calculate()
     }
-    this.processedData = fit(this.processedData, this.config);
+    this.processedData = fit(this.processedData, this.config) as Data;
     this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
     if(this.config.verbose) {
       console.log(this.renderedGrid);

@@ -121,4 +121,4 @@ function drawBundesratExample() {
   SD.draw()
 }
 
-drawRangeSD()
+drawMetasonNarrowSD()
