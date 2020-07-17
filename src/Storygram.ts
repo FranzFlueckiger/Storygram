@@ -79,24 +79,28 @@ export default class Storygram {
   }
 
   public setData(data: any[]): void {
-    switch(this.config.dataFormat) {
-      case 'ranges':
-        this.data = processActorsFirst(data, this.config);
-        break;
-      case 'table':
-        const splitFuncTable = this.config.actorSplitFunction ?
-          this.config.actorSplitFunction : (arg: string | string[]) =>
-            typeof arg === 'string' ? [arg] : arg
-        this.data = processEventsFirst(data, this.config.actorFields, splitFuncTable, this.config, this.config.eventField);
-        break;
-      case 'array':
-        const splitFuncArray = (arg: string[]) => {
-          return arg.reduce((arr, a) => this.config.actorSplitFunction ? arr.concat(this.config.actorSplitFunction(a)) : arr.concat(a), new Array<string>())
-        }
-        this.data = processEventsFirst(data, [this.config.actorArrayField], splitFuncArray, this.config, this.config.eventField);
-        break;
-      default:
-        console.error('Please specify a data format of type ranges, table or array');
+    if (Array.isArray(data)) {
+      switch (this.config.dataFormat) {
+        case 'ranges':
+          this.data = processActorsFirst(data, this.config);
+          break;
+        case 'table':
+          const splitFuncTable = this.config.actorSplitFunction ?
+            this.config.actorSplitFunction : (arg: string | string[]) =>
+              typeof arg === 'string' ? [arg] : arg
+          this.data = processEventsFirst(data, this.config.actorFields, splitFuncTable, this.config, this.config.eventField);
+          break;
+        case 'array':
+          const splitFuncArray = (arg: string[]) => {
+            return arg.reduce((arr, a) => this.config.actorSplitFunction ? arr.concat(this.config.actorSplitFunction(a)) : arr.concat(a), new Array<string>())
+          }
+          this.data = processEventsFirst(data, [this.config.actorArrayField], splitFuncArray, this.config, this.config.eventField);
+          break;
+        default:
+          console.error('Incompatible data format. Specify a data format of type ranges, table or array.');
+      }
+    } else {
+      console.error('Incompatible data format. Provide data in array shape.');
     }
     this.isCalculated = false
   }

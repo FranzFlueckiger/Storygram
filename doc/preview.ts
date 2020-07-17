@@ -1,46 +1,6 @@
-import {Storygram} from '../src/index';
-import {testRangeData, testArrayData, testTableData} from '../test/testData';
-import {Config} from '../src/Types';
 import {MetasonData, BundesratData} from './previewData'
-
-function drawRangeSD() {
-  const config: Config = {
-    dataFormat: 'ranges',
-    actorField: 'c',
-    startField: 'from',
-    endField: 'to',
-    filterGroupAmt: [3, undefined],
-    highlight: ['kf', 'af']
-  };
-  const SD = new Storygram(testRangeData(), config);
-  SD.draw()
-}
-
-function drawArraySD() {
-  const config: Config = {
-    dataFormat: 'array',
-    actorArrayField: 'a',
-    eventField: 'id',
-    compact: true,
-    verbose: true,
-    highlight: ['ef'],
-    filterEventValue: ['1', 3]
-  };
-  const SD = new Storygram(testArrayData(), config);
-  SD.draw()
-}
-
-function drawTableSD() {
-  const config: Config = {
-    dataFormat: 'table',
-    actorFields: ['a', 'b', 'c', 'd'],
-    eventField: 'id',
-    compact: false,
-    filterGroupAmt: [2, undefined]
-  };
-  const SD = new Storygram(testTableData(), config);
-  SD.draw()
-}
+import { Config, Storygram } from 'storygram';
+import { Actor, Event } from 'storygram/dist/Types';
 
 /**
  * Data found on https://www.metason.net/
@@ -51,7 +11,7 @@ function drawMetasonSD() {
     dataFormat: 'array',
     eventField: 'release_year',
     actorArrayField: 'participants',
-    eventDescription: (event) => event.data.release_title + ", " + event.data.release_year,
+    eventDescription: (event: Event) => event.data.release_title + ", " + event.data.release_year,
     filterEventValue: [1995, 2001],
     filterGroupAmt: [2, undefined]
   }
@@ -72,8 +32,8 @@ function drawMetasonNarrowSD() {
     filterGroupAmt: [3, undefined],
     filterEventValue: [2008, 2018],
     eventValueScaling: 0.7,
-    eventDescription: (event) => event.data.release_title + ", " + event.data.release_year,
-    filterEventCustom: (event) => {
+    eventDescription: (event: Event) => event.data.release_title + ", " + event.data.release_year,
+    filterEventCustom: (event: Event) => {
       const name: string = event.data.release_title as string
       return !name.includes('compilation') &&
         !name.toLowerCase().includes('best of') &&
@@ -110,8 +70,8 @@ function drawBundesratExample() {
     startField: 'Gewaehlt',
     endField: 'Zuruecktritt',
     actorField: 'Name',
-    eventDescription: (event) => 'Bundesrat im Jahr ' + String(event.eventValue),
-    actorColor: (event, actor) => actor.data.Partei as string,
+    eventDescription: (event: Event) => 'Bundesrat im Jahr ' + String(event.eventValue),
+    actorColor: (event: Event, actor: Actor) => actor.data.Partei as string,
     compact: true,
     verbose: true,
     eventValueScaling: 0.002,
@@ -121,4 +81,4 @@ function drawBundesratExample() {
   SD.draw()
 }
 
-drawRangeSD()
+drawBundesratExample()

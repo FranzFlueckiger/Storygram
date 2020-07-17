@@ -165,7 +165,7 @@ function remapEventsFromActors(
 export function processEventsFirst(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   inputData: Record<string, any>[],
-  actorField: string | string[],
+  actorField: string[],
   splitFunction: ((arg: string) => string[]) | ((arg: string[]) => string[]),
   config: Config,
   eventField: string | undefined
@@ -210,7 +210,7 @@ function extractActorsFromField(
   return [
     ...Array.from(
       actorFields.reduce<Set<string>>((acc, actorField) => {
-        if(event[actorField]) {
+        if(actorField in event) {
           if(splitFunction) {
             // @ts-ignore
             splitFunction(event[actorField])
