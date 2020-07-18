@@ -207,11 +207,12 @@ function extractActorsFromField(
   actorFields: string[],
   splitFunction: ((arg: string) => string[]) | ((arg: string[]) => string[])
 ): string[] {
-  return actorFields !== null ? [
+  return actorFields && actorFields.length ? [
     ...Array.from(
       actorFields.reduce<Set<string>>((acc, actorField) => {
         if(event[actorField]) {
-          if(splitFunction) {
+          //@ts-ignore
+          if(splitFunction && splitFunction(event[actorField]) && Array.isArray(splitFunction(event[actorField]))) {
             // @ts-ignore
             splitFunction(event[actorField])
               .forEach((p: string) => p ? acc.add(p) : undefined);

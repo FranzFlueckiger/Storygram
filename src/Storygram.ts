@@ -82,22 +82,28 @@ export default class Storygram {
     switch(this.config.dataFormat) {
       case 'ranges':
         if(
-          this.config.actorField === null ||
-          this.config.startField === null ||
-          this.config.endField === null) {
+          this.config.actorField == null ||
+          this.config.startField == null ||
+          this.config.endField == null ||
+          this.config.actorField === '' ||
+          this.config.startField === '' ||
+          this.config.endField === ''
+        ) {
           this.data = {events: [], actors: new Map()}
         }
         this.data = processActorsFirst(data, this.config);
         break;
       case 'table':
         if(
-          this.config.actorFields === null) {
+          this.config.actorFields == null ||
+          this.config.actorFields === []
+        ) {
           this.data = {events: [], actors: new Map()}
         }
         const splitFuncTable = this.config.actorSplitFunction ?
           this.config.actorSplitFunction :
           (arg: string | string[]) =>
-            arg === null ?
+            arg == null ?
               [] :
               typeof arg === 'string' ?
                 [arg] :
@@ -106,11 +112,13 @@ export default class Storygram {
         break;
       case 'array':
         if(
-          this.config.actorArrayField === null) {
+          this.config.actorArrayField == null ||
+          this.config.actorArrayField === ''
+        ) {
           this.data = {events: [], actors: new Map()}
         }
         const splitFuncArray = (arg: string[]) => {
-          return arg.length !== null ?
+          return Array.isArray(arg) ?
             arg.reduce((arr, a) =>
               this.config.actorSplitFunction ?
                 arr.concat(this.config.actorSplitFunction(a)) :
