@@ -1,6 +1,7 @@
 import { FullConfig, Data, RenderedPoint, Event } from './Types';
 import * as d3 from 'd3';
-import {getCompactedLocation} from './Optimizer';
+import { getCompactedLocation } from './Optimizer';
+import { nest, values } from 'd3-collection';
 
 interface Binned {
   key: string
@@ -129,11 +130,11 @@ export default class DrawSpec {
       .attr('id', 'layer2')
       .attr("transform", "translate(" + config.marginLeft + "," + config.marginTop + ")");
 
-    let actorBin: Binned[] = d3.nest()
+    let actorBin: Binned[] = nest()
       .key(d => d instanceof RenderedPoint ? d.z : '')
       .entries(renderedPoints[0])
 
-    let groupBin: Binned[] = d3.nest()
+    let groupBin: Binned[] = nest()
       //Todo this 'casting' is ugly, numeric key?
       .key(d => d instanceof RenderedPoint ? String(d.x) : '')
       // @ts-ignore
@@ -142,7 +143,7 @@ export default class DrawSpec {
           return {
             min: d3.min(p, (d: RenderedPoint) => d.y),
             max: d3.max(p, (d: RenderedPoint) => d.y),
-            event: d3.values(p)
+            event: values(p)
           }
         }
         return { min: null, max: null, event: null }
@@ -640,7 +641,7 @@ export default class DrawSpec {
               .attr("y", (d: RenderedPoint) => yScale(d.y))
               .text((d: RenderedPoint) => d.z)
               .on("click", function (d: RenderedPoint) {
-                if(config.urlOpensNewTab) window.open(d.url)
+                if (config.urlOpensNewTab) window.open(d.url)
                 else window.open(d.url, "_self")
               })
               .on(
