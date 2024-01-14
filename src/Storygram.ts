@@ -1,9 +1,9 @@
 import DrawSpec from './DrawSpec';
-import {filter} from './Filter';
-import {fit} from './Optimizer';
-import {processActorsFirst, processEventsFirst} from './PreProcessing';
-import {Config, Data, RenderedPoint, BaseConfig, FullConfig} from './Types';
-import {uuid} from 'uuidv4'
+import { filter } from './Filter';
+import { fit } from './Optimizer';
+import { processActorsFirst, processEventsFirst } from './PreProcessing';
+import { Config, Data, RenderedPoint, BaseConfig, FullConfig } from './Types';
+import { uuid } from 'uuidv4'
 
 export default class Storygram {
   // Data with filtering and optimization
@@ -74,14 +74,14 @@ export default class Storygram {
   }
 
   public setConfig(config: Config) {
-    this.config = {...this.baseConfig, ...config};
+    this.config = { ...this.baseConfig, ...config };
     this.isCalculated = false
   }
 
   public setData(data: any[]): void {
-    switch(this.config.dataFormat) {
+    switch (this.config.dataFormat) {
       case 'ranges':
-        if(
+        if (
           this.config.actorField == null ||
           this.config.startField == null ||
           this.config.endField == null ||
@@ -89,16 +89,16 @@ export default class Storygram {
           this.config.startField === '' ||
           this.config.endField === ''
         ) {
-          this.data = {events: [], actors: new Map()}
+          this.data = { events: [], actors: new Map() }
         }
         this.data = processActorsFirst(data, this.config);
         break;
       case 'table':
-        if(
+        if (
           this.config.actorFields == null ||
-          this.config.actorFields === []
+          this.config.actorFields.length === 0
         ) {
-          this.data = {events: [], actors: new Map()}
+          this.data = { events: [], actors: new Map() }
         }
         const splitFuncTable = this.config.actorSplitFunction ?
           this.config.actorSplitFunction :
@@ -111,11 +111,11 @@ export default class Storygram {
         this.data = processEventsFirst(data, this.config.actorFields, splitFuncTable, this.config, this.config.eventField);
         break;
       case 'array':
-        if(
+        if (
           this.config.actorArrayField == null ||
           this.config.actorArrayField === ''
         ) {
-          this.data = {events: [], actors: new Map()}
+          this.data = { events: [], actors: new Map() }
         }
         const splitFuncArray = (arg: string[]) => {
           return Array.isArray(arg) ?
@@ -141,16 +141,16 @@ export default class Storygram {
 
   // Draw the storygram on the DOM. If the importation and filtering steps aren't yet made, perform these first
   public draw() {
-    if(!this.isCalculated) {
+    if (!this.isCalculated) {
       this.calculate()
     }
     this.processedData = fit(this.processedData, this.config) as Data;
     this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
-    if(this.config.verbose) {
+    if (this.config.verbose) {
       console.log(this.renderedGrid);
     }
     this.remove()
-    if(this.processedData.events.length !== 0 && this.processedData.actors.size !== 0) {
+    if (this.processedData.events.length !== 0 && this.processedData.actors.size !== 0) {
       DrawSpec.drawD3(this.renderedGrid, this.config)
     } else {
       console.warn('Storygram: No data after filtering')
