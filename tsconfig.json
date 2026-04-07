@@ -12,10 +12,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-     "exclude": [
-     "node_modules",
-     "doc",
-     "test",
-     "dist"
- ]
+  "include": ["src"],
+  "exclude": [
+    "node_modules",
+    "doc",
+    "test",
+    "dist",
+    "vite.config.ts"
+  ]
 }
