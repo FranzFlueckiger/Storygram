@@ -3,7 +3,7 @@ import {filter} from './Filter';
 import {fit} from './Optimizer';
 import {processActorsFirst, processEventsFirst} from './PreProcessing';
 import {Config, Data, RenderedPoint, BaseConfig, FullConfig} from './Types';
-import {uuid} from 'uuidv4'
+const uuid = () => crypto.randomUUID()
 
 export default class Storygram {
   // Data with filtering and optimization

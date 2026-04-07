@@ -1,4 +1,5 @@
 import Storygram from './Storygram';
-import {Config} from './Types';
+import type { Config } from './Types';
 
-export {Storygram, Config};
+export { Storygram };
+export type { Config };

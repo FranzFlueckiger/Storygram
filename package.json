@@ -9,8 +9,10 @@
     "build": "tsc --project tsconfig.json",
     "pack_test": "npm run test && npm run build && npm run build_browser && npm pack",
     "publish_test": "npm run test && npm run build && npm run build_browser && npm publish",
-    "build_browser": "parcel build src/index.ts --global Storygram -o dist/storygram.min.js"
+    "build_browser": "tsup src/index.ts --format iife --global-name Storygram --out-dir dist",
+    "dev": "vite"
   },
+  "packageManager": "pnpm@8.6.10",
   "keywords": [],
   "author": "Franz Flückiger, ZHaW",
   "license": "MIT",
@@ -35,7 +37,9 @@
     "jest-environment-jsdom": "^29.7.0",
     "minimist": ">=1.2.8",
     "ts-jest": "^29.4.3",
-    "typescript": "^5.8.3"
+    "tsup": "^8.5.1",
+    "typescript": "^5.8.3",
+    "vite": "^8.0.5"
   },
   "lint-staged": {
     "*.ts": [
