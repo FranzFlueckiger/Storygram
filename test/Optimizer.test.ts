@@ -38,8 +38,6 @@ describe('fit', () => {
     dataFormat: 'array',
     eventField: 'id',
     actorArrayField: 'a',
-    generationAmt: 2,
-    populationSize: 5,
   };
 
   test('returns defined result with valid input', () => {

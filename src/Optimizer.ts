@@ -1,154 +1,125 @@
-import {Child, FullConfig, Data, GenePool, Event} from './Types';
-import {visit} from './Visitor';
+import { FullConfig, Data, GenePool, Event } from './Types';
+import { visit } from './Visitor';
 
-function fit(data: Data, config: FullConfig) {
-  let best: Child | undefined;
-  let population: Child[];
-  let newGenes: Array<Map<string, number>> | undefined;
-  for(let i = 0; i < config.generationAmt; i++) {
-    population = getGeneration(data, newGenes, config);
-    for(const child of population) {
-      if(!best || child.loss < best.loss) {
-        best = child;
-        if(config.verbose) {
-          console.log(best);
-        }
-      }
+/**
+ * Optimizes actor ordering using an iterative barycenter sweep.
+ *
+ * Each actor is assigned a position seed (gene) in [0, 1]. The visitor
+ * translates these seeds into concrete event orderings. We refine the seeds
+ * by computing each actor's average normalized position across all events it
+ * appears in, then re-visit. This converges quickly (typically < 10 passes)
+ * and is fully deterministic — no random restarts needed.
+ *
+ * Complexity: O(passes × events × actors)  vs  GA's O(gen × pop × events × actors)
+ */
+export function fit(data: Data, config: FullConfig): Data {
+  const MAX_PASSES = 24;
+
+  let genes = initGenePool(data);
+  let [events, updatedGenes] = visit(data, genes, config);
+  let bestLoss = computeLoss(events, config);
+  let bestEvents = events;
+
+  for (let pass = 0; pass < MAX_PASSES; pass++) {
+    const refined = refineGenes(events, updatedGenes);
+    const [newEvents, newGenes] = visit(data, refined, config);
+    const loss = computeLoss(newEvents, config);
+
+    if (loss < bestLoss) {
+      bestLoss = loss;
+      bestEvents = newEvents;
+      events = newEvents;
+      updatedGenes = newGenes;
+    } else {
+      break; // converged — no improvement this pass
     }
-    const parents = select(population, config);
-    newGenes = mate(parents, config);
-    newGenes = mutate(data, newGenes, config);
   }
-  if(best) {
-    return {events: best.events, actors: data.actors};
+
+  if (config.verbose) {
+    console.log(`Optimizer: converged, loss=${bestLoss}`);
   }
+
+  return { events: bestEvents, actors: data.actors };
 }
 
-function getGeneration(data: Data, yEntryPoints: Array<Map<string, number>> | undefined, config: FullConfig): Child[] {
-  const population: Child[] = [];
-  // Compute new generation
-  for(let i = 0; i < config.populationSize; i++) {
-    const entryPoints = yEntryPoints ? yEntryPoints[i] : undefined;
-    const result: [Event[], GenePool] = visit(data, entryPoints, config);
-    const loss = getLoss(result, config, data);
-    const child: Child = {loss, gene: result[1], events: result[0]};
-    population.push(child);
-  }
-  return population.sort((a, b) => a.loss - b.loss);
+/** Assign evenly-spaced seeds ordered by first appearance in the event stream. */
+function initGenePool(data: Data): GenePool {
+  const pool: GenePool = new Map();
+  const visible = [...data.actors.values()].filter(a => !a.isHidden);
+  const n = visible.length;
+  visible.forEach((actor, i) => {
+    pool.set(actor.actorID, n <= 1 ? 0.5 : i / (n - 1));
+  });
+  return pool;
 }
 
-function select(population: Child[], config: FullConfig): Child[] {
-  const parents = [];
-  const length = population.length * config.selectionRate;
-  for(let i = 0; i < length; i++) {
-    const index = Math.floor(Math.random() ** config.selectionSeverity * population.length);
-    const parent = population[index];
-    population.splice(index, 1);
-    parents.push(parent);
-  }
-  return parents;
-}
+/**
+ * Barycenter update: replace each actor's gene with its average normalized
+ * position across all events where it appears in the current layout.
+ */
+function refineGenes(events: Event[], currentGenes: GenePool): GenePool {
+  const accum = new Map<string, { sum: number; count: number }>();
 
-function mate(parents: Child[], config: FullConfig): GenePool[] {
-  const genes = [];
-  for(let i = 0; i < parents.length / config.selectionRate; i++) {
-    const index = Math.floor(Math.random() ** 5 * parents.length);
-    const parent1 = parents[index] as Child;
-    const parent2 = parents[index] as Child;
-    const gene1 = Array.from(parent1.gene);
-    const gene2 = Array.from(parent2.gene);
-    const newGene = gene1.reduce<GenePool>((map, gene, j) => {
-      if(Math.random() < 0.5) {
-        gene = gene2[j];
-      }
-      return map.set(gene[0], gene[1]);
-    }, new Map());
-    genes.push(newGene);
-  }
-  return genes;
-}
-
-function mutate(data: Data, genes: GenePool[], config: FullConfig) {
-  genes.forEach((_, i) => {
-    data.events.forEach(x => {
-      if(!x.isHidden) {
-        x.add.forEach(y => {
-          if(Math.random() < config.mutationProbability) {
-            const newY = Math.random();
-            genes[i].set(y, newY);
-          }
-        });
-      }
+  events.forEach(event => {
+    const len = event.state.length;
+    if (len === 0) return;
+    event.state.forEach((actorID, i) => {
+      if (!accum.has(actorID)) accum.set(actorID, { sum: 0, count: 0 });
+      const entry = accum.get(actorID)!;
+      entry.sum += len <= 1 ? 0.5 : i / (len - 1);
+      entry.count++;
     });
   });
-  return genes;
+
+  const newGenes = new Map(currentGenes);
+  accum.forEach(({ sum, count }, actorID) => {
+    newGenes.set(actorID, sum / count);
+  });
+  return newGenes;
 }
 
-function getLoss(child: [Event[], GenePool], config: FullConfig, data: Data): number {
+function computeLoss(events: Event[], config: FullConfig): number {
   let score = 0;
-  score += getSwitchAmountLoss(child, config) * config.amtLoss;
-  score += getSwitchSizeLoss(child, config) * config.lengthLoss;
-  if(config.compact) {
-    score += getLinearLoss(child) * config.linearLoss
+
+  // Penalty: number of position switches
+  const switchAmt = events.reduce((acc, e) => acc + e.switch.length, 0);
+  score += switchAmt * config.amtLoss;
+
+  // Penalty: total distance of switches (excluding new-actor insertions)
+  const switchDist = events.reduce((acc, e) =>
+    acc + e.switch.reduce((a, sw) => {
+      if (!e.add.includes(e.state[sw.prev])) {
+        a += Math.abs(sw.target - sw.prev);
+      }
+      return a;
+    }, 0), 0);
+  score += switchDist * config.lengthLoss;
+
+  if (config.compact) {
+    for (let i = 1; i < events.length; i++) {
+      score += compareCompactedEventStates(events[i - 1].state, events[i].state) * config.linearLoss;
+    }
   } else {
-    score += getYExtentLoss(child, config) * config.yExtentLoss
+    const maxHeight = events.reduce((max, e) => Math.max(max, e.state.length), 0);
+    score += maxHeight * config.yExtentLoss;
   }
+
   return score;
 }
 
-function getSwitchAmountLoss(child: [Event[], GenePool], config: FullConfig): number {
-  return (child[0].reduce<number>((acc, xLayer) => {
-    // Penalty for the amount of switches
-    return (acc += xLayer.switch.length);
-  }, 0)
+function compareCompactedEventStates(vec1: string[], vec2: string[]): number {
+  const indexMap = vec1.reduce<Map<number, string>>(
+    (map, v, i) => map.set(getCompactedLocation(i, vec1.length), v),
+    new Map()
   );
-}
-
-function getSwitchSizeLoss(child: [Event[], GenePool], config: FullConfig): number {
-  return child[0].reduce<number>((acc, xLayer) => {
-    // Penalty for the amount of switches
-    return (acc +=
-      xLayer.switch.reduce((a, switches) => {
-        if(!xLayer.add.includes(xLayer.state[switches.prev])) {
-          a += Math.abs(switches.target - switches.prev);
-        }
-        return a;
-      }, 0));
+  return vec2.reduce((acc, v, i) => {
+    const loc = getCompactedLocation(i, vec2.length);
+    if (indexMap.has(loc) && indexMap.get(loc) !== v) acc++;
+    return acc;
   }, 0);
 }
 
-function getYExtentLoss(child: [Event[], GenePool], config: FullConfig): number {
-  return child[0].reduce((max, x) => {
-    return Math.max(max, x.state.length)
-  }, 0)
+export function getCompactedLocation(position: number, arrayLength: number): number {
+  const offset = (arrayLength % 2) / 2 - 0.5;
+  return position - (arrayLength - 1) / 2 + offset;
 }
-
-function getLinearLoss(child: [Event[], GenePool]): number {
-  let score = 0;
-  const events: Event[] = child[0];
-  for(let i = 1; i < events.length; i++) {
-    score += compareCompactedEventStates(events[i - 1].state, events[i].state)
-  }
-  return score;
-}
-
-function compareCompactedEventStates(vec1: string[], vec2: string[]) {
-  const indexMap = vec1.reduce<Map<number, string>>((obj, v, i) =>
-    obj.set(getCompactedLocation(i, vec1.length), v), new Map())
-  return vec2.reduce((acc, v, i) => {
-    const loc = getCompactedLocation(i, vec2.length)
-    if(indexMap.has(loc) && indexMap.get(loc) !== v) acc++
-    return acc
-  }, 0)
-}
-
-export function getCompactedLocation(position: number, arrayLength: number) {
-  const offset = (arrayLength % 2) / 2 - 0.5
-  return position - (arrayLength - 1) / 2 + offset
-}
-
-function isActorVisible(actorID: string, event: Event) {
-
-}
-
-export {fit};

@@ -129,9 +129,9 @@ describe('isInRange', () => {
     expect(isInRange(9999, [1, undefined])).toBe(true);
   });
 
-  test('lower bound of 0 is treated as "no minimum" (falsy shortcut in implementation)', () => {
-    // The implementation uses `range[0] ? p >= range[0] : true`, so 0 is treated as absent
-    expect(isInRange(-1, [0, 10])).toBe(true);
+  test('lower bound of 0 is treated as an actual minimum', () => {
+    expect(isInRange(-1, [0, 10])).toBe(false);
+    expect(isInRange(0, [0, 10])).toBe(true);
   });
 });
 

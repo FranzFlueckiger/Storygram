@@ -51,16 +51,6 @@ export interface BaseConfig {
   lineSize: number;
   // event value scaling factor (0 has no effect, 1 has 100% effect)
   eventValueScaling: number;
-  // amount of consecutive Generations to be evaluated
-  generationAmt: number;
-  // Size of one generation
-  populationSize: number;
-  // Selection rate for the next generation
-  selectionRate: number;
-  // How much are better scored childs preferred
-  selectionSeverity: number;
-  // probability that a gene mutates (value between 0 and 1)
-  mutationProbability: number;
   // whether the y-points start at the beginning or at the first grouping
   continuous: boolean;
   // whether the graph is compacted or not
@@ -157,12 +147,6 @@ export class Actor {
     this.isHidden = false;
     this.layers = [];
   }
-}
-
-export interface Child {
-  loss: number;
-  gene: GenePool;
-  events: Event[];
 }
 
 export interface Switch {

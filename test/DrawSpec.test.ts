@@ -1,4 +1,4 @@
-import DrawSpec from '../src/DrawSpec';
+import { createGrid, drawD3, remove } from '../src/DrawSpec';
 import {fit} from '../src/Optimizer';
 import {Data, Event, Actor, RenderedPoint, FullConfig} from '../src/Types';
 import Storygram from '../src/Storygram';
@@ -65,7 +65,6 @@ function createConfig(overrides: Partial<FullConfig> = {}): FullConfig {
     marginTop: 50, marginBottom: 50, marginLeft: 50, marginRight: 50,
     actorPadding: 30, eventPadding: 40,
     eventValueScaling: 0,   // xDrawn = pure event index
-    generationAmt: 1, populationSize: 5,
     continuous: false, compact: false,
     highlight: [],
     strokeWidth: () => 1,
@@ -82,7 +81,6 @@ function createConfig(overrides: Partial<FullConfig> = {}): FullConfig {
     root: 'body',
     tooltipPosition: 'absolute',
     hiddenActorsTooltipTitle: 'Hidden actors',
-    selectionRate: 0.25, selectionSeverity: 8, mutationProbability: 0.025,
     inferredEventType: 'number',
     ...overrides,
   } as FullConfig;
@@ -90,51 +88,51 @@ function createConfig(overrides: Partial<FullConfig> = {}): FullConfig {
 
 // ─── createGrid ─────────────────────────────────────────────────────────────
 
-describe('DrawSpec.createGrid', () => {
+describe('createGrid', () => {
   test('returns a tuple [RenderedPoint[], xLen, maxYLen]', () => {
-    const [points, xLen, maxYLen] = DrawSpec.createGrid(createSimpleData(), createConfig());
+    const [points, xLen, maxYLen] = createGrid(createSimpleData(), createConfig());
     expect(Array.isArray(points)).toBe(true);
     expect(typeof xLen).toBe('number');
     expect(typeof maxYLen).toBe('number');
   });
 
   test('xLen equals the number of events', () => {
-    const [, xLen] = DrawSpec.createGrid(createSimpleData(), createConfig());
+    const [, xLen] = createGrid(createSimpleData(), createConfig());
     expect(xLen).toBe(2);
   });
 
   test('maxYLen equals the maximum state length across events', () => {
-    const [, , maxYLen] = DrawSpec.createGrid(createSimpleData(), createConfig());
+    const [, , maxYLen] = createGrid(createSimpleData(), createConfig());
     expect(maxYLen).toBe(2);
   });
 
   test('creates one point per active actor per event', () => {
     // 2 events × 2 actors, all active → 4 points
-    const [points] = DrawSpec.createGrid(createSimpleData(), createConfig());
+    const [points] = createGrid(createSimpleData(), createConfig());
     expect(points.length).toBe(4);
   });
 
   test('every point is a RenderedPoint instance', () => {
-    const [points] = DrawSpec.createGrid(createSimpleData(), createConfig());
+    const [points] = createGrid(createSimpleData(), createConfig());
     points.forEach(p => expect(p).toBeInstanceOf(RenderedPoint));
   });
 
   test('non-compact mode: y equals actor index', () => {
-    const [points] = DrawSpec.createGrid(createSimpleData(), createConfig({compact: false}));
+    const [points] = createGrid(createSimpleData(), createConfig({compact: false}));
     const atEvent0 = points.filter(p => p.x === 0);
     expect(atEvent0.find(p => p.z === 'a')!.y).toBe(0);
     expect(atEvent0.find(p => p.z === 'b')!.y).toBe(1);
   });
 
   test('compact mode: y coordinates are centred around 0', () => {
-    const [points] = DrawSpec.createGrid(createSimpleData(), createConfig({compact: true}));
+    const [points] = createGrid(createSimpleData(), createConfig({compact: true}));
     const atEvent0 = points.filter(p => p.x === 0);
     expect(atEvent0.find(p => p.z === 'a')!.y).toBe(-1);
     expect(atEvent0.find(p => p.z === 'b')!.y).toBe(0);
   });
 
   test('grouped actors have isGrouped = 1', () => {
-    const [points] = DrawSpec.createGrid(createSimpleData(), createConfig());
+    const [points] = createGrid(createSimpleData(), createConfig());
     points.forEach(p => expect(p.isGrouped).toBe(1));
   });
 
@@ -156,14 +154,14 @@ describe('DrawSpec.createGrid', () => {
     actors.set('a', makeActor('a', [e0, e1, e2]));
     actors.set('b', makeActor('b', [e0, e1, e2]));
 
-    const [points] = DrawSpec.createGrid({events: [e0, e1, e2], actors}, createConfig({continuous: true}));
+    const [points] = createGrid({events: [e0, e1, e2], actors}, createConfig({continuous: true}));
     const bAtE1 = points.find(p => p.x === 1 && p.z === 'b');
     expect(bAtE1).toBeDefined();
     expect(bAtE1!.isGrouped).toBe(0);
   });
 
   test('highlighted actors have isHighlighted = 1, others 0', () => {
-    const [points] = DrawSpec.createGrid(createSimpleData(), createConfig({highlight: ['a']}));
+    const [points] = createGrid(createSimpleData(), createConfig({highlight: ['a']}));
     points.filter(p => p.z === 'a').forEach(p => expect(p.isHighlighted).toBe(1));
     points.filter(p => p.z === 'b').forEach(p => expect(p.isHighlighted).toBe(0));
   });
@@ -188,7 +186,7 @@ describe('DrawSpec.createGrid', () => {
     actors.set('a', makeActor('a', [e0, e1, e2]));
     actors.set('b', makeActor('b', [e0, e1, e2]));
 
-    const [points] = DrawSpec.createGrid({events: [e0, e1, e2], actors}, createConfig());
+    const [points] = createGrid({events: [e0, e1, e2], actors}, createConfig());
     const atE2 = points.filter(p => p.x === 2);
     expect(atE2.length).toBeGreaterThan(0);
     expect(atE2[0].eventValue).toBe('-');
@@ -196,7 +194,7 @@ describe('DrawSpec.createGrid', () => {
 
   test('eventDescription from config is used for each point', () => {
     const desc = (e: Event) => 'desc-' + String(e.eventValue);
-    const [points] = DrawSpec.createGrid(createSimpleData(), createConfig({eventDescription: desc}));
+    const [points] = createGrid(createSimpleData(), createConfig({eventDescription: desc}));
     expect(points[0].eventDescription).toBe('desc-0');
   });
 
@@ -214,7 +212,7 @@ describe('DrawSpec.createGrid', () => {
     actors.set('a', makeActor('a', [e0, e1]));
     actors.set('b', makeActor('b', [e0, e1]));
 
-    const [points] = DrawSpec.createGrid({events: [e0, e1], actors}, createConfig({continuous: false}));
+    const [points] = createGrid({events: [e0, e1], actors}, createConfig({continuous: false}));
     expect(points.filter(p => p.x === 0 && p.z === 'b').length).toBe(0);
     expect(points.filter(p => p.x === 1 && p.z === 'b').length).toBe(1);
   });
@@ -222,28 +220,28 @@ describe('DrawSpec.createGrid', () => {
 
 // ─── remove ─────────────────────────────────────────────────────────────────
 
-describe('DrawSpec.remove', () => {
+describe('remove', () => {
   test('does not throw when element does not exist', () => {
-    expect(() => DrawSpec.remove(createConfig({uid: 'nonexistent'}))).not.toThrow();
+    expect(() => remove(createConfig({uid: 'nonexistent'}))).not.toThrow();
   });
 
   test('removes SVG element created by drawD3', () => {
     const config = createConfig({uid: 'rmtest'});
     const data = createSimpleData();
     const fittedData = fit(data, config)!;
-    const grid = DrawSpec.createGrid(fittedData, config);
+    const grid = createGrid(fittedData, config);
 
-    DrawSpec.drawD3(grid, config);
+    drawD3(grid, config);
     expect(document.getElementById('storygram' + config.uid)).not.toBeNull();
 
-    DrawSpec.remove(config);
+    remove(config);
     expect(document.getElementById('storygram' + config.uid)).toBeNull();
   });
 });
 
 // ─── drawD3 ─────────────────────────────────────────────────────────────────
 
-describe('DrawSpec.drawD3', () => {
+describe('drawD3', () => {
   afterEach(() => {
     // clean up any SVGs written to the body between tests
     document.body.innerHTML = '';
@@ -259,30 +257,28 @@ describe('DrawSpec.drawD3', () => {
       dataFormat: 'array',
       eventField: 'id',
       actorArrayField: 'a',
-      generationAmt: 2,
-      populationSize: 5,
     };
     const sg = new Storygram(testArrayData(), sgConfig);
     const fittedData = fit(sg.processedData, sg.config)!;
-    const grid = DrawSpec.createGrid(fittedData, sg.config);
+    const grid = createGrid(fittedData, sg.config);
     return {grid, config: sg.config};
   }
 
   test('appends an SVG element to the root', () => {
     const {grid, config} = buildRenderedGrid();
-    DrawSpec.drawD3(grid, config);
+    drawD3(grid, config);
     expect(document.getElementById('storygram' + config.uid)).not.toBeNull();
   });
 
   test('appends a tooltip element to the root', () => {
     const {grid, config} = buildRenderedGrid();
-    DrawSpec.drawD3(grid, config);
+    drawD3(grid, config);
     expect(document.getElementById('tooltip' + config.uid)).not.toBeNull();
   });
 
   test('SVG has the correct width and height attributes', () => {
     const {grid, config} = buildRenderedGrid();
-    DrawSpec.drawD3(grid, config);
+    drawD3(grid, config);
 
     const svg = document.getElementById('storygram' + config.uid) as unknown as SVGElement;
     const [, xLen, maxYLen] = grid;
@@ -296,8 +292,8 @@ describe('DrawSpec.drawD3', () => {
 
   test('calling drawD3 a second time with the same uid reuses the existing SVG', () => {
     const {grid, config} = buildRenderedGrid();
-    DrawSpec.drawD3(grid, config);
-    DrawSpec.drawD3(grid, config);
+    drawD3(grid, config);
+    drawD3(grid, config);
     const svgs = document.querySelectorAll('#storygram' + config.uid);
     expect(svgs.length).toBe(1);
   });

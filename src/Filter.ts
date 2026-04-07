@@ -15,7 +15,10 @@ function filter(data: Data, config: Config): Data {
 }
 
 function isInRange(p: number, range: [number | string | undefined, number | string | undefined] | undefined): boolean {
-  return range ? (range[0] ? p >= (range[0] as number) : true) && (range[1] ? p <= (range[1] as number) : true) : true;
+  return range
+    ? (range[0] !== undefined ? p >= (range[0] as number) : true) &&
+      (range[1] !== undefined ? p <= (range[1] as number) : true)
+    : true;
 }
 
 function filterEvents(data: Data, config: Config): Data {

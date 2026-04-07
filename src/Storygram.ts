@@ -1,9 +1,18 @@
-import DrawSpec from './DrawSpec';
+import { createGrid, drawD3, remove } from './DrawSpec';
 import {filter} from './Filter';
 import {fit} from './Optimizer';
 import {processActorsFirst, processEventsFirst} from './PreProcessing';
 import {Config, Data, RenderedPoint, BaseConfig, FullConfig} from './Types';
-const uuid = () => crypto.randomUUID()
+function uuid(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Fallback for environments without crypto.randomUUID (e.g. older jsdom)
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
 
 export default class Storygram {
   // Data with filtering and optimization
@@ -35,8 +44,6 @@ export default class Storygram {
     eventPadding: 40,
     actorPadding: 30,
     eventValueScaling: 0.9,
-    generationAmt: 30,
-    populationSize: 50,
     continuous: false,
     compact: false,
     highlight: [],
@@ -58,9 +65,6 @@ export default class Storygram {
     root: 'body',
     tooltipPosition: 'absolute',
     hiddenActorsTooltipTitle: 'Hidden actors',
-    selectionRate: 0.25,
-    selectionSeverity: 8,
-    mutationProbability: 0.025,
     inferredEventType: undefined
   };
 
@@ -116,21 +120,21 @@ export default class Storygram {
     if(!this.isCalculated) {
       this.calculate()
     }
-    this.processedData = fit(this.processedData, this.config) as Data;
-    this.renderedGrid = DrawSpec.createGrid(this.processedData, this.config);
+    this.processedData = fit(this.processedData, this.config);
+    this.renderedGrid = createGrid(this.processedData, this.config);
     if (this.config.verbose) {
       console.log(this.renderedGrid);
     }
     this.remove()
     if(this.processedData.events.length !== 0 && this.processedData.actors.size !== 0) {
-      DrawSpec.drawD3(this.renderedGrid, this.config)
+      drawD3(this.renderedGrid, this.config)
     } else {
       console.warn('Storygram: No data after filtering')
     }
   }
 
   public remove() {
-    DrawSpec.remove(this.config)
+    remove(this.config)
   }
 
 }

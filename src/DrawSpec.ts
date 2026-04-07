@@ -9,9 +9,7 @@ interface Binned {
   bbox?: any
 }
 
-export default class DrawSpec {
-
-  public static createGrid(data: Data, config: FullConfig): [RenderedPoint[], number, number] {
+export function createGrid(data: Data, config: FullConfig): [RenderedPoint[], number, number] {
     let result: RenderedPoint[] = [];
     const maxYLen = data.events.reduce((max, layer) => Math.max(max, layer.state.length), 0);
     const xLen = data.events.length;
@@ -69,14 +67,14 @@ export default class DrawSpec {
     return [result, xLen, maxYLen];
   }
 
-  public static remove(config: FullConfig) {
+export function remove(config: FullConfig) {
     if (document.getElementById("storygram" + config.uid)) {
       d3.select("#storygram" + config.uid).remove()
       d3.select("#tooltip" + config.uid).remove()
     }
   }
 
-  public static drawD3(renderedPoints: [RenderedPoint[], number, number], config: FullConfig) {
+export function drawD3(renderedPoints: [RenderedPoint[], number, number], config: FullConfig) {
 
     let width = renderedPoints[1] * config.eventPadding;
     let height = renderedPoints[2] * config.actorPadding;
@@ -667,8 +665,6 @@ export default class DrawSpec {
         //@ts-ignore
         selection.each(function (d: RenderedPoint) { d.bbox = this.getBBox() })
       }
-
-    }
 
   }
 
