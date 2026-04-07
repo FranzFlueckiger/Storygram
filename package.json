@@ -29,6 +29,7 @@
     "acorn": "^7.3.1",
     "eslint": "^6.8.0",
     "jest": "^24.9.0",
+    "jest-environment-jsdom": "^24.9.0",
     "minimist": ">=0.2.1",
     "ts-jest": "^24.2.0",
     "typescript": "^3.9.6"
