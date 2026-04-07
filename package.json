@@ -15,24 +15,27 @@
   "author": "Franz Flückiger, ZHaW",
   "license": "MIT",
   "dependencies": {
-    "@babel/parser": "^7.10.4",
-    "@babel/types": "^7.10.4",
-    "d3": "^5.16.0",
-    "i": "^0.3.6",
+    "@babel/parser": "^7.29.2",
+    "@babel/types": "^7.29.0",
+    "d3": "^7.9.0",
+    "i": "^0.3.7",
     "npm": "^6.14.5",
     "src": "^1.1.2",
-    "uuidv4": "^6.1.1"
+    "uuidv4": "^6.2.13"
   },
   "devDependencies": {
-    "@types/d3": "^5.7.2",
-    "@types/jest": "^24.0.24",
-    "acorn": "^7.3.1",
-    "eslint": "^6.8.0",
-    "jest": "^24.9.0",
-    "jest-environment-jsdom": "^24.9.0",
-    "minimist": ">=0.2.1",
-    "ts-jest": "^24.2.0",
-    "typescript": "^3.9.6"
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "@types/d3": "^7.4.3",
+    "@types/jest": "^29.5.14",
+    "acorn": "^8.16.0",
+    "babel-jest": "^30.3.0",
+    "eslint": "^8.57.1",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "minimist": ">=1.2.8",
+    "ts-jest": "^29.4.3",
+    "typescript": "^5.8.3"
   },
   "lint-staged": {
     "*.ts": [

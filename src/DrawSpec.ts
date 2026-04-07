@@ -129,25 +129,25 @@ export default class DrawSpec {
       .attr('id', 'layer2')
       .attr("transform", "translate(" + config.marginLeft + "," + config.marginTop + ")");
 
-    let actorBin: Binned[] = d3.nest()
-      .key(d => d instanceof RenderedPoint ? d.z : '')
-      .entries(renderedPoints[0])
+    // d3 v7: group() replaces nest().key().entries()
+    let actorBin: Binned[] = Array.from(
+      d3.group(renderedPoints[0], (d: RenderedPoint) => d.z),
+      ([key, values]) => ({key, values, value: null})
+    )
 
-    let groupBin: Binned[] = d3.nest()
-      //Todo this 'casting' is ugly, numeric key?
-      .key(d => d instanceof RenderedPoint ? String(d.x) : '')
-      // @ts-ignore
-      .rollup((p: Binned) => {
-        if (Array.isArray(p) && p.every(d => d instanceof RenderedPoint)) {
-          return {
-            min: d3.min(p, (d: RenderedPoint) => d.y),
-            max: d3.max(p, (d: RenderedPoint) => d.y),
-            event: d3.values(p)
-          }
-        }
-        return { min: null, max: null, event: null }
-      })
-      .entries(renderedPoints[0].filter(d => d.isGrouped))
+    // d3 v7: rollup() replaces nest().key().rollup().entries()
+    let groupBin: Binned[] = Array.from(
+      d3.rollup(
+        renderedPoints[0].filter(d => d.isGrouped),
+        (p: RenderedPoint[]) => ({
+          min: d3.min(p, (d: RenderedPoint) => d.y),
+          max: d3.max(p, (d: RenderedPoint) => d.y),
+          event: p
+        }),
+        (d: RenderedPoint) => String(d.x)
+      ),
+      ([key, value]) => ({key, value, values: []})
+    )
 
     var colorEntries = renderedPoints[0].map(d => String(d.strokeColor))
 
@@ -190,7 +190,7 @@ export default class DrawSpec {
       .data(groupBin).enter()
       .append("path")
       .attr("class", "group")
-      .attr('id', d => d.key)
+      .attr('id', (d: Binned) => d.key)
       .attr("stroke", "black")
       .attr("stroke-width", unSelectedLineSize)
       .attr('stroke-linecap', 'round')
@@ -223,28 +223,27 @@ export default class DrawSpec {
       .attr("class", "rect_pointerID")
       .attr('width', width)
       .attr('height', height + config.marginBottom)
-      .on('mousemove', mousemove)
+      // d3 v7: event is the first argument to handlers
+      // @ts-ignore — @types/d3 still uses old ValueFn signature
+      .on('mousemove', function(event: MouseEvent) {
+        var x0 = xScale.invert((d3 as any).pointer(event)[0]);
+        var i = bisect(renderedPoints[0], x0, 1);
+        var d0 = renderedPoints[0][i - 1].x
+        var d1 = renderedPoints[0][i] ? renderedPoints[0][i].x : d0
+        var d = x0 - d0 > d1 - x0 ? d1 : d0;
+        selectedEvent = d
+        drawAll()
+      })
 
     drawAll()
     drawAll()
-
-    function mousemove() {
-      // recover coordinate we need
-      var x0 = xScale.invert(d3.mouse(d3.event.currentTarget)[0]);
-      var i = bisect(renderedPoints[0], x0, 1);
-      var d0 = renderedPoints[0][i - 1].x
-      var d1 = renderedPoints[0][i].x
-      var d = x0 - d0 > d1 - x0 ? d1 : d0;
-      selectedEvent = d
-      drawAll()
-    }
 
     function drawAll() {
       actors
         .transition()
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
-        .attr("stroke", d => color(String(d.values[0].strokeColor)) as string)
+        .attr("stroke", (d: Binned) => color(String(d.values[0].strokeColor)) as string)
         .attr('opacity', (d: Binned) => {
           if (d.values.some(v => v.x === selectedEvent && v.isGrouped)) return selectedOpacity
           else return unSelectedOpacity
@@ -255,8 +254,8 @@ export default class DrawSpec {
         })
         .attr("d", (d: Binned) => {
           return d3.line()
-            .x(p => xScale(p[0]))
-            .y(p => yScale(p[1]))
+            .x((p: any) => xScale(p[0]))
+            .y((p: any) => yScale(p[1]))
             .curve(d3.curveMonotoneX)
             (d.values.reduce<Array<[number, number]>>((arr, p) => {
               if (p.isGrouped) {
@@ -285,8 +284,8 @@ export default class DrawSpec {
         })
         .attr("d", (d: Binned) => {
           return d3.line()
-            .x(p => xScale(p[0]))
-            .y(p => yScale(p[1]))
+            .x((p: any) => xScale(p[0]))
+            .y((p: any) => yScale(p[1]))
             .curve(d3.curveMonotoneX)
             (d.values.reduce<Array<[number, number]>>((arr, p) => {
               if (p.isGrouped) {
@@ -340,10 +339,10 @@ export default class DrawSpec {
           if (Number(d.key) === selectedEvent) return selectedLineSize
           else return unSelectedLineSize
         })
-        .attr("d", (d) => {
+        .attr("d", (d: Binned) => {
           return d3.line()
-            .x(p => xScale(p[0]))
-            .y(p => yScale(p[1]))
+            .x((p: any) => xScale(p[0]))
+            .y((p: any) => yScale(p[1]))
             .curve(d3.curveMonotoneX)
             ([[Number(d.key), d.value.min], [Number(d.key), d.value.max]])
         })
@@ -360,29 +359,26 @@ export default class DrawSpec {
 
       event_desc
         .data(groupBin.filter(d => Number(d.key) === selectedEvent))
-        // todo
-        .on("click", function (d) {
+        // d3 v7: event is the first argument
+        // @ts-ignore — @types/d3 still uses old ValueFn signature
+        .on("click", function (_event: MouseEvent, d: Binned) {
           if (config.urlOpensNewTab) window.open(d.value.event[0].eventUrl)
           else window.open(d.value.event[0].eventUrl, "_self")
         })
-        .on(
-          //@ts-ignore
-          "mouseover", function (d) {
-            //@ts-ignore
-            d3.select(this).style("cursor", "pointer")
-          })
-        .on(
-          //@ts-ignore
-          "mouseout", function (d) {
-            //@ts-ignore
-            d3.select(this).style("cursor", "default");
-          })
+        .on("mouseover", function () {
+          // @ts-ignore
+          d3.select(this).style("cursor", "pointer")
+        })
+        .on("mouseout", function () {
+          // @ts-ignore
+          d3.select(this).style("cursor", "default");
+        })
         .transition()
         .duration(transitionSpeed)
         .ease(d3.easeLinear)
         .attr("x", xScale(selectedEvent) + 10)
         .attr("y", -35)
-        .text((d) => {
+        .text((d: Binned) => {
           if (Number(d.key) === selectedEvent)
             return d.value.event[0].eventDescription
         })
@@ -449,7 +445,7 @@ export default class DrawSpec {
           }
         )
 
-      //hidden actors => invisible to get bounding box 
+      //hidden actors => invisible to get bounding box
       //@ts-ignore
       let hiddenActorsBackground = layer1.selectAll(".hiddenActorsBackground")
         .data(groupBin.reduce<RenderedPoint[]>((arr, d: Binned) => {
@@ -488,7 +484,7 @@ export default class DrawSpec {
           }
         )
 
-      function showTooltip(d: RenderedPoint) {
+      function showTooltip(event: MouseEvent, d: RenderedPoint) {
         // @ts-ignore
         tooltip.transition()
           .duration(transitionSpeed)
@@ -496,9 +492,9 @@ export default class DrawSpec {
         // @ts-ignore
         tooltip
           .attr("font-size", (fontSize - 10) + "px")
-          .html('<b>' + config.hiddenActorsTooltipTitle + ':</b>' + d.hiddenActors.map(p => '<br>' + p))
-          .style("left", (d3.event.pageX + 10) + "px")
-          .style("top", (d3.event.pageY - 28) + "px")
+          .html('<b>' + config.hiddenActorsTooltipTitle + ':</b>' + d.hiddenActors.map((p: string) => '<br>' + p))
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px")
           .style("width", "200px")
         tooltipEvent = d.x
       }
@@ -510,16 +506,14 @@ export default class DrawSpec {
           .style("opacity", .0);
       }
 
+      // d3 v7: event handlers receive (event, datum)
       hiddenActors.on(
-        //@ts-ignore
-        "mouseover", function (d) {
-          //@ts-ignore
-          showTooltip(d)
+        "mouseover", function (event: MouseEvent, d: RenderedPoint) {
+          showTooltip(event, d)
         })
         .on(
-          //@ts-ignore
-          "mouseout", function (d) {
-            //@ts-ignore
+          "mouseout", function () {
+            // @ts-ignore
             d3.select(this).style("cursor", "default");
           })
 
@@ -639,28 +633,22 @@ export default class DrawSpec {
               .attr("x", (d: RenderedPoint) => xScale(d.x) + selectedLineSize / 2 + 10)
               .attr("y", (d: RenderedPoint) => yScale(d.y))
               .text((d: RenderedPoint) => d.z)
-              .on("click", function (d: RenderedPoint) {
+              .on("click", function (_event: MouseEvent, d: RenderedPoint) {
                 if(config.urlOpensNewTab) window.open(d.url)
                 else window.open(d.url, "_self")
               })
-              .on(
-                //@ts-ignore
-                "mouseover", function (d: RenderedPoint) {
-                  //@ts-ignore
-                  if (!highlightedActors.includes(d.z)) highlightedActors.push(d.z)
-                  // @ts-ignore
-                  d3.select(this).style("cursor", "pointer")
-                  drawAll()
-                })
-              .on(
-                //@ts-ignore
-                "mouseout", function (d: RenderedPoint) {
-                  //@ts-ignore
-                  highlightedActors = highlightedActors.filter(h => h !== d.z || config.highlight.includes(d.z))
-                  // @ts-ignore
-                  d3.select(this).style("cursor", "default");
-                  drawAll()
-                })
+              .on("mouseover", function (_event: MouseEvent, d: RenderedPoint) {
+                if (!highlightedActors.includes(d.z)) highlightedActors.push(d.z)
+                // @ts-ignore
+                d3.select(this).style("cursor", "pointer")
+                drawAll()
+              })
+              .on("mouseout", function (_event: MouseEvent, d: RenderedPoint) {
+                highlightedActors = highlightedActors.filter((h: string) => h !== d.z || config.highlight.includes(d.z))
+                // @ts-ignore
+                d3.select(this).style("cursor", "default");
+                drawAll()
+              })
           },
           (update: any) => {
             update.transition()

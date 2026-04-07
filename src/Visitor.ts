@@ -50,19 +50,16 @@ function visitExpanded(data: Data, actorEntryPoints: GenePool | undefined, confi
       if(!y.isHidden) actorEntryPoints!.set(y.actorID, Math.random())
     })
   }
-  let visitor: string[]
-  let prevIndex: number
-  visitor = Array.from(actorEntryPoints!)
+  let visitor: string[] = Array.from(actorEntryPoints!)
     .sort((a, b) => a[1] - b[1])
     .map(y => y[0])
   // traverse events
-  let events = data.events.reduce((acc: Event[], event: Event, i: number) => {
+  let events = data.events.reduce((acc: Event[], event: Event) => {
     if(!event.isHidden) {
       event.switch = group(event.group, visitor);
       event.state = [...visitor];
       acc.push(event);
     }
-    prevIndex++
     return acc;
   }, [])
   return [events, actorEntryPoints];
