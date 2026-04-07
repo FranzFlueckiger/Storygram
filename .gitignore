@@ -74,3 +74,6 @@ dist
 doc/node_modules
 doc/.cache
 doc/.docz
+doc/.vitepress/dist
+doc/.vitepress/cache
+doc/src
