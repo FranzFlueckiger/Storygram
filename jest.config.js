@@ -1,6 +1,12 @@
-// d3 v7+ and its sub-packages publish pure ESM. Jest runs in CommonJS mode,
-// so we must opt those packages into transformation (via babel-jest + @babel/preset-env)
-// rather than leaving them in the default "ignore node_modules" bucket.
+// d3 v7+ and several other deps publish pure ESM. Jest runs in CJS mode, so we
+// must opt those packages INTO babel-jest transformation rather than ignoring them.
+//
+// Two regex patterns are needed because npm and pnpm lay out node_modules differently:
+//   npm/yarn  →  node_modules/<pkg>/...
+//   pnpm      →  node_modules/.pnpm/<pkg>@<ver>/node_modules/<pkg>/...
+//
+// transformIgnorePatterns: if a file's path matches ANY pattern it is NOT transformed.
+// We flip the logic with a negative lookahead so ESM packages are NOT ignored.
 const ESM_PACKAGES = [
   'd3',
   'd3-array', 'd3-axis', 'd3-brush', 'd3-chord', 'd3-color',
@@ -14,6 +20,9 @@ const ESM_PACKAGES = [
   'uuid', 'uuidv4',
 ];
 
+// pnpm stores packages as `<name>@<version>` inside .pnpm, so prefix each name with '@'
+const ESM_PNPM = ESM_PACKAGES.map(p => `${p}@`);
+
 module.exports = {
   roots: ['<rootDir>/test'],
   transform: {
@@ -21,7 +30,10 @@ module.exports = {
     '^.+\\.js$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    `node_modules/(?!(${ESM_PACKAGES.join('|')})/)`
+    // pnpm: skip transformation only for packages NOT in our ESM list
+    `node_modules/\\.pnpm/(?!(${ESM_PNPM.join('|')}))`,
+    // npm/yarn: same idea; also exempt .pnpm itself so the rule above applies instead
+    `node_modules/(?!(\\.pnpm|${ESM_PACKAGES.join('|')}))`,
   ],
   testEnvironment: 'jsdom',
 };
