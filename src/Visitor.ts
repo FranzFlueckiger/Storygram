@@ -25,12 +25,12 @@ function visitCompact(data: Data, actorEntryPoints: GenePool | undefined, config
       event.add.forEach(actorID => {
         const actor: Actor = data.actors.get(actorID)!;
         if(!actor.isHidden) {
-          const entryPoint = actorEntryPoints!.get(actorID);
-          if(!entryPoint) {
-            const entryPoint = Math.random()
-            actorEntryPoints!.set(actorID, entryPoint);
+          let entryPoint = actorEntryPoints!.get(actorID);
+          if(entryPoint === undefined) {
+            entryPoint = 0.5
+            actorEntryPoints!.set(actorID, entryPoint)
           }
-          visitor = add(actorID, entryPoint!, visitor);
+          visitor = add(actorID, entryPoint, visitor);
         }
       });
       event.switch = group(event.group, visitor);
@@ -47,7 +47,7 @@ function visitExpanded(data: Data, actorEntryPoints: GenePool | undefined, confi
   actorEntryPoints = actorEntryPoints ? actorEntryPoints : new Map();
   if(actorEntryPoints.size === 0) {
     data.actors.forEach(y => {
-      if(!y.isHidden) actorEntryPoints!.set(y.actorID, Math.random())
+      if(!y.isHidden) actorEntryPoints!.set(y.actorID, 0.5)
     })
   }
   let visitor: string[] = Array.from(actorEntryPoints!)

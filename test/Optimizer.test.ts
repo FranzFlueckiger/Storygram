@@ -89,6 +89,15 @@ describe('fit', () => {
     });
   });
 
+  test('compact mode: layout is deterministic across runs', () => {
+    const layout = () => {
+      const sg = new Storygram(testArrayData(), {...baseConfig, compact: true});
+      const result = fit(sg.processedData, sg.config)!;
+      return result.events.map(event => event.state);
+    };
+    expect(layout()).toEqual(layout());
+  });
+
   test('expanded mode: state length is constant across events', () => {
     const sg = new Storygram(testArrayData(), {...baseConfig, compact: false});
     const result = fit(sg.processedData, sg.config)!;
