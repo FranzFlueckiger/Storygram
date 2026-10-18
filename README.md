@@ -26,10 +26,17 @@ Band lineups, governments, boards of directors, sports teams, conference partici
 
 *The Swiss Federal Council since 1983 — compact layout, actors colored by party.*
 
+<p align="center">
+    <img alt="Event bar extent comparison" src="https://raw.githubusercontent.com/FranzFlueckiger/Storygram/master/doc/images/example-event-bars.png" width="1200">
+</p>
+
+*Left: participant-only event bars (default). Right: extended event bars (`extendEventBar: true`), where connectors span unrelated actors to keep lines straighter.*
+
 ## Features
 
 - **Three data formats** — array, table, and range-shaped input (see below)
 - **Deterministic layout** — one optimized global actor order keeps lines straight; weighted group compaction can trade a little movement for tighter group connectors
+- **Participant-only or extended event bars** — choose whether connectors cover only an event's actors or span across unrelated actors; works in compact and expanded layouts
 - **Powerful filtering** — filter by event value, group size, actor frequency, actor lifetime, must/should-contain queries, or fully custom callbacks
 - **Compact & continuous modes** — center actors around the axis or keep actors visible between events
 - **Fully configurable** — colors, highlights, margins, spacing, event labels, clickable URLs, tooltips, and d3 color schemes
@@ -117,6 +124,9 @@ const config: Config = {
 
   // center groups around the x-axis
   compact: true,
+
+  // let event bars cover only their participants (default)
+  extendEventBar: false,
 
   // color actors by a data field
   actorColor: (event, actor) => actor.data.party,
