@@ -32,6 +32,20 @@ compact: boolean
   :config="{dataFormat:'array',eventField:'event',actorArrayField:'actors',compact:true}"
 />
 
+## Event bar extent
+
+By default, an event's actors are placed contiguously so its black connector only covers actors that actually appear in the event. Set `extendEventBar` to `true` to let connectors span from the topmost to the bottommost participant, even when unexpected actors sit between them. This keeps actor lines straighter but makes the event bar longer. The option applies to both compact and non-compact layouts.
+
+```typescript
+extendEventBar: boolean
+// Default: false
+```
+
+<StorygramMount
+  :data="[{event:0,actors:['a','b','c']},{event:1,actors:['a','c','d']},{event:2,actors:['c','d','e']},{event:3,actors:['e','f','g']}]"
+  :config="{dataFormat:'array',eventField:'event',actorArrayField:'actors',extendEventBar:true}"
+/>
+
 <script setup>
 const colorData = [
   { actor: 'a', end: 1,           team: 'one' },

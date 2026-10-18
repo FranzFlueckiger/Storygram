@@ -115,6 +115,7 @@ describe('fit', () => {
       const sg = new Storygram(testArrayData(), {
         ...baseConfig,
         compact,
+        extendEventBar: true,
         groupSpanLoss: 0,
       });
       const result = fit(sg.processedData, sg.config)!;
@@ -127,6 +128,7 @@ describe('fit', () => {
     const sg = new Storygram(testArrayData(), {
       ...baseConfig,
       compact: false,
+      extendEventBar: true,
       groupSpanLoss: 0,
     });
     const result = fit(sg.processedData, sg.config)!;
@@ -175,6 +177,90 @@ describe('fit', () => {
     expect(metrics.groupSpan).toBeLessThanOrEqual(baselineMetrics.groupSpan);
   });
 
+  test('participant-only bars place every event group contiguously', () => {
+    const sg = new Storygram(testArrayData(), {
+      ...baseConfig,
+      compact: false,
+      extendEventBar: false,
+    });
+    const result = fit(sg.processedData, sg.config)!;
+
+    result.events.forEach(event => {
+      const group = event.group.filter(actorID => {
+        const actor = result.actors.get(actorID);
+        return actor && !actor.isHidden;
+      });
+      if (group.length < 2) return;
+
+      const positions = group.map(actorID => event.state.indexOf(actorID));
+      positions.forEach(position => expect(position).toBeGreaterThanOrEqual(0));
+
+      const min = Math.min(...positions);
+      const max = Math.max(...positions);
+      expect(max - min).toBe(group.length - 1);
+
+      for (let position = min; position <= max; position++) {
+        expect(group).toContain(event.state[position]);
+      }
+    });
+  });
+
+  test('participant-only bars are deterministic', () => {
+    const run = () => {
+      const sg = new Storygram(testArrayData(), {
+        ...baseConfig,
+        compact: false,
+        extendEventBar: false,
+      });
+      const result = fit(sg.processedData, sg.config)!;
+      return result.events.map(event => event.state);
+    };
+
+    expect(run()).toEqual(run());
+  });
+
+  test('compact participant-only bars keep each event group contiguous', () => {
+    const sg = new Storygram(testArrayData(), {
+      ...baseConfig,
+      compact: true,
+      extendEventBar: false,
+    });
+    const result = fit(sg.processedData, sg.config)!;
+
+    result.events.forEach(event => {
+      const group = event.group.filter(actorID => {
+        const actor = result.actors.get(actorID);
+        return actor && !actor.isHidden;
+      });
+      if (group.length < 2) return;
+
+      const positions = group.map(actorID => event.state.indexOf(actorID));
+      positions.forEach(position => expect(position).toBeGreaterThanOrEqual(0));
+
+      const min = Math.min(...positions);
+      const max = Math.max(...positions);
+      expect(max - min).toBe(group.length - 1);
+
+      for (let position = min; position <= max; position++) {
+        expect(group).toContain(event.state[position]);
+      }
+    });
+  });
+
+  test('compact mode responds to extendEventBar', () => {
+    const run = (extendEventBar: boolean) => {
+      const sg = new Storygram(testArrayData(), {
+        ...baseConfig,
+        compact: true,
+        extendEventBar,
+      });
+      const result = fit(sg.processedData, sg.config)!;
+      return result.events.map(event => event.state);
+    };
+
+    expect(run(false)).not.toEqual(run(true));
+  });
+
   test('weighted compaction trades straightness for tighter groups', () => {
     const run = (config: Config) => {
       const sg = new Storygram(testArrayData(), config);
@@ -185,6 +271,7 @@ describe('fit', () => {
     const straight = run({
       ...baseConfig,
       compact: false,
+      extendEventBar: true,
       linearLoss: 1000,
       lengthLoss: 1000,
       groupSpanLoss: 2,
@@ -192,6 +279,7 @@ describe('fit', () => {
     const tight = run({
       ...baseConfig,
       compact: false,
+      extendEventBar: true,
       linearLoss: 0,
       lengthLoss: 0,
       groupSpanLoss: 100,

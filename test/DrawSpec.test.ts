@@ -66,7 +66,7 @@ function createConfig(overrides: Partial<FullConfig> = {}): FullConfig {
     marginTop: 50, marginBottom: 50, marginLeft: 50, marginRight: 50,
     actorPadding: 30, eventPadding: 40,
     eventValueScaling: 0,   // xDrawn = pure event index
-    continuous: false, compact: false,
+    continuous: false, compact: false, extendEventBar: false,
     highlight: [],
     strokeWidth: () => 1,
     actorColor: (_e, actor) => actor.actorID,

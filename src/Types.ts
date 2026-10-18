@@ -55,6 +55,10 @@ export interface BaseConfig {
   continuous: boolean;
   // whether the graph is compacted or not
   compact: boolean;
+  // when true, an event connector spans every actor between its outermost
+  // participants; when false, participants are placed contiguously so the
+  // connector only covers actors that appear in the event
+  extendEventBar: boolean;
   // TODO which actors should be highlighted
   highlight: string[];
   // TODO numeric field that determines the stroke width
