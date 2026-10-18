@@ -20,6 +20,8 @@ continuous: boolean
 
 Centers actors around the x-axis instead of aligning them to the top. Useful for groups of similar size over time (governments, sports teams, …).
 
+The optimizer starts from one global actor order, so actors keep their relative position and expanded lines stay horizontal. A weighted per-event pass may then compact a group connector by moving actors; `linearLoss` / `lengthLoss` control how expensive that movement is, and `groupSpanLoss` controls how much a shorter connector is worth.
+
 ```typescript
 compact: boolean
 // Default: false

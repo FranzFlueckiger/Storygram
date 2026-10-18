@@ -81,13 +81,15 @@ export interface BaseConfig {
   filterGroupAmt: [number | undefined, number | undefined];
   // actor filter for boolean predicates
   filterActorCustom: (actor: Actor) => boolean;
-  // Penalty for changing actor's position from one layer to the other
+  // Penalty for every drawn line that is not horizontal
   linearLoss: number;
-  // Penalty for the amount of switches
+  // Penalty for actor-line crossings
   amtLoss: number;
-  // Penalty for the length of the switches
+  // Penalty for the vertical distance a line has to move
   lengthLoss: number;
-  // Penalty for the y extent of the chart
+  // Penalty for the vertical span of an event's group connector
+  groupSpanLoss?: number;
+  // Deprecated: retained for backwards compatibility
   yExtentLoss: number;
   // CSS-Selector indicating the DOM element to which the Storygram is appended
   root: string;
@@ -122,9 +124,6 @@ export class Event {
   // which actors will be on this event, whether they are grouped or not
   public state: string[];
 
-  // whitch actor positions to switch
-  public switch: Switch[] = [];
-
   // whitch actors are hidden
   public hiddenActors: string[];
 
@@ -148,18 +147,6 @@ export class Actor {
     this.layers = [];
   }
 }
-
-export interface Switch {
-  target: number;
-  prev: number;
-}
-
-export interface Distance {
-  p: string;
-  distance: number;
-}
-
-export type GenePool = Map<string, number>;
 
 export type Actors = Map<string, Actor>;
 

@@ -1,6 +1,6 @@
 import { FullConfig, Data, RenderedPoint, Event } from './Types';
 import * as d3 from 'd3';
-import {getCompactedLocation} from './Optimizer';
+import { buildLayout } from './Layout';
 
 interface Binned {
   key: string
@@ -10,20 +10,15 @@ interface Binned {
 }
 
 export function createGrid(data: Data, config: FullConfig): [RenderedPoint[], number, number] {
-    let result: RenderedPoint[] = [];
-    const maxYLen = data.events.reduce((max, layer) => Math.max(max, layer.state.length), 0);
-    const xLen = data.events.length;
-    const scaling = config.eventValueScaling;
+    const layout = buildLayout(data, config);
+    const result: RenderedPoint[] = [];
     // this is the eventValue that is shown on the legend of the chart
     // if it changes it will be drawn
     let eventValueLegend: string
     let eventValue: number | string | undefined
-    let activeActors: Set<string> = new Set()
-    data.events.forEach((event, eventIndex) => {
-      let offset = 0;
-      if (config.compact) {
-        event.state = event.state.filter(y => y !== '')
-      }
+
+    layout.events.forEach((eventLayout) => {
+      const event = eventLayout.event;
       let lastGroupedIndex: number | undefined = undefined
       if (eventValue === event.eventValue) {
         eventValueLegend = '-'
@@ -31,40 +26,35 @@ export function createGrid(data: Data, config: FullConfig): [RenderedPoint[], nu
         eventValue = event.eventValue
         eventValueLegend = String(event.eventValue)
       }
-      event.state.forEach((actorID: string, actorIndex: number) => {
+      eventLayout.state.forEach((actorID: string, actorIndex: number) => {
         const actor = data.actors.get(actorID)
         const isGrouped = event.group.some(a => a === actorID) ? 1 : 0;
         if (isGrouped) {
-          activeActors.add(actorID)
           lastGroupedIndex = actorIndex
         }
-        if (eventIndex != 0 && data.events[eventIndex - 1].remove.includes(actorID)) {
-          activeActors.delete(actorID)
+        if (!eventLayout.drawn.has(actorID)) {
+          return
         }
-        if (activeActors.has(actorID) || config.continuous) {
-          let yDrawn = config.compact ? getCompactedLocation(actorIndex, event.state.length) : actorIndex;
-          yDrawn += offset;
-          const strokeWidth = config.strokeWidth(event, actor!);
-          const strokeColor = config.actorColor(event, actor!);
-          const xDrawn = Math.pow(scaling, 4) * event.eventXValue + (1 - Math.pow(scaling, 4)) * eventIndex;
-          const eventDescription = config.eventDescription!(event);
-          const url = config.url(event, actor!)
-          const eventUrl = config.eventUrl(event)
-          const hiddenActors = event.hiddenActors
-          const isHiglighted = config.highlight.includes(actorID) ? 1 : 0
-          const point = new RenderedPoint(xDrawn, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, eventUrl, isHiglighted, actor!, event);
-          // this is necessary to show the hidden ys counter
-          if (lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
-            result[result.length - 1].hiddenActors = hiddenActors
-            lastGroupedIndex = undefined
-          } else if (isGrouped && event.state.length - 1 === actorIndex) {
-            point.hiddenActors = hiddenActors
-          }
-          result.push(point);
+        const yDrawn = eventLayout.y.get(actorID)!;
+        const strokeWidth = config.strokeWidth(event, actor!);
+        const strokeColor = config.actorColor(event, actor!);
+        const eventDescription = config.eventDescription!(event);
+        const url = config.url(event, actor!)
+        const eventUrl = config.eventUrl(event)
+        const hiddenActors = event.hiddenActors
+        const isHiglighted = config.highlight.includes(actorID) ? 1 : 0
+        const point = new RenderedPoint(eventLayout.x, yDrawn, actorID, isGrouped, strokeWidth, strokeColor, eventValueLegend, eventDescription, url, eventUrl, isHiglighted, actor!, event);
+        // this is necessary to show the hidden ys counter
+        if (lastGroupedIndex! < actorIndex && lastGroupedIndex != undefined) {
+          result[result.length - 1].hiddenActors = hiddenActors
+          lastGroupedIndex = undefined
+        } else if (isGrouped && eventLayout.state.length - 1 === actorIndex) {
+          point.hiddenActors = hiddenActors
         }
+        result.push(point);
       });
     });
-    return [result, xLen, maxYLen];
+    return [result, layout.xLen, layout.maxHeight];
   }
 
 export function remove(config: FullConfig) {

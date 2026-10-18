@@ -1,5 +1,6 @@
 import { createGrid, drawD3, remove } from '../src/DrawSpec';
 import {fit} from '../src/Optimizer';
+import {buildLayout} from '../src/Layout';
 import {Data, Event, Actor, RenderedPoint, FullConfig} from '../src/Types';
 import Storygram from '../src/Storygram';
 import {Config} from '../src/Types';
@@ -104,6 +105,31 @@ describe('createGrid', () => {
   test('maxYLen equals the maximum state length across events', () => {
     const [, , maxYLen] = createGrid(createSimpleData(), createConfig());
     expect(maxYLen).toBe(2);
+  });
+
+  test('does not mutate the optimized event states', () => {
+    const data = createSimpleData();
+    const before = data.events.map(event => event.state.slice());
+    createGrid(data, createConfig({compact: true}));
+    expect(data.events.map(event => event.state)).toEqual(before);
+  });
+
+  test('rendered y matches the shared layout geometry', () => {
+    const sg = new Storygram(testArrayData(), {
+      dataFormat: 'array',
+      eventField: 'id',
+      actorArrayField: 'a',
+      compact: true,
+    });
+    const fitted = fit(sg.processedData, sg.config)!;
+    const layout = buildLayout(fitted, sg.config);
+    const [points] = createGrid(fitted, sg.config);
+
+    points.forEach(point => {
+      const eventLayout = layout.events.find(entry => entry.event === point.event);
+      expect(eventLayout).toBeDefined();
+      expect(point.y).toBe(eventLayout!.y.get(point.z));
+    });
   });
 
   test('creates one point per active actor per event', () => {

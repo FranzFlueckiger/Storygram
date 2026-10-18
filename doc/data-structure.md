@@ -50,9 +50,6 @@ class Event {
   // All actor IDs present (grouped or continuous)
   public state: string[]
 
-  // Position switches applied by the optimizer
-  public switch: Switch[]
-
   // Actor IDs hidden by filterGroupAmt / filterActorCustom
   public hiddenActors: string[]
 

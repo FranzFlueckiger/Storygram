@@ -30,20 +30,20 @@ const config: Config = {
 
 ## Optimizer weights
 
-The layout is computed with a **barycenter sweep** algorithm. These weights control how it trades off competing objectives.
+The optimizer first chooses one global actor order for the whole chart. This keeps expanded-mode lines horizontal and crossings impossible. It then runs a weighted per-event compaction pass that may move actors to shorten an event's group connector. A move is accepted only when its weighted benefit is positive, so these weights control the straightness / group-tightness trade-off:
 
 ```typescript
-// Penalty per position switch
-amtLoss: number     // Default: 1
+// Penalty for every line segment that is not horizontal
+linearLoss: number       // Default: 1
 
-// Penalty per unit of switch distance
-lengthLoss: number  // Default: 1
+// Penalty per unit of vertical movement
+lengthLoss: number       // Default: 1
 
-// Penalty for state changes between events (compact mode)
-linearLoss: number  // Default: 1
+// Penalty for actor-line crossings introduced by compaction
+amtLoss: number          // Default: 1
 
-// Penalty for chart height (expanded mode)
-yExtentLoss: number // Default: 0
+// Benefit (weight) of shortening an event's group connector
+groupSpanLoss: number    // Default: 2
 ```
 
-Raising `amtLoss` discourages unnecessary actor reordering. Raising `lengthLoss` additionally penalises large jumps. In compact mode, `linearLoss` rewards stable actor positions between events.
+Raising `linearLoss` and `lengthLoss` keeps lines straighter and limits compaction to cases with a large group-span saving. Raising `groupSpanLoss` makes the black group connectors tighter. `yExtentLoss` is deprecated and unused.

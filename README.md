@@ -29,9 +29,9 @@ Band lineups, governments, boards of directors, sports teams, conference partici
 ## Features
 
 - **Three data formats** — array, table, and range-shaped input (see below)
-- **Deterministic layout** — a barycenter sweep optimizer minimizes actor crossings, so the same data always produces the same chart
+- **Deterministic layout** — one optimized global actor order keeps lines straight; weighted group compaction can trade a little movement for tighter group connectors
 - **Powerful filtering** — filter by event value, group size, actor frequency, actor lifetime, must/should-contain queries, or fully custom callbacks
-- **Compact & continuous modes** — center groups around the axis or keep actors visible between events
+- **Compact & continuous modes** — center actors around the axis or keep actors visible between events
 - **Fully configurable** — colors, highlights, margins, spacing, event labels, clickable URLs, tooltips, and d3 color schemes
 - **TypeScript first** — complete typings for config and callbacks
 - **Runs anywhere** — ESM, CommonJS, and a browser bundle usable via a `<script>` tag

@@ -21,7 +21,7 @@ const config = {
 
 <StorygramMount :data="data" :config="config" />
 
-The layout is computed with a deterministic **barycenter sweep** algorithm that minimises actor crossings — so the result is always stable.
+The layout is computed with a deterministic optimizer that first chooses one global actor order. This keeps the base layout straight and crossing-free. A weighted per-event compaction pass may then move a few actors to shorten a group connector, but only when the saved span outweighs the configured movement cost.
 
 ## Bug Reports & Questions
 

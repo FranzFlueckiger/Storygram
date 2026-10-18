@@ -1,6 +1,7 @@
 import {fit, getCompactedLocation} from '../src/Optimizer';
 import Storygram from '../src/Storygram';
 import {Config} from '../src/Types';
+import {buildLayout, layoutMetrics, visibleActors} from '../src/Layout';
 import {testArrayData} from './testData';
 
 describe('getCompactedLocation', () => {
@@ -73,14 +74,6 @@ describe('fit', () => {
     });
   });
 
-  test('each returned event has a switch array', () => {
-    const sg = new Storygram(testArrayData(), baseConfig);
-    const result = fit(sg.processedData, sg.config)!;
-    result.events.forEach(event => {
-      expect(Array.isArray(event.switch)).toBe(true);
-    });
-  });
-
   test('compact mode: state arrays are non-empty', () => {
     const sg = new Storygram(testArrayData(), {...baseConfig, compact: true});
     const result = fit(sg.processedData, sg.config)!;
@@ -115,5 +108,116 @@ describe('fit', () => {
         expect(result.actors.has(actorID)).toBe(true);
       });
     });
+  });
+
+  test('global order removes crossings in both modes when compaction is disabled', () => {
+    [true, false].forEach(compact => {
+      const sg = new Storygram(testArrayData(), {
+        ...baseConfig,
+        compact,
+        groupSpanLoss: 0,
+      });
+      const result = fit(sg.processedData, sg.config)!;
+      const layout = buildLayout(result, sg.config);
+      expect(layoutMetrics(layout).crossings).toBe(0);
+    });
+  });
+
+  test('expanded mode draws every common line horizontally when compaction is disabled', () => {
+    const sg = new Storygram(testArrayData(), {
+      ...baseConfig,
+      compact: false,
+      groupSpanLoss: 0,
+    });
+    const result = fit(sg.processedData, sg.config)!;
+    const layout = buildLayout(result, sg.config);
+    const metrics = layoutMetrics(layout);
+    expect(metrics.total).toBeGreaterThan(0);
+    expect(metrics.horizontal).toBe(metrics.total);
+    expect(metrics.moved).toBe(0);
+  });
+
+  test('compact mode keeps necessary movement but not more than the baseline', () => {
+    const compactConfig = {...baseConfig, compact: true, groupSpanLoss: 0};
+    const baseline = new Storygram(testArrayData(), compactConfig);
+    const baselineLayout = buildLayout(
+      baseline.processedData,
+      baseline.config,
+      visibleActors(baseline.processedData),
+    );
+    const baselineMetrics = layoutMetrics(baselineLayout);
+
+    const sg = new Storygram(testArrayData(), compactConfig);
+    const result = fit(sg.processedData, sg.config)!;
+    const layout = buildLayout(result, sg.config);
+    const metrics = layoutMetrics(layout);
+
+    expect(metrics.moved).toBeGreaterThan(0);
+    expect(metrics.moved).toBeLessThanOrEqual(baselineMetrics.moved);
+    expect(metrics.distance).toBeLessThanOrEqual(baselineMetrics.distance);
+  });
+
+  test('optimized order does not increase group span over first appearance', () => {
+    const compactConfig = {...baseConfig, compact: false};
+    const baseline = new Storygram(testArrayData(), compactConfig);
+    const baselineLayout = buildLayout(
+      baseline.processedData,
+      baseline.config,
+      visibleActors(baseline.processedData),
+    );
+    const baselineMetrics = layoutMetrics(baselineLayout);
+
+    const sg = new Storygram(testArrayData(), compactConfig);
+    const result = fit(sg.processedData, sg.config)!;
+    const layout = buildLayout(result, sg.config);
+    const metrics = layoutMetrics(layout);
+
+    expect(metrics.groupSpan).toBeLessThanOrEqual(baselineMetrics.groupSpan);
+  });
+
+  test('weighted compaction trades straightness for tighter groups', () => {
+    const run = (config: Config) => {
+      const sg = new Storygram(testArrayData(), config);
+      const result = fit(sg.processedData, sg.config)!;
+      return layoutMetrics(buildLayout(result, sg.config));
+    };
+
+    const straight = run({
+      ...baseConfig,
+      compact: false,
+      linearLoss: 1000,
+      lengthLoss: 1000,
+      groupSpanLoss: 2,
+    });
+    const tight = run({
+      ...baseConfig,
+      compact: false,
+      linearLoss: 0,
+      lengthLoss: 0,
+      groupSpanLoss: 100,
+    });
+
+    expect(tight.groupSpan).toBeLessThan(straight.groupSpan);
+    expect(tight.moved).toBeGreaterThan(straight.moved);
+  });
+
+  test('higher linearLoss does not increase compact movement', () => {
+    const run = (linearLoss: number) => {
+      const sg = new Storygram(testArrayData(), {
+        ...baseConfig,
+        compact: true,
+        linearLoss,
+        lengthLoss: linearLoss,
+        groupSpanLoss: 2,
+      });
+      const result = fit(sg.processedData, sg.config)!;
+      return layoutMetrics(buildLayout(result, sg.config));
+    };
+
+    const loose = run(0);
+    const strict = run(1000);
+
+    expect(strict.moved).toBeLessThanOrEqual(loose.moved);
+    expect(strict.distance).toBeLessThanOrEqual(loose.distance);
   });
 });
