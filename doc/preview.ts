@@ -67,7 +67,7 @@ function drawBundesratExample() {
   const data = BundesratData
   const config: Config = {
     dataFormat: 'ranges',
-    startField: 'Gewaehlt',
+    startField: 'Amtsantritt',
     endField: 'Zuruecktritt',
     actorField: 'Name',
     eventDescription: (event: Event) => 'Bundesrat im Jahr ' + String(event.eventValue),
@@ -75,7 +75,7 @@ function drawBundesratExample() {
     compact: true,
     verbose: true,
     eventValueScaling: 0.002,
-    filterEventValue: [undefined, '1998-11-03']
+    filterEventValue: ['1983-01-01', '1998-11-03']
   };
   const SD = new Storygram(data, config);
   SD.draw()

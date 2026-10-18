@@ -46,7 +46,7 @@ export default class Storygram {
     eventValueScaling: 0.9,
     continuous: false,
     compact: false,
-    extendEventBar: false,
+    extendEventBar: true,
     highlight: [],
     strokeWidth: (event, actor) => 0,
     actorColor: (event, actor) => actor.actorID,

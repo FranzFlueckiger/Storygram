@@ -41,6 +41,11 @@ describe('fit', () => {
     actorArrayField: 'a',
   };
 
+  test('extended event bars are enabled by default', () => {
+    const sg = new Storygram(testArrayData(), baseConfig);
+    expect(sg.config.extendEventBar).toBe(true);
+  });
+
   test('returns defined result with valid input', () => {
     const sg = new Storygram(testArrayData(), baseConfig);
     const result = fit(sg.processedData, sg.config);
