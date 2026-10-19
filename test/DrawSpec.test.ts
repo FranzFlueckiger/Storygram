@@ -14,6 +14,17 @@ beforeAll(() => {
       configurable: true,
       value: () => ({x: 0, y: 0, width: 100, height: 20}),
     });
+    // jsdom does not implement SVG transform lists, which d3 transitions need.
+    Object.defineProperty(SVGElement.prototype, 'transform', {
+      configurable: true,
+      get: () => ({
+        baseVal: {
+          consolidate: () => ({
+            matrix: {a: 1, b: 0, c: 0, d: 1, e: 0, f: 0},
+          }),
+        },
+      }),
+    });
   }
 });
 
@@ -242,6 +253,21 @@ describe('createGrid', () => {
     expect(points.filter(p => p.x === 0 && p.z === 'b').length).toBe(0);
     expect(points.filter(p => p.x === 1 && p.z === 'b').length).toBe(1);
   });
+
+  test('assigns hidden actors to exactly one topmost point per event', () => {
+    const data = createSimpleData();
+    data.events[0].hiddenActors = ['x'];
+    data.events[1].hiddenActors = ['y', 'z'];
+
+    const [points] = createGrid(data, createConfig());
+    const badges = points.filter(p => p.hiddenActors.length > 0);
+
+    expect(badges).toHaveLength(2);
+    expect(badges.filter(p => p.x === 0)).toHaveLength(1);
+    expect(badges.filter(p => p.x === 1)).toHaveLength(1);
+    expect(badges.find(p => p.x === 0)!.z).toBe('b');
+    expect(badges.find(p => p.x === 0)!.hiddenActors).toEqual(['x']);
+  });
 });
 
 // ─── remove ─────────────────────────────────────────────────────────────────
@@ -322,5 +348,290 @@ describe('drawD3', () => {
     drawD3(grid, config);
     const svgs = document.querySelectorAll('#storygram' + config.uid);
     expect(svgs.length).toBe(1);
+  });
+
+  test('draws intersection markers for active actors at all their grouped events', () => {
+    const config = createConfig({
+      uid: 'marker-test',
+      eventValueScaling: 0,
+      compact: false,
+      continuous: false,
+      extendEventBar: false,
+    });
+    const fittedData = fit(createSimpleData(), config)!;
+    drawD3(createGrid(fittedData, config), config);
+
+    const svg = document.getElementById('storygram' + config.uid) as unknown as SVGSVGElement;
+    const markers = Array.from(svg.querySelectorAll('.actorEvent'));
+    expect(markers).toHaveLength(4);
+    const xs = markers.map(marker => Number(marker.getAttribute('x1'))).sort((a, b) => a - b);
+    expect(xs).toEqual([0, 0, 80, 80]);
+  });
+
+  test('makes the whole actor label background clickable', () => {
+    const {grid, config} = buildRenderedGrid();
+    const open = jest.spyOn(window, 'open').mockImplementation(() => null);
+    drawD3(grid, config);
+
+    const svg = document.getElementById('storygram' + config.uid) as unknown as SVGSVGElement;
+    const background = svg.querySelector('.actorDescBackground') as SVGRectElement;
+    expect(background).not.toBeNull();
+
+    background.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+
+    expect(open).toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  test('renders one positioned hidden-actor badge per event', () => {
+    const data = createSimpleData();
+    data.events[0].hiddenActors = ['x'];
+    data.events[1].hiddenActors = ['y', 'z'];
+    const config = createConfig({
+      uid: 'badge-test',
+      eventValueScaling: 0,
+      compact: false,
+      continuous: false,
+      extendEventBar: false,
+    });
+    const fittedData = fit(data, config)!;
+    drawD3(createGrid(fittedData, config), config);
+
+    const badges = Array.from(document.querySelectorAll('.hiddenActorsBadge'));
+    expect(badges).toHaveLength(2);
+    badges.forEach(badge => expect(badge.getAttribute('transform')).toMatch(/^translate\(/));
+
+    expect(document.querySelectorAll('.hiddenActorsBadgeBg')).toHaveLength(0);
+
+    const texts = Array.from(document.querySelectorAll('.hiddenActorsBadgeText'))
+      .map(node => node.textContent)
+      .sort();
+    expect(texts).toEqual(['1', '2']);
+  });
+
+  test('does not change the selection when hovering a clickable label', async () => {
+    const config = createConfig({
+      uid: 'label-hover-test',
+      eventValueScaling: 0,
+      compact: false,
+      continuous: false,
+      extendEventBar: false,
+    });
+    const fittedData = fit(createSimpleData(), config)!;
+    drawD3(createGrid(fittedData, config), config);
+
+    const svg = document.getElementById('storygram' + config.uid) as unknown as SVGSVGElement;
+    const label = svg.querySelector('.event_desc') as SVGTextElement;
+    const rule = svg.querySelector('.rule') as SVGLineElement;
+    const waitForTransition = () => new Promise(resolve => setTimeout(resolve, 150));
+
+    await waitForTransition();
+    expect(Number(rule.getAttribute('x1'))).toBe(0);
+
+    // Inside the plot horizontally, but the label owns the pointer.
+    label.dispatchEvent(new MouseEvent('mousemove', {clientX: 75, clientY: 10, bubbles: true}));
+
+    await waitForTransition();
+    expect(Number(rule.getAttribute('x1'))).toBe(0);
+  });
+
+  test('does not change the selection for pointer moves outside the plot', async () => {
+    const config = createConfig({
+      uid: 'bounds-test',
+      eventValueScaling: 0,
+      compact: false,
+      continuous: false,
+      extendEventBar: false,
+    });
+    const fittedData = fit(createSimpleData(), config)!;
+    drawD3(createGrid(fittedData, config), config);
+
+    const svg = document.getElementById('storygram' + config.uid) as unknown as SVGElement;
+    const rule = svg.querySelector('.rule') as SVGLineElement;
+    const waitForTransition = () => new Promise(resolve => setTimeout(resolve, 150));
+
+    await waitForTransition();
+    expect(Number(rule.getAttribute('x1'))).toBe(0);
+
+    // x is close to the next event, but y is above the plot where event_desc lives.
+    svg.dispatchEvent(new MouseEvent('mousemove', {clientX: 75, clientY: -10, bubbles: true}));
+
+    await waitForTransition();
+    expect(Number(rule.getAttribute('x1'))).toBe(0);
+  });
+});
+
+// ─── rewrite contract ───────────────────────────────────────────────────────
+
+describe('renderer contract', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  const waitForTransition = () => new Promise(resolve => setTimeout(resolve, 150));
+
+  function drawSimple(overrides: Partial<FullConfig> = {}) {
+    const config = createConfig({
+      uid: 'render-test',
+      eventValueScaling: 0,
+      compact: false,
+      continuous: false,
+      extendEventBar: false,
+      ...overrides,
+    });
+    const fittedData = fit(createSimpleData(), config)!;
+    drawD3(createGrid(fittedData, config), config);
+    return {
+      config,
+      svg: document.getElementById('storygram' + config.uid) as unknown as SVGSVGElement,
+    };
+  }
+
+  test('drawing twice reuses every layer and mark', () => {
+    const {config} = drawSimple();
+    drawD3(createGrid(fit(createSimpleData(), config)!, config), config);
+
+    expect(document.querySelectorAll('#storygram' + config.uid)).toHaveLength(1);
+    expect(document.querySelectorAll('#layer1-' + config.uid)).toHaveLength(1);
+    expect(document.querySelectorAll('#layer2-' + config.uid)).toHaveLength(1);
+    expect(document.querySelectorAll('.actor')).toHaveLength(2);
+    expect(document.querySelectorAll('.group')).toHaveLength(2);
+  });
+
+  test('re-rendering with new dimensions updates the svg size', () => {
+    const first = drawSimple({uid: 'resize-test', eventPadding: 40});
+    expect(Number(first.svg.getAttribute('width'))).toBe(2 * 40 + 100);
+
+    const config = {...first.config, eventPadding: 100};
+    const fittedData = fit(createSimpleData(), config)!;
+    drawD3(createGrid(fittedData, config), config);
+
+    expect(Number(first.svg.getAttribute('width'))).toBe(2 * 100 + 100);
+  });
+
+  test('initial selection geometry is present without a second render', async () => {
+    const {svg} = drawSimple({uid: 'initial-test'});
+    expect(Number(svg.querySelector('.rule')!.getAttribute('x1'))).toBe(0);
+    expect(svg.querySelector('.event_desc')!.textContent).toBe('0');
+    expect(svg.querySelectorAll('.actorEvent')).toHaveLength(4);
+
+    await waitForTransition();
+  });
+
+  test('mousemove selects the nearest event from left to right', async () => {
+    const {svg} = drawSimple({uid: 'move-test'});
+    const rule = svg.querySelector('.rule') as SVGLineElement;
+    await waitForTransition();
+
+    svg.dispatchEvent(new MouseEvent('mousemove', {clientX: 75, clientY: 10, bubbles: true}));
+    await waitForTransition();
+    expect(Number(rule.getAttribute('x1'))).toBe(80);
+
+    svg.dispatchEvent(new MouseEvent('mousemove', {clientX: 5, clientY: 10, bubbles: true}));
+    await waitForTransition();
+    expect(Number(rule.getAttribute('x1'))).toBe(0);
+  });
+
+  test('the selected event connector stays transparent', async () => {
+    const {svg} = drawSimple({uid: 'group-opacity-test'});
+    await waitForTransition();
+    svg.querySelectorAll('.group').forEach(group => {
+      expect(group.getAttribute('opacity')).toBe('0.25');
+    });
+  });
+
+  test('highlighted actor lanes use the previous dashed style', () => {
+    const {svg} = drawSimple({uid: 'highlight-style-test', highlight: ['a']});
+    const highlight = svg.querySelector('.actorHighlighted') as SVGPathElement;
+
+    expect(highlight.getAttribute('stroke-linecap')).toBe('butt');
+    expect(highlight.style.strokeDasharray).toBe('2,5');
+  });
+
+  test('hovering an actor label adds and removes its highlighted overlay', () => {
+    const {svg} = drawSimple({uid: 'highlight-test'});
+    const label = svg.querySelector('.actorDesc') as SVGTextElement;
+
+    expect(document.querySelectorAll('.actorHighlighted')).toHaveLength(0);
+    label.dispatchEvent(new MouseEvent('mouseover', {bubbles: true}));
+    expect(document.querySelectorAll('.actorHighlighted')).toHaveLength(1);
+
+    label.dispatchEvent(new MouseEvent('mouseout', {bubbles: true}));
+    expect(document.querySelectorAll('.actorHighlighted')).toHaveLength(0);
+  });
+
+  test('configured highlights survive a label mouseout', () => {
+    const {svg} = drawSimple({uid: 'keep-highlight-test', highlight: ['a']});
+    const label = Array.from(svg.querySelectorAll('.actorDesc'))
+      .find(node => node.textContent === 'a') as SVGTextElement;
+
+    expect(document.querySelectorAll('.actorHighlighted')).toHaveLength(1);
+    label.dispatchEvent(new MouseEvent('mouseover', {bubbles: true}));
+    label.dispatchEvent(new MouseEvent('mouseout', {bubbles: true}));
+    expect(document.querySelectorAll('.actorHighlighted')).toHaveLength(1);
+  });
+
+  test('remove cleans the svg and tooltip independently', () => {
+    const {config} = drawSimple({uid: 'independent-remove-test'});
+    document.getElementById('storygram' + config.uid)!.remove();
+    expect(document.getElementById('tooltip' + config.uid)).not.toBeNull();
+
+    remove(config);
+    expect(document.getElementById('tooltip' + config.uid)).toBeNull();
+  });
+
+  test('empty and single-event grids do not throw', () => {
+    const emptyConfig = createConfig({uid: 'empty-grid-test'});
+    expect(() => drawD3([[], 0, 0], emptyConfig)).not.toThrow();
+    expect(document.getElementById('storygram' + emptyConfig.uid)).not.toBeNull();
+    expect(document.querySelectorAll('.actor')).toHaveLength(0);
+
+    const singleConfig = createConfig({uid: 'single-grid-test'});
+    const data = createSimpleData();
+    data.events = [data.events[0]];
+    data.actors.forEach(actor => {
+      actor.layers = data.events;
+    });
+    const fittedData = fit(data, singleConfig)!;
+    expect(() => drawD3(createGrid(fittedData, singleConfig), singleConfig)).not.toThrow();
+  });
+
+  test('hidden actor tooltip renders text instead of injecting html', () => {
+    const config = createConfig({
+      uid: 'tooltip-xss-test',
+      hiddenActorsTooltipTitle: '<b>Hidden</b>',
+    });
+    const data = createSimpleData();
+    data.events[0].hiddenActors = ['<img src=x onerror="window.__xss = true">'];
+    const fittedData = fit(data, config)!;
+    drawD3(createGrid(fittedData, config), config);
+
+    const badge = document.querySelector('.hiddenActorsBadge') as SVGGElement;
+    badge.dispatchEvent(new MouseEvent('mouseover', {bubbles: true}));
+
+    const tooltip = document.getElementById('tooltip' + config.uid) as HTMLDivElement;
+    expect(tooltip.querySelectorAll('img')).toHaveLength(0);
+    expect(tooltip.querySelectorAll('b')).toHaveLength(1);
+    expect(tooltip.textContent).toContain('<img src=x onerror="window.__xss = true">');
+    expect((window as unknown as {__xss?: boolean}).__xss).toBeUndefined();
+  });
+
+  test('event and actor clicks open the configured urls', () => {
+    const {svg} = drawSimple({
+      uid: 'click-test',
+      eventUrl: event => 'event-' + String(event.eventValue),
+      url: (_event, actor) => 'actor-' + actor.actorID,
+    });
+    const open = jest.spyOn(window, 'open').mockImplementation(() => null);
+
+    (svg.querySelector('.event_desc') as SVGTextElement)
+      .dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    expect(open).toHaveBeenCalledWith('event-0');
+
+    (svg.querySelector('.actorDesc') as SVGTextElement)
+      .dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    expect(open).toHaveBeenCalledWith('actor-a');
+
+    open.mockRestore();
   });
 });

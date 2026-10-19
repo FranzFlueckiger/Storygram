@@ -159,10 +159,17 @@ export interface Data {
   actors: Actors;
 }
 
+export interface BBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export class RenderedPoint {
   public hiddenActors: string[] = [];
 
-  public bbox: any
+  public bbox: BBox = { x: 0, y: 0, width: 0, height: 0 };
 
   public constructor(
     public x: number,

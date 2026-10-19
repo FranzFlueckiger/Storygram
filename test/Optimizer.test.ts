@@ -294,6 +294,27 @@ describe('fit', () => {
     expect(tight.moved).toBeGreaterThan(straight.moved);
   });
 
+  test('compact tenure data stays within the optimizer time budget', () => {
+    const actors = Array.from({length: 25}, (_, i) => 'a' + i);
+    const events = Array.from({length: 200}, (_, e) => ({
+      id: e,
+      a: actors.filter((_, i) => ((e * 7 + i * 13) % 17) < 11),
+    }));
+    const sg = new Storygram(events, {
+      ...baseConfig,
+      compact: true,
+      extendEventBar: true,
+    });
+
+    const start = Date.now();
+    const result = fit(sg.processedData, sg.config)!;
+    const elapsed = Date.now() - start;
+
+    expect(result.events.every(event => event.state.length > 0)).toBe(true);
+    // The old full-neighborhood search took >20s on this shape.
+    expect(elapsed).toBeLessThan(3000);
+  });
+
   test('higher linearLoss does not increase compact movement', () => {
     const run = (linearLoss: number) => {
       const sg = new Storygram(testArrayData(), {

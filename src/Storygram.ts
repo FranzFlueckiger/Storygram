@@ -27,6 +27,9 @@ export default class Storygram {
   // Whether the storygram has been filtered, optimized and rendered
   private isCalculated: boolean = false;
 
+  // Whether the current processed data has already been optimized
+  private isOptimized: boolean = false;
+
   // Default values
   public baseConfig: BaseConfig = {
     uid: uuid(),
@@ -82,6 +85,7 @@ export default class Storygram {
   public setConfig(config: Config) {
     this.config = {...this.baseConfig, ...config};
     this.isCalculated = false
+    this.isOptimized = false
   }
 
   public setData(data: any[]): void {
@@ -109,12 +113,14 @@ export default class Storygram {
       console.error('Incompatible data format. Provide data in array shape.');
     }
     this.isCalculated = false
+    this.isOptimized = false
   }
 
   // Imports the data and applies filtering
   public calculate() {
     this.processedData = filter(this.data, this.config);
     this.isCalculated = true
+    this.isOptimized = false
   }
 
   // Draw the storygram on the DOM. If the importation and filtering steps aren't yet made, perform these first
@@ -122,7 +128,10 @@ export default class Storygram {
     if(!this.isCalculated) {
       this.calculate()
     }
-    this.processedData = fit(this.processedData, this.config);
+    if(!this.isOptimized) {
+      this.processedData = fit(this.processedData, this.config);
+      this.isOptimized = true
+    }
     this.renderedGrid = createGrid(this.processedData, this.config);
     if (this.config.verbose) {
       console.log(this.renderedGrid);

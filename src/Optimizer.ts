@@ -15,9 +15,16 @@ const EPSILON = 1e-9;
 const MAX_PASSES = 50;
 const MAX_WORK = 400000000;
 const MAX_EVALUATIONS = 300000;
+const MAX_TIME_MS = 120;
 const MAX_COMPACTION_PASSES = 8;
 const MAX_COMPACTION_WORK = 80000000;
 const INACTIVE = -1e9;
+
+function now(): number {
+  return typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
+}
 
 interface Candidate {
   order: number[];
@@ -54,9 +61,10 @@ export function fit(data: Data, config: FullConfig): Data {
     return { events: data.events, actors: data.actors };
   }
 
+  const deadline = now() + MAX_TIME_MS;
   const model = createCostModel(data, actorIDs, config);
   const workPerEvaluation = model.compact
-    ? Math.max(1, model.size * model.events)
+    ? Math.max(1, compactEvaluationWork(model))
     : model.extendEventBar
       ? Math.max(
           1,
@@ -71,6 +79,7 @@ export function fit(data: Data, config: FullConfig): Data {
     ),
   );
   let evaluations = 0;
+  const hasBudget = () => evaluations < budget && now() < deadline;
 
   const evaluate = (order: number[]): Candidate => {
     evaluations++;
@@ -83,13 +92,18 @@ export function fit(data: Data, config: FullConfig): Data {
     return { order, cost, metrics };
   };
 
-  const seeds = buildSeeds(model, actorIDs);
-  const seedCandidates = seeds.map(seed => evaluate(seed)).sort((a, b) => a.cost - b.cost);
+  const seeds = buildSeeds(model, actorIDs, deadline);
+  const seedCandidates: Candidate[] = [];
+  for (const seed of seeds) {
+    if (seedCandidates.length > 0 && now() >= deadline) break;
+    seedCandidates.push(evaluate(seed));
+  }
+  seedCandidates.sort((a, b) => a.cost - b.cost);
   let best: Candidate | undefined;
 
   for (const seed of seedCandidates) {
-    if (evaluations >= budget) break;
-    const candidate = improve(seed, evaluate, () => evaluations < budget);
+    if (!hasBudget()) break;
+    const candidate = improve(seed, evaluate, hasBudget);
     if (!best || candidate.cost < best.cost - EPSILON) {
       best = candidate;
     }
@@ -97,9 +111,9 @@ export function fit(data: Data, config: FullConfig): Data {
 
   const baseOrder = (best ? best.order : seedCandidates[0].order).slice();
   const states = buildStates(baseOrder, model);
-  const compactionPasses = model.extendEventBar ? compactGroups(states, model) : 0;
+  const compactionPasses = model.extendEventBar ? compactGroups(states, model, deadline) : 0;
   const refinementPasses = !model.extendEventBar
-    ? refineContiguousGroups(states, model)
+    ? refineContiguousGroups(states, model, deadline)
     : 0;
 
   data.events.forEach((event, index) => {
@@ -163,6 +177,21 @@ function createCostModel(data: Data, actorIDs: string[], config: FullConfig): Co
     amtLoss: config.amtLoss,
     spanLoss: config.groupSpanLoss ?? 2,
   };
+}
+
+// Compact evaluation walks the active set and counts crossings in O(active²)
+// per event. Budgeting it as O(size × events) allowed billions of operations
+// on tenure-style data where nearly every actor is active at every event.
+function compactEvaluationWork(model: CostModel): number {
+  let work = 0;
+  for (const mask of model.active) {
+    let active = 0;
+    for (let i = 0; i < mask.length; i++) {
+      active += mask[i];
+    }
+    work += active * active + model.size;
+  }
+  return work;
 }
 
 function evaluateOrder(model: CostModel, order: number[]): LayoutMetrics {
@@ -349,7 +378,7 @@ function buildStates(order: number[], model: CostModel): number[][] {
   return states;
 }
 
-function compactGroups(states: number[][], model: CostModel): number {
+function compactGroups(states: number[][], model: CostModel, deadline: number): number {
   if (model.spanLoss <= EPSILON || model.events === 0) return 0;
 
   const work = model.events * model.size * model.size * model.size;
@@ -366,11 +395,12 @@ function compactGroups(states: number[][], model: CostModel): number {
   const isGroup = new Uint8Array(size);
   let usedPasses = 0;
 
-  for (let pass = 0; pass < passes; pass++) {
+  for (let pass = 0; pass < passes && now() < deadline; pass++) {
     usedPasses++;
     let changed = false;
 
     for (let eventIndex = 0; eventIndex < model.events; eventIndex++) {
+      if (now() >= deadline) break;
       const group = model.groups[eventIndex];
       if (group.length < 2) continue;
 
@@ -429,6 +459,7 @@ function compactGroups(states: number[][], model: CostModel): number {
       let bestCost = currentCost;
 
       for (let start = 0; start <= rest.length; start++) {
+        if (now() >= deadline) break;
         const candidate = rest
           .slice(0, start)
           .concat(block, rest.slice(start));
@@ -481,7 +512,7 @@ function compactGroups(states: number[][], model: CostModel): number {
  * the neighbouring events, keeping lines as straight as possible. It applies
  * to both expanded and compact layouts.
  */
-function refineContiguousGroups(states: number[][], model: CostModel): number {
+function refineContiguousGroups(states: number[][], model: CostModel, deadline: number): number {
   if (model.extendEventBar || model.events === 0) return 0;
 
   const work = model.events * model.size * model.size;
@@ -498,11 +529,12 @@ function refineContiguousGroups(states: number[][], model: CostModel): number {
   const isGroup = new Uint8Array(size);
   let usedPasses = 0;
 
-  for (let pass = 0; pass < passes; pass++) {
+  for (let pass = 0; pass < passes && now() < deadline; pass++) {
     usedPasses++;
     let changed = false;
 
     for (let eventIndex = 0; eventIndex < model.events; eventIndex++) {
+      if (now() >= deadline) break;
       const group = model.groups[eventIndex];
       if (group.length < 2) continue;
 
@@ -560,6 +592,7 @@ function refineContiguousGroups(states: number[][], model: CostModel): number {
       let bestCost = currentCost;
 
       for (let start = 0; start <= rest.length; start++) {
+        if (now() >= deadline) break;
         const candidate = rest
           .slice(0, start)
           .concat(block, rest.slice(start));
@@ -735,14 +768,14 @@ function moved(order: number[], from: number, to: number): number[] {
   return result;
 }
 
-function buildSeeds(model: CostModel, actorIDs: string[]): number[][] {
+function buildSeeds(model: CostModel, actorIDs: string[], deadline: number): number[][] {
   const first = actorIDs.map((_, index) => index);
   const frequency = frequencyOrder(model, first);
   const seeds = [
     first,
     frequency,
-    barycenterOrder(model, first, first),
-    barycenterOrder(model, first, frequency),
+    barycenterOrder(model, first, first, deadline),
+    barycenterOrder(model, first, frequency, deadline),
   ];
 
   const unique: number[][] = [];
@@ -771,7 +804,12 @@ function frequencyOrder(model: CostModel, first: number[]): number[] {
     .sort((a, b) => counts[b] - counts[a] || firstIndex[a] - firstIndex[b]);
 }
 
-function barycenterOrder(model: CostModel, first: number[], seed: number[]): number[] {
+function barycenterOrder(
+  model: CostModel,
+  first: number[],
+  seed: number[],
+  deadline: number,
+): number[] {
   const firstIndex = new Int32Array(model.size);
   first.forEach((actor, index) => {
     firstIndex[actor] = index;
@@ -782,7 +820,7 @@ function barycenterOrder(model: CostModel, first: number[], seed: number[]): num
     positions[actor] = index;
   });
 
-  for (let pass = 0; pass < 24; pass++) {
+  for (let pass = 0; pass < 24 && now() < deadline; pass++) {
     const sum = new Float64Array(model.size);
     const count = new Int32Array(model.size);
 
