@@ -1,3 +1,4 @@
+import { bestCompactOffset, slopePenalty } from './Compaction';
 import { Data, Event, FullConfig } from './Types';
 
 export interface LayoutEvent {
@@ -26,6 +27,7 @@ export interface LayoutMetrics {
   distance: number;
   total: number;
   groupSpan: number;
+  slope: number;
 }
 
 const EPSILON = 1e-9;
@@ -33,53 +35,6 @@ const EPSILON = 1e-9;
 export function getCompactedLocation(position: number, arrayLength: number): number {
   const offset = (arrayLength % 2) / 2 - 0.5;
   return position - (arrayLength - 1) / 2 + offset;
-}
-
-/**
- * Finds the vertical offset for a compacted event block that keeps the block
- * contiguous while making its lines as straight as possible against the
- * previous event. Each target is the offset that would align one shared actor.
- */
-export function bestCompactOffset(
-  targets: number[],
-  linearLoss: number,
-  lengthLoss: number,
-): number {
-  if (targets.length === 0) return 0;
-
-  const sorted = targets.slice().sort((a, b) => a - b);
-  const prefix = new Float64Array(sorted.length + 1);
-  sorted.forEach((value, index) => {
-    prefix[index + 1] = prefix[index] + value;
-  });
-
-  let best = 0;
-  let bestCost = Number.POSITIVE_INFINITY;
-
-  for (let start = 0; start < sorted.length; ) {
-    let end = start + 1;
-    while (end < sorted.length && sorted[end] - sorted[start] <= EPSILON) {
-      end++;
-    }
-    const value = sorted[start];
-    const leftDistance = value * start - prefix[start];
-    const rightDistance =
-      prefix[sorted.length] - prefix[end] - value * (sorted.length - end);
-    const moved = sorted.length - (end - start);
-    const cost =
-      moved * linearLoss + (leftDistance + rightDistance) * lengthLoss;
-
-    if (
-      cost < bestCost - EPSILON ||
-      (Math.abs(cost - bestCost) <= EPSILON && Math.abs(value) < Math.abs(best))
-    ) {
-      best = value;
-      bestCost = cost;
-    }
-    start = end;
-  }
-
-  return best;
 }
 
 /**
@@ -202,7 +157,12 @@ export function buildLayout(
         const after = y.get(actorID);
         if (before !== undefined && after !== undefined) targets.push(before - after);
       });
-      const offset = bestCompactOffset(targets, config.linearLoss, config.lengthLoss);
+      const offset = bestCompactOffset(
+        targets,
+        config.linearLoss,
+        config.lengthLoss,
+        config.slopeLoss ?? 0,
+      );
       if (offset !== 0) {
         state.forEach(actorID => y.set(actorID, y.get(actorID)! + offset));
       }
@@ -251,6 +211,7 @@ export function layoutMetrics(layout: Layout, countCrossings = true): LayoutMetr
   let distance = 0;
   let total = 0;
   let groupSpan = 0;
+  let slope = 0;
 
   layout.events.forEach(event => {
     groupSpan += event.groupSpan;
@@ -272,6 +233,7 @@ export function layoutMetrics(layout: Layout, countCrossings = true): LayoutMetr
       } else {
         moved++;
         distance += dy;
+        slope += slopePenalty(dy);
       }
     });
 
@@ -287,5 +249,5 @@ export function layoutMetrics(layout: Layout, countCrossings = true): LayoutMetr
     }
   }
 
-  return { crossings, moved, horizontal, distance, total, groupSpan };
+  return { crossings, moved, horizontal, distance, total, groupSpan, slope };
 }

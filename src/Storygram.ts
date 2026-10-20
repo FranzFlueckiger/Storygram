@@ -65,6 +65,7 @@ export default class Storygram {
     linearLoss: 1,
     amtLoss: 1,
     lengthLoss: 1,
+    slopeLoss: 0.25,
     groupSpanLoss: 2,
     yExtentLoss: 0,
     root: 'body',

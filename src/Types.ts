@@ -91,6 +91,8 @@ export interface BaseConfig {
   amtLoss: number;
   // Penalty for the vertical distance a line has to move
   lengthLoss: number;
+  // Penalty for steep per-step moves in compact mode (squared excess beyond one lane)
+  slopeLoss?: number;
   // Penalty for the vertical span of an event's group connector
   groupSpanLoss?: number;
   // Deprecated: retained for backwards compatibility

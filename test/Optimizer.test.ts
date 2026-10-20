@@ -1,7 +1,8 @@
 import {fit, getCompactedLocation} from '../src/Optimizer';
 import Storygram from '../src/Storygram';
 import {Config} from '../src/Types';
-import {bestCompactOffset, buildLayout, layoutMetrics, visibleActors} from '../src/Layout';
+import {bestCompactOffset} from '../src/Compaction';
+import {buildLayout, layoutMetrics, visibleActors} from '../src/Layout';
 import {testArrayData} from './testData';
 
 describe('getCompactedLocation', () => {
@@ -50,6 +51,11 @@ describe('bestCompactOffset', () => {
 
   test('breaks ties towards the smaller offset', () => {
     expect(bestCompactOffset([-2, 2], 1, 1)).toBe(-2);
+  });
+
+  test('penalizes steep jumps when slopeLoss is set', () => {
+    expect(bestCompactOffset([0, 0, 2, 10], 0, 1, 0)).toBe(0);
+    expect(bestCompactOffset([0, 0, 2, 10], 0, 1, 1)).toBe(2);
   });
 });
 
@@ -332,6 +338,37 @@ describe('fit', () => {
     expect(result.events.every(event => event.state.length > 0)).toBe(true);
     // The old full-neighborhood search took >20s on this shape.
     expect(elapsed).toBeLessThan(3000);
+  });
+
+  test('higher slopeLoss does not increase compact steepness', () => {
+    const run = (slopeLoss: number) => {
+      const sg = new Storygram(testArrayData(), {
+        ...baseConfig,
+        compact: true,
+        slopeLoss,
+      });
+      const result = fit(sg.processedData, sg.config)!;
+      return layoutMetrics(buildLayout(result, sg.config));
+    };
+
+    const loose = run(0);
+    const strict = run(1000);
+
+    expect(strict.slope).toBeLessThanOrEqual(loose.slope);
+  });
+
+  test('slopeLoss does not affect non-compact layouts', () => {
+    const run = (slopeLoss: number) => {
+      const sg = new Storygram(testArrayData(), {
+        ...baseConfig,
+        compact: false,
+        slopeLoss,
+      });
+      const result = fit(sg.processedData, sg.config)!;
+      return result.events.map(event => event.state);
+    };
+
+    expect(run(1000)).toEqual(run(0));
   });
 
   test('higher linearLoss does not increase compact movement', () => {

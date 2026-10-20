@@ -1,6 +1,5 @@
-import { FullConfig, Data } from './Types';
+import { bestCompactOffset, slopePenalty } from './Compaction';
 import {
-  bestCompactOffset,
   buildLayout,
   computeActiveSets,
   contiguousGroupState,
@@ -9,6 +8,7 @@ import {
   visibleActors,
   LayoutMetrics,
 } from './Layout';
+import { FullConfig, Data } from './Types';
 
 export { getCompactedLocation } from './Layout';
 
@@ -43,6 +43,7 @@ interface CostModel {
   groups: number[][];
   linearLoss: number;
   lengthLoss: number;
+  slopeLoss: number;
   amtLoss: number;
   spanLoss: number;
 }
@@ -89,6 +90,7 @@ export function fit(data: Data, config: FullConfig): Data {
       metrics.crossings * model.amtLoss +
       metrics.distance * model.lengthLoss +
       metrics.moved * model.linearLoss +
+      metrics.slope * model.slopeLoss +
       metrics.groupSpan * model.spanLoss;
     return { order, cost, metrics };
   };
@@ -128,11 +130,13 @@ export function fit(data: Data, config: FullConfig): Data {
       metrics.crossings * model.amtLoss +
       metrics.distance * model.lengthLoss +
       metrics.moved * model.linearLoss +
+      (model.compact ? metrics.slope * model.slopeLoss : 0) +
       metrics.groupSpan * model.spanLoss;
     console.log(
       `Optimizer: cost=${cost.toFixed(2)}, ` +
         `crossings=${metrics.crossings}, moved=${metrics.moved}, ` +
-        `distance=${metrics.distance.toFixed(2)}, groupSpan=${metrics.groupSpan}, ` +
+        `distance=${metrics.distance.toFixed(2)}, slope=${metrics.slope.toFixed(2)}, ` +
+        `groupSpan=${metrics.groupSpan}, ` +
         `evaluations=${evaluations}, compactionPasses=${compactionPasses}, ` +
         `refinementPasses=${refinementPasses}`,
     );
@@ -175,6 +179,7 @@ function createCostModel(data: Data, actorIDs: string[], config: FullConfig): Co
     groups,
     linearLoss: config.linearLoss,
     lengthLoss: config.lengthLoss,
+    slopeLoss: config.slopeLoss ?? 0.25,
     amtLoss: config.amtLoss,
     spanLoss: config.groupSpanLoss ?? 2,
   };
@@ -216,7 +221,15 @@ function evaluateOrder(model: CostModel, order: number[]): LayoutMetrics {
       }
     }
 
-    return { crossings: 0, moved: 0, horizontal: 0, distance: 0, total: 0, groupSpan };
+    return {
+      crossings: 0,
+      moved: 0,
+      horizontal: 0,
+      distance: 0,
+      total: 0,
+      groupSpan,
+      slope: 0,
+    };
   }
 
   return evaluateSequentialOrder(model, order);
@@ -230,6 +243,7 @@ function evaluateSequentialOrder(model: CostModel, order: number[]): LayoutMetri
   let total = 0;
   let groupSpan = 0;
   let crossings = 0;
+  let slope = 0;
   let hasPrevious = false;
   let previousState: number[] | undefined;
 
@@ -289,7 +303,12 @@ function evaluateSequentialOrder(model: CostModel, order: number[]): LayoutMetri
         }
         targets.push(before - after);
       }
-      const offset = bestCompactOffset(targets, model.linearLoss, model.lengthLoss);
+      const offset = bestCompactOffset(
+        targets,
+        model.linearLoss,
+        model.lengthLoss,
+        model.slopeLoss,
+      );
       if (offset !== 0) {
         state.forEach(actor => {
           current[actor] += offset;
@@ -328,8 +347,10 @@ function evaluateSequentialOrder(model: CostModel, order: number[]): LayoutMetri
         if (dy <= EPSILON && dy >= -EPSILON) {
           horizontal++;
         } else {
+          const magnitude = dy < 0 ? -dy : dy;
           moved++;
-          distance += dy < 0 ? -dy : dy;
+          distance += magnitude;
+          if (model.compact) slope += slopePenalty(magnitude);
         }
       }
 
@@ -350,7 +371,7 @@ function evaluateSequentialOrder(model: CostModel, order: number[]): LayoutMetri
     hasPrevious = true;
   }
 
-  return { crossings, moved, horizontal, distance, total, groupSpan };
+  return { crossings, moved, horizontal, distance, total, groupSpan, slope };
 }
 
 function buildStates(order: number[], model: CostModel): number[][] {
@@ -698,6 +719,7 @@ function transitionCost(
   const common: number[] = [];
   let moved = 0;
   let distance = 0;
+  let slope = 0;
 
   currentState.forEach(actor => {
     const before = previousY[actor];
@@ -708,8 +730,10 @@ function transitionCost(
     common.push(actor);
     const dy = after - before;
     if (dy > EPSILON || dy < -EPSILON) {
+      const magnitude = dy < 0 ? -dy : dy;
       moved++;
-      distance += dy < 0 ? -dy : dy;
+      distance += magnitude;
+      if (model.compact) slope += slopePenalty(magnitude);
     }
   });
 
@@ -726,6 +750,7 @@ function transitionCost(
   return (
     moved * model.linearLoss +
     distance * model.lengthLoss +
+    slope * model.slopeLoss +
     crossings * model.amtLoss
   );
 }
