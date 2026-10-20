@@ -2,7 +2,15 @@ import { createGrid, drawD3, remove } from './DrawSpec';
 import {filter} from './Filter';
 import {fit} from './Optimizer';
 import {processActorsFirst, processEventsFirst} from './PreProcessing';
-import {Config, Data, RenderedPoint, BaseConfig, FullConfig} from './Types';
+import {Config, Data, RenderedPoint, BaseConfig, FullConfig, CompactValue} from './Types';
+
+export function normalizeCompact(value: CompactValue | undefined): number {
+  if (value === undefined) return 1
+  if (typeof value === 'boolean') return value ? 1 : 0
+  if (!Number.isFinite(value)) return 1
+  return Math.min(1, Math.max(0, value))
+}
+
 function uuid(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
@@ -48,7 +56,7 @@ export default class Storygram {
     actorPadding: 30,
     eventValueScaling: 0.9,
     continuous: false,
-    compact: true,
+    compact: 1,
     extendEventBar: true,
     highlight: [],
     strokeWidth: (event, actor) => 0,
@@ -89,7 +97,11 @@ export default class Storygram {
     if (resolved.groupExtraSpanLoss === undefined && resolved.groupSpanLoss !== undefined) {
       resolved.groupExtraSpanLoss = resolved.groupSpanLoss;
     }
-    this.config = {...this.baseConfig, ...resolved};
+    this.config = {
+      ...this.baseConfig,
+      ...resolved,
+      compact: normalizeCompact(resolved.compact),
+    };
     this.isCalculated = false
     this.isOptimized = false
   }

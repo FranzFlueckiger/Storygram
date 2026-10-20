@@ -96,7 +96,7 @@ function drawGroupExtraSpanComparison() {
       dataFormat: 'array',
       eventField: 'id',
       actorArrayField: 'actors',
-      compact: false,
+      compact: 0,
       extendEventBar: true,
       groupExtraSpanLoss: loss,
       root: `#${mount.id}`,
@@ -116,7 +116,7 @@ function drawBundesratExample() {
     actorField: 'Name',
     eventDescription: (event: Event) => 'Bundesrat im Jahr ' + String(event.eventValue),
     actorColor: (event: Event, actor: Actor) => actor.data.Partei as string,
-    compact: true,
+    compact: 1,
     verbose: true,
     eventValueScaling: 0.002,
     filterEventValue: ['1983-01-01', '1998-11-03']

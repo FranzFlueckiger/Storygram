@@ -36,6 +36,7 @@ interface Candidate {
 interface CostModel {
   size: number;
   compact: boolean;
+  compactness: number;
   extendEventBar: boolean;
   continuous: boolean;
   events: number;
@@ -113,14 +114,31 @@ export function fit(data: Data, config: FullConfig): Data {
   }
 
   const baseOrder = (best ? best.order : seedCandidates[0].order).slice();
-  const states = buildStates(baseOrder, model);
-  const compactionPasses = model.extendEventBar ? compactGroups(states, model, deadline) : 0;
-  const refinementPasses = !model.extendEventBar
-    ? refineContiguousGroups(states, model, deadline)
-    : 0;
+  const compactness = model.compactness;
+  const openStates = compactness < 1 ? buildOpenStates(baseOrder, model) : undefined;
+  const tightStates = compactness > 0 ? buildTightStates(baseOrder, model) : undefined;
+  let compactionPasses = 0;
+  let refinementPasses = 0;
+
+  if (model.extendEventBar) {
+    if (openStates) compactionPasses += compactGroups(openStates, model, deadline, false);
+    if (tightStates) compactionPasses += compactGroups(tightStates, model, deadline, true);
+  } else {
+    if (openStates) refinementPasses += refineContiguousGroups(openStates, model, deadline, false);
+    if (tightStates) refinementPasses += refineContiguousGroups(tightStates, model, deadline, true);
+  }
 
   data.events.forEach((event, index) => {
-    event.state = states[index].map(actor => actorIDs[actor]);
+    if (compactness === 0) {
+      event.state = openStates![index].map(actor => actorIDs[actor]);
+      event.compactState = undefined;
+    } else if (compactness === 1) {
+      event.state = tightStates![index].map(actor => actorIDs[actor]);
+      event.compactState = undefined;
+    } else {
+      event.state = openStates![index].map(actor => actorIDs[actor]);
+      event.compactState = tightStates![index].map(actor => actorIDs[actor]);
+    }
   });
 
   if (config.verbose) {
@@ -169,9 +187,12 @@ function createCostModel(data: Data, actorIDs: string[], config: FullConfig): Co
     groups.push(Array.from(group));
   });
 
+  const compactness = Math.min(1, Math.max(0, config.compact));
+
   return {
     size: actorIDs.length,
-    compact: config.compact,
+    compact: compactness > 0,
+    compactness,
     extendEventBar: config.extendEventBar,
     continuous: config.continuous,
     events: data.events.length,
@@ -262,15 +283,17 @@ function evaluateSequentialOrder(model: CostModel, order: number[]): LayoutMetri
     let state: number[];
 
     if (model.compact) {
-      const activeState = order.filter(actor => model.active[eventIndex][actor] === 1);
+      const compactActors = model.continuous
+        ? order.slice()
+        : order.filter(actor => model.active[eventIndex][actor] === 1);
       if (model.extendEventBar) {
-        state = activeState;
+        state = compactActors;
       } else {
         const previousRank = hasPrevious
           ? new Map(previousState!.map((actor, rank) => [actor, rank]))
           : undefined;
         state = contiguousGroupState(
-          activeState,
+          compactActors,
           group,
           previousRank ? actor => previousRank.get(actor) : undefined,
         );
@@ -385,32 +408,7 @@ function evaluateSequentialOrder(model: CostModel, order: number[]): LayoutMetri
   return { crossings, moved, horizontal, distance, total, groupSpan, groupExtraSpan, slope };
 }
 
-function buildStates(order: number[], model: CostModel): number[][] {
-  if (model.compact) {
-    if (model.extendEventBar) {
-      return Array.from({ length: model.events }, (_, eventIndex) =>
-        order.filter(actor => model.active[eventIndex][actor] === 1),
-      );
-    }
-
-    const states: number[][] = [];
-    let previousState: number[] | undefined;
-    for (let eventIndex = 0; eventIndex < model.events; eventIndex++) {
-      const activeState = order.filter(actor => model.active[eventIndex][actor] === 1);
-      const previousRank = previousState
-        ? new Map(previousState.map((actor, rank) => [actor, rank]))
-        : undefined;
-      const state = contiguousGroupState(
-        activeState,
-        model.groups[eventIndex],
-        previousRank ? actor => previousRank.get(actor) : undefined,
-      );
-      states.push(state);
-      previousState = state;
-    }
-    return states;
-  }
-
+function buildOpenStates(order: number[], model: CostModel): number[][] {
   if (model.extendEventBar) {
     return Array.from({ length: model.events }, () => order.slice());
   }
@@ -431,7 +429,41 @@ function buildStates(order: number[], model: CostModel): number[][] {
   return states;
 }
 
-function compactGroups(states: number[][], model: CostModel, deadline: number): number {
+function buildTightStates(order: number[], model: CostModel): number[][] {
+  if (model.extendEventBar) {
+    return Array.from({ length: model.events }, (_, eventIndex) =>
+      model.continuous
+        ? order.slice()
+        : order.filter(actor => model.active[eventIndex][actor] === 1),
+    );
+  }
+
+  const states: number[][] = [];
+  let previousState: number[] | undefined;
+  for (let eventIndex = 0; eventIndex < model.events; eventIndex++) {
+    const compactActors = model.continuous
+      ? order.slice()
+      : order.filter(actor => model.active[eventIndex][actor] === 1);
+    const previousRank = previousState
+      ? new Map(previousState.map((actor, rank) => [actor, rank]))
+      : undefined;
+    const state = contiguousGroupState(
+      compactActors,
+      model.groups[eventIndex],
+      previousRank ? actor => previousRank.get(actor) : undefined,
+    );
+    states.push(state);
+    previousState = state;
+  }
+  return states;
+}
+
+function compactGroups(
+  states: number[][],
+  model: CostModel,
+  deadline: number,
+  compactPositions = model.compact,
+): number {
   if (model.extraSpanLoss <= EPSILON || model.events === 0) return 0;
 
   const work = model.events * model.size * model.size * model.size;
@@ -458,16 +490,16 @@ function compactGroups(states: number[][], model: CostModel, deadline: number): 
       if (group.length < 2) continue;
 
       const state = states[eventIndex];
-      fillPositions(state, model.compact, currentY);
+      fillPositions(state, compactPositions, currentY);
       if (groupExtraSpan(group, currentY) <= EPSILON) continue;
 
       const hasPrevious = eventIndex > 0;
       const hasNext = eventIndex + 1 < model.events;
       if (hasPrevious) {
-        fillPositions(states[eventIndex - 1], model.compact, previousY);
+        fillPositions(states[eventIndex - 1], compactPositions, previousY);
       }
       if (hasNext) {
-        fillPositions(states[eventIndex + 1], model.compact, nextY);
+        fillPositions(states[eventIndex + 1], compactPositions, nextY);
       }
 
       const previousActive = hasPrevious ? model.active[eventIndex - 1] : undefined;
@@ -518,7 +550,7 @@ function compactGroups(states: number[][], model: CostModel, deadline: number): 
           .concat(block, rest.slice(start));
         if (sameOrder(candidate, state)) continue;
 
-        fillPositions(candidate, model.compact, currentY);
+        fillPositions(candidate, compactPositions, currentY);
         let cost = groupExtraSpan(group, currentY) * model.extraSpanLoss;
         if (previousActive) {
           cost += transitionCost(
@@ -565,7 +597,12 @@ function compactGroups(states: number[][], model: CostModel, deadline: number): 
  * the neighbouring events, keeping lines as straight as possible. It applies
  * to both expanded and compact layouts.
  */
-function refineContiguousGroups(states: number[][], model: CostModel, deadline: number): number {
+function refineContiguousGroups(
+  states: number[][],
+  model: CostModel,
+  deadline: number,
+  compactPositions = model.compact,
+): number {
   if (model.extendEventBar || model.events === 0) return 0;
 
   const work = model.events * model.size * model.size;
@@ -592,15 +629,15 @@ function refineContiguousGroups(states: number[][], model: CostModel, deadline: 
       if (group.length < 2) continue;
 
       const state = states[eventIndex];
-      fillPositions(state, model.compact, currentY);
+      fillPositions(state, compactPositions, currentY);
 
       const hasPrevious = eventIndex > 0;
       const hasNext = eventIndex + 1 < model.events;
       if (hasPrevious) {
-        fillPositions(states[eventIndex - 1], model.compact, previousY);
+        fillPositions(states[eventIndex - 1], compactPositions, previousY);
       }
       if (hasNext) {
-        fillPositions(states[eventIndex + 1], model.compact, nextY);
+        fillPositions(states[eventIndex + 1], compactPositions, nextY);
       }
 
       const previousActive = hasPrevious ? model.active[eventIndex - 1] : undefined;
@@ -651,7 +688,7 @@ function refineContiguousGroups(states: number[][], model: CostModel, deadline: 
           .concat(block, rest.slice(start));
         if (sameOrder(candidate, state)) continue;
 
-        fillPositions(candidate, model.compact, currentY);
+        fillPositions(candidate, compactPositions, currentY);
         let cost = 0;
         if (previousActive) {
           cost += transitionCost(

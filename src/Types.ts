@@ -53,8 +53,8 @@ export interface BaseConfig {
   eventValueScaling: number;
   // whether the y-points start at the beginning or at the first grouping
   continuous: boolean;
-  // whether the graph is compacted or not
-  compact: boolean;
+  // how strongly actor lanes are compacted: 0 = fully open, 1 = fully compact
+  compact: number;
   // when true, an event connector spans every actor between its outermost
   // participants; when false, participants are placed contiguously so the
   // connector only covers actors that appear in the event
@@ -109,7 +109,11 @@ export interface BaseConfig {
   inferredEventType: InferredEventType
 }
 
-export type Config = Partial<BaseConfig> & (RangeData | ArrayData | TableData);
+export type CompactValue = boolean | number;
+
+export type Config = Partial<Omit<BaseConfig, 'compact'>> & {
+  compact?: CompactValue;
+} & (RangeData | ArrayData | TableData);
 
 export type FullConfig = BaseConfig & (RangeData | ArrayData | TableData);
 
@@ -131,6 +135,9 @@ export class Event {
 
   // which actors will be on this event, whether they are grouped or not
   public state: string[];
+
+  // compact-layout state used to blend between open and compact layouts
+  public compactState?: string[];
 
   // whitch actors are hidden
   public hiddenActors: string[];

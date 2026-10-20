@@ -4,7 +4,7 @@ Visual options for the Storygram.
 
 ## Continuous
 
-When `true`, all actors are visible from the first to the last event even when not grouped.
+When `true`, all actors are visible from the first to the last event even when not grouped. Each of those extended lanes keeps one full y lane, including before the actor becomes active, and is not compressed by `compact`.
 
 ```typescript
 continuous: boolean
@@ -18,18 +18,21 @@ continuous: boolean
 
 ## Compact
 
-Keeps each event's actors compact, but chooses the block's vertical offset to make lines as straight as possible against the previous event. This keeps groups tight without centering every block or pinning it to one edge. Useful for groups of similar size over time (governments, sports teams, …).
+Controls how tightly actor lanes are packed. `0` is the fully open layout: every visible actor keeps a lane and lines stay horizontal. `1` is fully compact: only currently active actors occupy lanes, each event block is centered and offset to keep lines as straight as possible. Fractions interpolate both the lane positions and the chart height.
 
 The optimizer starts from one global actor order, so actors keep their relative position and expanded lines stay horizontal. A weighted per-event pass may then compact a group connector by moving actors; `linearLoss` / `lengthLoss` control how expensive that movement is, `slopeLoss` discourages steep multi-lane jumps, and `groupExtraSpanLoss` penalises every additional y step beyond a group's contiguous block.
 
+With `continuous: true`, every visible actor keeps one full lane at every event, including before its first activity, so those lanes are never compressed by `compact`.
+
 ```typescript
-compact: boolean
-// Default: true
+compact: number // 0 – 1
+// Default: 1
+// Legacy boolean values are still accepted (true = 1, false = 0)
 ```
 
 <StorygramMount
   :data="[{event:0,actors:['a','b','c']},{event:1,actors:['a','c','d']},{event:2,actors:['c','d','e']},{event:3,actors:['e','f','g']}]"
-  :config="{dataFormat:'array',eventField:'event',actorArrayField:'actors',compact:true}"
+  :config="{dataFormat:'array',eventField:'event',actorArrayField:'actors',compact:1}"
 />
 
 ## Event bar extent

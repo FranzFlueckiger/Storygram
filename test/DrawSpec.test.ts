@@ -77,7 +77,7 @@ function createConfig(overrides: Partial<FullConfig> = {}): FullConfig {
     marginTop: 50, marginBottom: 50, marginLeft: 50, marginRight: 50,
     actorPadding: 30, eventPadding: 40,
     eventValueScaling: 0,   // xDrawn = pure event index
-    continuous: false, compact: false, extendEventBar: false,
+    continuous: false, compact: 0, extendEventBar: false,
     highlight: [],
     strokeWidth: () => 1,
     actorColor: (_e, actor) => actor.actorID,
@@ -121,7 +121,7 @@ describe('createGrid', () => {
   test('does not mutate the optimized event states', () => {
     const data = createSimpleData();
     const before = data.events.map(event => event.state.slice());
-    createGrid(data, createConfig({compact: true}));
+    createGrid(data, createConfig({compact: 1}));
     expect(data.events.map(event => event.state)).toEqual(before);
   });
 
@@ -130,7 +130,7 @@ describe('createGrid', () => {
       dataFormat: 'array',
       eventField: 'id',
       actorArrayField: 'a',
-      compact: true,
+      compact: 1,
     });
     const fitted = fit(sg.processedData, sg.config)!;
     const layout = buildLayout(fitted, sg.config);
@@ -155,17 +155,76 @@ describe('createGrid', () => {
   });
 
   test('non-compact mode: y equals actor index', () => {
-    const [points] = createGrid(createSimpleData(), createConfig({compact: false}));
+    const [points] = createGrid(createSimpleData(), createConfig({compact: 0}));
     const atEvent0 = points.filter(p => p.x === 0);
     expect(atEvent0.find(p => p.z === 'a')!.y).toBe(0);
     expect(atEvent0.find(p => p.z === 'b')!.y).toBe(1);
   });
 
   test('compact mode: y coordinates keep the block contiguous', () => {
-    const [points] = createGrid(createSimpleData(), createConfig({compact: true}));
+    const [points] = createGrid(createSimpleData(), createConfig({compact: 1}));
     const atEvent0 = points.filter(p => p.x === 0);
     expect(atEvent0.find(p => p.z === 'a')!.y).toBe(-1);
     expect(atEvent0.find(p => p.z === 'b')!.y).toBe(0);
+  });
+
+  test('compactness interpolates y between open and compact positions', () => {
+    const data = [
+      {id: 0, a: ['a', 'b']},
+      {id: 1, a: ['c']},
+    ];
+    const run = (compact: number) => {
+      const sg = new Storygram(data, {
+        dataFormat: 'array',
+        eventField: 'id',
+        actorArrayField: 'a',
+        compact,
+        extendEventBar: true,
+      });
+      const fitted = fit(sg.processedData, sg.config)!;
+      const [points, , maxHeight] = createGrid(fitted, sg.config);
+      return {
+        y: points.filter(p => p.x === 1).find(p => p.z === 'c')!.y,
+        maxHeight,
+      };
+    };
+
+    const open = run(0);
+    const tight = run(1);
+    const middle = run(0.5);
+
+    expect(open.y).not.toBe(tight.y);
+    expect(middle.y).toBeCloseTo((open.y + tight.y) / 2);
+    expect(open.maxHeight).toBe(3);
+    expect(tight.maxHeight).toBe(2);
+    expect(middle.maxHeight).toBe(2.5);
+  });
+
+  test('continuous keeps later actors in a lane before they are active', () => {
+    const data = [
+      {id: 0, a: ['a']},
+      {id: 1, a: ['b']},
+    ];
+    const run = (continuous: boolean) => {
+      const sg = new Storygram(data, {
+        dataFormat: 'array',
+        eventField: 'id',
+        actorArrayField: 'a',
+        compact: 1,
+        continuous,
+        extendEventBar: true,
+      });
+      const fitted = fit(sg.processedData, sg.config)!;
+      const [points, , maxHeight] = createGrid(fitted, sg.config);
+      return {
+        atFirstEvent: points.filter(p => p.x === 0).map(p => p.z).sort(),
+        maxHeight,
+      };
+    };
+
+    expect(run(false).atFirstEvent).toEqual(['a']);
+    expect(run(true).atFirstEvent).toEqual(['a', 'b']);
+    expect(run(true).maxHeight).toBe(2);
   });
 
   test('grouped actors have isGrouped = 1', () => {
@@ -354,7 +413,7 @@ describe('drawD3', () => {
     const config = createConfig({
       uid: 'marker-test',
       eventValueScaling: 0,
-      compact: false,
+      compact: 0,
       continuous: false,
       extendEventBar: false,
     });
@@ -390,7 +449,7 @@ describe('drawD3', () => {
     const config = createConfig({
       uid: 'badge-test',
       eventValueScaling: 0,
-      compact: false,
+      compact: 0,
       continuous: false,
       extendEventBar: false,
     });
@@ -413,7 +472,7 @@ describe('drawD3', () => {
     const config = createConfig({
       uid: 'label-hover-test',
       eventValueScaling: 0,
-      compact: false,
+      compact: 0,
       continuous: false,
       extendEventBar: false,
     });
@@ -439,7 +498,7 @@ describe('drawD3', () => {
     const config = createConfig({
       uid: 'bounds-test',
       eventValueScaling: 0,
-      compact: false,
+      compact: 0,
       continuous: false,
       extendEventBar: false,
     });
@@ -474,7 +533,7 @@ describe('renderer contract', () => {
     const config = createConfig({
       uid: 'render-test',
       eventValueScaling: 0,
-      compact: false,
+      compact: 0,
       continuous: false,
       extendEventBar: false,
       ...overrides,

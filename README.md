@@ -122,8 +122,8 @@ const config: Config = {
   filterEventValue: [1995, 2001],
   filterGroupAmt: [2, undefined],
 
-  // keep groups compact while minimizing line movement
-  compact: true,
+  // 0 = fully open, 1 = fully compact; fractions interpolate
+  compact: 1,
 
   // let event bars span unrelated actors to keep lines straighter (default)
   extendEventBar: true,

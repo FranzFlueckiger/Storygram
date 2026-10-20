@@ -102,78 +102,192 @@ export function buildLayout(
   const visible = visibleActors(data);
   const visibleSet = new Set(visible);
   const layouts: LayoutEvent[] = [];
+  const compactness = Math.min(1, Math.max(0, config.compact));
+  const fullyOpen = compactness === 0;
+  const fullyCompact = compactness === 1;
   let yMin = Number.POSITIVE_INFINITY;
   let yMax = Number.NEGATIVE_INFINITY;
   let maxHeight = 0;
   let previousState: string[] | undefined;
   let previousDrawn: Set<string> | undefined;
   let previousY: Map<string, number> | undefined;
+  let previousTightState: string[] | undefined;
+  let previousTightDrawn: Set<string> | undefined;
+  let previousTightY: Map<string, number> | undefined;
 
   data.events.forEach((event, index) => {
     let state: string[];
-    if (order) {
-      const previousPosition = previousState
-        ? new Map(previousState.map((actorID, position) => [actorID, position]))
-        : undefined;
-      const targetPosition = previousPosition
-        ? (actorID: string) => previousPosition.get(actorID)
-        : undefined;
-
-      if (config.compact) {
-        const activeState = order.filter(actorID => active[index].has(actorID));
-        state = config.extendEventBar
-          ? activeState
-          : contiguousGroupState(activeState, event.group, targetPosition);
-      } else if (config.extendEventBar) {
-        state = order.filter(actorID => visibleSet.has(actorID));
-      } else {
-        state = contiguousGroupState(
-          order.filter(actorID => visibleSet.has(actorID)),
-          event.group,
-          targetPosition,
-        );
-      }
-    } else {
-      state = config.compact
-        ? event.state.filter(actorID => actorID !== '')
-        : event.state.slice();
-    }
-    previousState = state;
-
     const y = new Map<string, number>();
-    state.forEach((actorID, actorIndex) => {
-      y.set(actorID, config.compact ? getCompactedLocation(actorIndex, state.length) : actorIndex);
-    });
+    let drawn: Set<string>;
+    let heightLength: number;
 
-    const drawn = new Set(
-      state.filter(actorID =>
-        data.actors.has(actorID) && (config.continuous || active[index].has(actorID)),
-      ),
-    );
+    if (fullyOpen || fullyCompact) {
+      if (order) {
+        const previousPosition = previousState
+          ? new Map(previousState.map((actorID, position) => [actorID, position]))
+          : undefined;
+        const targetPosition = previousPosition
+          ? (actorID: string) => previousPosition.get(actorID)
+          : undefined;
 
-    if (config.compact && previousDrawn && previousY) {
-      const targets: number[] = [];
-      drawn.forEach(actorID => {
-        if (!previousDrawn!.has(actorID)) return;
-        const before = previousY!.get(actorID);
-        const after = y.get(actorID);
-        if (before !== undefined && after !== undefined) targets.push(before - after);
-      });
-      const offset = bestCompactOffset(
-        targets,
-        config.linearLoss,
-        config.lengthLoss,
-        config.slopeLoss ?? 0,
-      );
-      if (offset !== 0) {
-        state.forEach(actorID => y.set(actorID, y.get(actorID)! + offset));
+        if (fullyCompact) {
+          const compactActors = config.continuous
+            ? order.filter(actorID => visibleSet.has(actorID))
+            : order.filter(actorID => active[index].has(actorID));
+          state = config.extendEventBar
+            ? compactActors
+            : contiguousGroupState(compactActors, event.group, targetPosition);
+        } else if (config.extendEventBar) {
+          state = order.filter(actorID => visibleSet.has(actorID));
+        } else {
+          state = contiguousGroupState(
+            order.filter(actorID => visibleSet.has(actorID)),
+            event.group,
+            targetPosition,
+          );
+        }
+      } else {
+        state = fullyCompact
+          ? event.state.filter(actorID => actorID !== '')
+          : event.state.slice();
       }
-    }
 
-    if (config.compact) {
-      previousDrawn = drawn;
-      previousY = new Map();
-      drawn.forEach(actorID => previousY!.set(actorID, y.get(actorID)!));
+      state.forEach((actorID, actorIndex) => {
+        y.set(actorID, fullyCompact ? getCompactedLocation(actorIndex, state.length) : actorIndex);
+      });
+
+      drawn = new Set(
+        state.filter(actorID =>
+          data.actors.has(actorID) && (config.continuous || active[index].has(actorID)),
+        ),
+      );
+
+      if (fullyCompact && previousDrawn && previousY) {
+        const targets: number[] = [];
+        drawn.forEach(actorID => {
+          if (!previousDrawn!.has(actorID)) return;
+          const before = previousY!.get(actorID);
+          const after = y.get(actorID);
+          if (before !== undefined && after !== undefined) targets.push(before - after);
+        });
+        const offset = bestCompactOffset(
+          targets,
+          config.linearLoss,
+          config.lengthLoss,
+          config.slopeLoss ?? 0,
+        );
+        if (offset !== 0) {
+          state.forEach(actorID => y.set(actorID, y.get(actorID)! + offset));
+        }
+      }
+
+      if (fullyCompact) {
+        previousDrawn = drawn;
+        previousY = new Map();
+        drawn.forEach(actorID => previousY!.set(actorID, y.get(actorID)!));
+      }
+
+      previousState = state;
+      previousTightState = state;
+      heightLength = state.length;
+    } else {
+      let openState: string[];
+      let tightState: string[];
+
+      if (order) {
+        const visibleOrder = order.filter(actorID => visibleSet.has(actorID));
+        const previousOpenPosition = previousState
+          ? new Map(previousState.map((actorID, position) => [actorID, position]))
+          : undefined;
+        const openTarget = previousOpenPosition
+          ? (actorID: string) => previousOpenPosition.get(actorID)
+          : undefined;
+        openState = config.extendEventBar
+          ? visibleOrder
+          : contiguousGroupState(visibleOrder, event.group, openTarget);
+
+        const compactActors = config.continuous
+          ? visibleOrder
+          : order.filter(actorID => active[index].has(actorID));
+        const previousTightPosition = previousTightState
+          ? new Map(previousTightState.map((actorID, position) => [actorID, position]))
+          : undefined;
+        const tightTarget = previousTightPosition
+          ? (actorID: string) => previousTightPosition.get(actorID)
+          : undefined;
+        tightState = config.extendEventBar
+          ? compactActors
+          : contiguousGroupState(compactActors, event.group, tightTarget);
+      } else {
+        openState = event.state.slice();
+        if (event.compactState) {
+          tightState = event.compactState.slice();
+        } else {
+          const compactActors = config.continuous
+            ? openState
+            : openState.filter(actorID => active[index].has(actorID));
+          const previousTightPosition = previousTightState
+            ? new Map(previousTightState.map((actorID, position) => [actorID, position]))
+            : undefined;
+          const tightTarget = previousTightPosition
+            ? (actorID: string) => previousTightPosition.get(actorID)
+            : undefined;
+          tightState = config.extendEventBar
+            ? compactActors
+            : contiguousGroupState(compactActors, event.group, tightTarget);
+        }
+      }
+
+      const openY = new Map(openState.map((actorID, actorIndex) => [actorID, actorIndex]));
+      const tightY = new Map(
+        tightState.map((actorID, actorIndex) => [
+          actorID,
+          getCompactedLocation(actorIndex, tightState.length),
+        ]),
+      );
+
+      if (previousTightDrawn && previousTightY) {
+        const targets: number[] = [];
+        tightState.forEach(actorID => {
+          if (!previousTightDrawn!.has(actorID)) return;
+          const before = previousTightY!.get(actorID);
+          const after = tightY.get(actorID);
+          if (before !== undefined && after !== undefined) targets.push(before - after);
+        });
+        const offset = bestCompactOffset(
+          targets,
+          config.linearLoss,
+          config.lengthLoss,
+          config.slopeLoss ?? 0,
+        );
+        if (offset !== 0) {
+          tightState.forEach(actorID =>
+            tightY.set(actorID, tightY.get(actorID)! + offset),
+          );
+        }
+      }
+
+      openState.forEach(actorID => {
+        const open = openY.get(actorID)!;
+        const tight = tightY.get(actorID);
+        y.set(
+          actorID,
+          tight === undefined ? open : open * (1 - compactness) + tight * compactness,
+        );
+      });
+
+      drawn = new Set(
+        openState.filter(actorID =>
+          data.actors.has(actorID) && (config.continuous || active[index].has(actorID)),
+        ),
+      );
+
+      previousState = openState;
+      previousTightState = tightState;
+      previousTightDrawn = new Set(tightState);
+      previousTightY = tightY;
+      state = openState;
+      heightLength = openState.length * (1 - compactness) + tightState.length * compactness;
     }
 
     const group = event.group.filter(actorID => drawn.has(actorID));
@@ -194,7 +308,7 @@ export function buildLayout(
     const scaling = config.eventValueScaling;
     const x = Math.pow(scaling, 4) * event.eventXValue + (1 - Math.pow(scaling, 4)) * index;
 
-    if (state.length > maxHeight) maxHeight = state.length;
+    if (heightLength > maxHeight) maxHeight = heightLength;
 
     layouts.push({ event, index, state, drawn, y, group, groupSpan, groupExtraSpan, x });
   });

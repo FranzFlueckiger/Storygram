@@ -10,7 +10,7 @@ import StorygramGUI from './components/StorygramWrapper';
 It is possible to set a range of visual options of the Storygram.
 
 ## Continuous
-Whether all actors should be visible from the beginning to the end of the Storygram.
+Whether all actors keep one full lane from the beginning to the end of the Storygram, including before they become active. These extended lanes are not compressed by `compact`.
   
 ```sh
 continuous: boolean;
@@ -36,15 +36,17 @@ Default value: false
 </Playground>
 
 ## Compact
-Whether the Storygram is compacted around the central x-axis or not. This is useful in case the groups are of a similar size over time, like governments, soccer teams etc.
+How tightly actor lanes are packed. `0` keeps the fully open layout; `1` packs only currently active actors, centers each event block and offsets it to keep lines straight. Fractions interpolate lane positions and chart height. This is useful in case the groups are of a similar size over time, like governments, soccer teams etc.
 
   ```sh
-compact: boolean;
+compact: number; // 0 – 1
 ``` 
 
 ```sh
-Default value: false
+Default value: 1
 ```
+
+Legacy boolean values are still accepted (`true` = `1`, `false` = `0`).
 
 <Playground>
   <StorygramGUI data={[
@@ -57,7 +59,7 @@ Default value: false
     dataFormat: 'array',
     eventField: 'event',
     actorArrayField: 'actors',
-    compact: true
+    compact: 1
   }}></StorygramGUI>
 </Playground>
 

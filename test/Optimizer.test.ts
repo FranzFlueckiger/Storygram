@@ -70,7 +70,7 @@ describe('group extra span', () => {
       dataFormat: 'array',
       eventField: 'id',
       actorArrayField: 'a',
-      compact: false,
+      compact: 0,
       extendEventBar: true,
     });
     const spaced = layoutMetrics(buildLayout(sg.processedData, sg.config, ['a', 'b', 'c']));
@@ -93,6 +93,13 @@ describe('fit', () => {
   test('extended event bars are enabled by default', () => {
     const sg = new Storygram(testArrayData(), baseConfig);
     expect(sg.config.extendEventBar).toBe(true);
+  });
+
+  test('boolean compact values remain supported', () => {
+    const on = new Storygram(testArrayData(), {...baseConfig, compact: true});
+    const off = new Storygram(testArrayData(), {...baseConfig, compact: false});
+    expect(on.config.compact).toBe(1);
+    expect(off.config.compact).toBe(0);
   });
 
   test('returns defined result with valid input', () => {
@@ -129,7 +136,7 @@ describe('fit', () => {
   });
 
   test('compact mode: state arrays are non-empty', () => {
-    const sg = new Storygram(testArrayData(), {...baseConfig, compact: true});
+    const sg = new Storygram(testArrayData(), {...baseConfig, compact: 1});
     const result = fit(sg.processedData, sg.config)!;
     result.events.forEach(event => {
       expect(event.state.length).toBeGreaterThan(0);
@@ -138,7 +145,7 @@ describe('fit', () => {
 
   test('compact mode: layout is deterministic across runs', () => {
     const layout = () => {
-      const sg = new Storygram(testArrayData(), {...baseConfig, compact: true});
+      const sg = new Storygram(testArrayData(), {...baseConfig, compact: 1});
       const result = fit(sg.processedData, sg.config)!;
       return result.events.map(event => event.state);
     };
@@ -146,7 +153,7 @@ describe('fit', () => {
   });
 
   test('expanded mode: state length is constant across events', () => {
-    const sg = new Storygram(testArrayData(), {...baseConfig, compact: false});
+    const sg = new Storygram(testArrayData(), {...baseConfig, compact: 0});
     const result = fit(sg.processedData, sg.config)!;
     const stateLength = result.events[0].state.length;
     result.events.forEach(event => {
@@ -165,7 +172,7 @@ describe('fit', () => {
   });
 
   test('global order removes crossings in both modes when compaction is disabled', () => {
-    [true, false].forEach(compact => {
+    [1, 0].forEach(compact => {
       const sg = new Storygram(testArrayData(), {
         ...baseConfig,
         compact,
@@ -181,7 +188,7 @@ describe('fit', () => {
   test('expanded mode draws every common line horizontally when compaction is disabled', () => {
     const sg = new Storygram(testArrayData(), {
       ...baseConfig,
-      compact: false,
+      compact: 0,
       extendEventBar: true,
       groupExtraSpanLoss: 0,
     });
@@ -194,7 +201,7 @@ describe('fit', () => {
   });
 
   test('compact mode does not add movement over the baseline', () => {
-    const compactConfig = {...baseConfig, compact: true, groupExtraSpanLoss: 0};
+    const compactConfig = {...baseConfig, compact: 1, groupExtraSpanLoss: 0};
     const baseline = new Storygram(testArrayData(), compactConfig);
     const baselineLayout = buildLayout(
       baseline.processedData,
@@ -214,7 +221,7 @@ describe('fit', () => {
   });
 
   test('optimized order does not increase group span over first appearance', () => {
-    const compactConfig = {...baseConfig, compact: false};
+    const compactConfig = {...baseConfig, compact: 0};
     const baseline = new Storygram(testArrayData(), compactConfig);
     const baselineLayout = buildLayout(
       baseline.processedData,
@@ -234,7 +241,7 @@ describe('fit', () => {
   test('participant-only bars place every event group contiguously', () => {
     const sg = new Storygram(testArrayData(), {
       ...baseConfig,
-      compact: false,
+      compact: 0,
       extendEventBar: false,
     });
     const result = fit(sg.processedData, sg.config)!;
@@ -263,7 +270,7 @@ describe('fit', () => {
     const run = () => {
       const sg = new Storygram(testArrayData(), {
         ...baseConfig,
-        compact: false,
+        compact: 0,
         extendEventBar: false,
       });
       const result = fit(sg.processedData, sg.config)!;
@@ -276,7 +283,7 @@ describe('fit', () => {
   test('compact participant-only bars keep each event group contiguous', () => {
     const sg = new Storygram(testArrayData(), {
       ...baseConfig,
-      compact: true,
+      compact: 1,
       extendEventBar: false,
     });
     const result = fit(sg.processedData, sg.config)!;
@@ -305,7 +312,7 @@ describe('fit', () => {
     const run = (extendEventBar: boolean) => {
       const sg = new Storygram(testArrayData(), {
         ...baseConfig,
-        compact: true,
+        compact: 1,
         extendEventBar,
       });
       const result = fit(sg.processedData, sg.config)!;
@@ -324,7 +331,7 @@ describe('fit', () => {
 
     const straight = run({
       ...baseConfig,
-      compact: false,
+      compact: 0,
       extendEventBar: true,
       linearLoss: 1000,
       lengthLoss: 1000,
@@ -332,7 +339,7 @@ describe('fit', () => {
     });
     const tight = run({
       ...baseConfig,
-      compact: false,
+      compact: 0,
       extendEventBar: true,
       linearLoss: 0,
       lengthLoss: 0,
@@ -351,7 +358,7 @@ describe('fit', () => {
     }));
     const sg = new Storygram(events, {
       ...baseConfig,
-      compact: true,
+      compact: 1,
       extendEventBar: true,
     });
 
@@ -368,7 +375,7 @@ describe('fit', () => {
     const run = (slopeLoss: number) => {
       const sg = new Storygram(testArrayData(), {
         ...baseConfig,
-        compact: true,
+        compact: 1,
         slopeLoss,
       });
       const result = fit(sg.processedData, sg.config)!;
@@ -385,7 +392,7 @@ describe('fit', () => {
     const run = (groupExtraSpanLoss: number) => {
       const sg = new Storygram(testArrayData(), {
         ...baseConfig,
-        compact: false,
+        compact: 0,
         extendEventBar: true,
         groupExtraSpanLoss,
       });
@@ -403,7 +410,7 @@ describe('fit', () => {
     const run = (slopeLoss: number) => {
       const sg = new Storygram(testArrayData(), {
         ...baseConfig,
-        compact: false,
+        compact: 0,
         slopeLoss,
       });
       const result = fit(sg.processedData, sg.config)!;
@@ -417,7 +424,7 @@ describe('fit', () => {
     const run = (linearLoss: number) => {
       const sg = new Storygram(testArrayData(), {
         ...baseConfig,
-        compact: true,
+        compact: 1,
         linearLoss,
         lengthLoss: linearLoss,
         groupSpanLoss: 2,
