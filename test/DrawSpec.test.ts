@@ -161,7 +161,7 @@ describe('createGrid', () => {
     expect(atEvent0.find(p => p.z === 'b')!.y).toBe(1);
   });
 
-  test('compact mode: y coordinates are centred around 0', () => {
+  test('compact mode: y coordinates keep the block contiguous', () => {
     const [points] = createGrid(createSimpleData(), createConfig({compact: true}));
     const atEvent0 = points.filter(p => p.x === 0);
     expect(atEvent0.find(p => p.z === 'a')!.y).toBe(-1);

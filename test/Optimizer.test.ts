@@ -1,7 +1,7 @@
 import {fit, getCompactedLocation} from '../src/Optimizer';
 import Storygram from '../src/Storygram';
 import {Config} from '../src/Types';
-import {buildLayout, layoutMetrics, visibleActors} from '../src/Layout';
+import {bestCompactOffset, buildLayout, layoutMetrics, visibleActors} from '../src/Layout';
 import {testArrayData} from './testData';
 
 describe('getCompactedLocation', () => {
@@ -14,23 +14,42 @@ describe('getCompactedLocation', () => {
     expect(getCompactedLocation(1, 2)).toBe(0);
   });
 
-  test('three elements are symmetric around 0: -1, 0, 1', () => {
+  test('three elements form a contiguous block: -1, 0, 1', () => {
     expect(getCompactedLocation(0, 3)).toBe(-1);
     expect(getCompactedLocation(1, 3)).toBe(0);
     expect(getCompactedLocation(2, 3)).toBe(1);
   });
 
-  test('four elements are symmetric: -2, -1, 0, 1', () => {
+  test('four elements form a contiguous block: -2, -1, 0, 1', () => {
     expect(getCompactedLocation(0, 4)).toBe(-2);
     expect(getCompactedLocation(1, 4)).toBe(-1);
     expect(getCompactedLocation(2, 4)).toBe(0);
     expect(getCompactedLocation(3, 4)).toBe(1);
   });
 
-  test('center of odd-length array is always 0', () => {
+  test('odd-length compact blocks keep their centre at 0', () => {
     expect(getCompactedLocation(1, 3)).toBe(0);
     expect(getCompactedLocation(2, 5)).toBe(0);
     expect(getCompactedLocation(3, 7)).toBe(0);
+  });
+});
+
+describe('bestCompactOffset', () => {
+  test('returns 0 without shared actors', () => {
+    expect(bestCompactOffset([], 1, 1)).toBe(0);
+  });
+
+  test('aligns a single shared actor exactly', () => {
+    expect(bestCompactOffset([3.5], 1, 1)).toBe(3.5);
+  });
+
+  test('prefers an exact alignment when several targets are close', () => {
+    expect(bestCompactOffset([1, 2, 3], 1, 1)).toBe(2);
+    expect(bestCompactOffset([4, 4, 4], 1, 1)).toBe(4);
+  });
+
+  test('breaks ties towards the smaller offset', () => {
+    expect(bestCompactOffset([-2, 2], 1, 1)).toBe(-2);
   });
 });
 
@@ -144,7 +163,7 @@ describe('fit', () => {
     expect(metrics.moved).toBe(0);
   });
 
-  test('compact mode keeps necessary movement but not more than the baseline', () => {
+  test('compact mode does not add movement over the baseline', () => {
     const compactConfig = {...baseConfig, compact: true, groupSpanLoss: 0};
     const baseline = new Storygram(testArrayData(), compactConfig);
     const baselineLayout = buildLayout(
@@ -159,7 +178,7 @@ describe('fit', () => {
     const layout = buildLayout(result, sg.config);
     const metrics = layoutMetrics(layout);
 
-    expect(metrics.moved).toBeGreaterThan(0);
+    expect(metrics.total).toBeGreaterThan(0);
     expect(metrics.moved).toBeLessThanOrEqual(baselineMetrics.moved);
     expect(metrics.distance).toBeLessThanOrEqual(baselineMetrics.distance);
   });

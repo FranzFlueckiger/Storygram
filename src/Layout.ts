@@ -36,6 +36,53 @@ export function getCompactedLocation(position: number, arrayLength: number): num
 }
 
 /**
+ * Finds the vertical offset for a compacted event block that keeps the block
+ * contiguous while making its lines as straight as possible against the
+ * previous event. Each target is the offset that would align one shared actor.
+ */
+export function bestCompactOffset(
+  targets: number[],
+  linearLoss: number,
+  lengthLoss: number,
+): number {
+  if (targets.length === 0) return 0;
+
+  const sorted = targets.slice().sort((a, b) => a - b);
+  const prefix = new Float64Array(sorted.length + 1);
+  sorted.forEach((value, index) => {
+    prefix[index + 1] = prefix[index] + value;
+  });
+
+  let best = 0;
+  let bestCost = Number.POSITIVE_INFINITY;
+
+  for (let start = 0; start < sorted.length; ) {
+    let end = start + 1;
+    while (end < sorted.length && sorted[end] - sorted[start] <= EPSILON) {
+      end++;
+    }
+    const value = sorted[start];
+    const leftDistance = value * start - prefix[start];
+    const rightDistance =
+      prefix[sorted.length] - prefix[end] - value * (sorted.length - end);
+    const moved = sorted.length - (end - start);
+    const cost =
+      moved * linearLoss + (leftDistance + rightDistance) * lengthLoss;
+
+    if (
+      cost < bestCost - EPSILON ||
+      (Math.abs(cost - bestCost) <= EPSILON && Math.abs(value) < Math.abs(best))
+    ) {
+      best = value;
+      bestCost = cost;
+    }
+    start = end;
+  }
+
+  return best;
+}
+
+/**
  * Places all members of `group` into one contiguous block inside `order`.
  * The insertion point keeps the block as close as possible to the actors'
  * current/target positions, so existing lines move as little as possible.
@@ -102,6 +149,8 @@ export function buildLayout(
   let yMax = Number.NEGATIVE_INFINITY;
   let maxHeight = 0;
   let previousState: string[] | undefined;
+  let previousDrawn: Set<string> | undefined;
+  let previousY: Map<string, number> | undefined;
 
   data.events.forEach((event, index) => {
     let state: string[];
@@ -144,6 +193,26 @@ export function buildLayout(
         data.actors.has(actorID) && (config.continuous || active[index].has(actorID)),
       ),
     );
+
+    if (config.compact && previousDrawn && previousY) {
+      const targets: number[] = [];
+      drawn.forEach(actorID => {
+        if (!previousDrawn!.has(actorID)) return;
+        const before = previousY!.get(actorID);
+        const after = y.get(actorID);
+        if (before !== undefined && after !== undefined) targets.push(before - after);
+      });
+      const offset = bestCompactOffset(targets, config.linearLoss, config.lengthLoss);
+      if (offset !== 0) {
+        state.forEach(actorID => y.set(actorID, y.get(actorID)! + offset));
+      }
+    }
+
+    if (config.compact) {
+      previousDrawn = drawn;
+      previousY = new Map();
+      drawn.forEach(actorID => previousY!.set(actorID, y.get(actorID)!));
+    }
 
     const group = event.group.filter(actorID => drawn.has(actorID));
     let groupSpan = 0;

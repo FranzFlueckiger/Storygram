@@ -1,5 +1,6 @@
 import { FullConfig, Data } from './Types';
 import {
+  bestCompactOffset,
   buildLayout,
   computeActiveSets,
   contiguousGroupState,
@@ -264,16 +265,36 @@ function evaluateSequentialOrder(model: CostModel, order: number[]): LayoutMetri
     }
 
     if (model.compact) {
-      const count = state.length;
-      const offset = (count % 2) / 2 - 0.5;
-      const half = (count - 1) / 2;
       state.forEach((actor, rank) => {
-        current[actor] = rank - half + offset;
+        current[actor] = getCompactedLocation(rank, state.length);
       });
     } else {
       state.forEach((actor, rank) => {
         current[actor] = rank;
       });
+    }
+
+    if (model.compact && hasPrevious) {
+      const targets: number[] = [];
+      for (let i = 0; i < state.length; i++) {
+        const actor = state[i];
+        const before = previous[actor];
+        const after = current[actor];
+        if (before === INACTIVE || after === INACTIVE) continue;
+        if (
+          !model.continuous &&
+          (!model.active[eventIndex - 1][actor] || !model.active[eventIndex][actor])
+        ) {
+          continue;
+        }
+        targets.push(before - after);
+      }
+      const offset = bestCompactOffset(targets, model.linearLoss, model.lengthLoss);
+      if (offset !== 0) {
+        state.forEach(actor => {
+          current[actor] += offset;
+        });
+      }
     }
 
     if (group.length > 1) {

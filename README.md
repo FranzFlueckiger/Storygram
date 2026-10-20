@@ -38,7 +38,7 @@ Band lineups, governments, boards of directors, sports teams, conference partici
 - **Deterministic layout** — one optimized global actor order keeps lines straight; weighted group compaction can trade a little movement for tighter group connectors
 - **Extended or participant-only event bars** — by default connectors span unrelated actors to keep lines straighter; set `extendEventBar: false` to cover only an event's participants; works in compact and expanded layouts
 - **Powerful filtering** — filter by event value, group size, actor frequency, actor lifetime, must/should-contain queries, or fully custom callbacks
-- **Compact & continuous modes** — center actors around the axis or keep actors visible between events
+- **Compact & continuous modes** — keep actor blocks compact with movement-aware offsets, or keep actors visible between events
 - **Fully configurable** — colors, highlights, margins, spacing, event labels, clickable URLs, tooltips, and d3 color schemes
 - **TypeScript first** — complete typings for config and callbacks
 - **Runs anywhere** — ESM, CommonJS, and a browser bundle usable via a `<script>` tag
@@ -122,7 +122,7 @@ const config: Config = {
   filterEventValue: [1995, 2001],
   filterGroupAmt: [2, undefined],
 
-  // center groups around the x-axis
+  // keep groups compact while minimizing line movement
   compact: true,
 
   // let event bars span unrelated actors to keep lines straighter (default)
