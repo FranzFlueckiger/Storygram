@@ -59,6 +59,30 @@ describe('bestCompactOffset', () => {
   });
 });
 
+describe('group extra span', () => {
+  const data = [
+    {id: 0, a: ['a', 'b', 'c']},
+    {id: 1, a: ['a', 'c']},
+  ];
+
+  test('counts only y steps beyond a contiguous group block', () => {
+    const sg = new Storygram(data, {
+      dataFormat: 'array',
+      eventField: 'id',
+      actorArrayField: 'a',
+      compact: false,
+      extendEventBar: true,
+    });
+    const spaced = layoutMetrics(buildLayout(sg.processedData, sg.config, ['a', 'b', 'c']));
+    const compact = layoutMetrics(buildLayout(sg.processedData, sg.config, ['a', 'c', 'b']));
+
+    expect(spaced.groupSpan).toBe(4);
+    expect(spaced.groupExtraSpan).toBe(1);
+    expect(compact.groupSpan).toBe(3);
+    expect(compact.groupExtraSpan).toBe(0);
+  });
+});
+
 describe('fit', () => {
   const baseConfig: Config = {
     dataFormat: 'array',
@@ -146,7 +170,7 @@ describe('fit', () => {
         ...baseConfig,
         compact,
         extendEventBar: true,
-        groupSpanLoss: 0,
+        groupExtraSpanLoss: 0,
       });
       const result = fit(sg.processedData, sg.config)!;
       const layout = buildLayout(result, sg.config);
@@ -159,7 +183,7 @@ describe('fit', () => {
       ...baseConfig,
       compact: false,
       extendEventBar: true,
-      groupSpanLoss: 0,
+      groupExtraSpanLoss: 0,
     });
     const result = fit(sg.processedData, sg.config)!;
     const layout = buildLayout(result, sg.config);
@@ -170,7 +194,7 @@ describe('fit', () => {
   });
 
   test('compact mode does not add movement over the baseline', () => {
-    const compactConfig = {...baseConfig, compact: true, groupSpanLoss: 0};
+    const compactConfig = {...baseConfig, compact: true, groupExtraSpanLoss: 0};
     const baseline = new Storygram(testArrayData(), compactConfig);
     const baselineLayout = buildLayout(
       baseline.processedData,
@@ -304,7 +328,7 @@ describe('fit', () => {
       extendEventBar: true,
       linearLoss: 1000,
       lengthLoss: 1000,
-      groupSpanLoss: 2,
+      groupExtraSpanLoss: 2,
     });
     const tight = run({
       ...baseConfig,
@@ -312,10 +336,10 @@ describe('fit', () => {
       extendEventBar: true,
       linearLoss: 0,
       lengthLoss: 0,
-      groupSpanLoss: 100,
+      groupExtraSpanLoss: 100,
     });
 
-    expect(tight.groupSpan).toBeLessThan(straight.groupSpan);
+    expect(tight.groupExtraSpan).toBeLessThan(straight.groupExtraSpan);
     expect(tight.moved).toBeGreaterThan(straight.moved);
   });
 
@@ -355,6 +379,24 @@ describe('fit', () => {
     const strict = run(1000);
 
     expect(strict.slope).toBeLessThanOrEqual(loose.slope);
+  });
+
+  test('higher groupExtraSpanLoss does not increase extra group span', () => {
+    const run = (groupExtraSpanLoss: number) => {
+      const sg = new Storygram(testArrayData(), {
+        ...baseConfig,
+        compact: false,
+        extendEventBar: true,
+        groupExtraSpanLoss,
+      });
+      const result = fit(sg.processedData, sg.config)!;
+      return layoutMetrics(buildLayout(result, sg.config));
+    };
+
+    const loose = run(0);
+    const strict = run(1000);
+
+    expect(strict.groupExtraSpan).toBeLessThanOrEqual(loose.groupExtraSpan);
   });
 
   test('slopeLoss does not affect non-compact layouts', () => {

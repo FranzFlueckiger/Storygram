@@ -93,7 +93,9 @@ export interface BaseConfig {
   lengthLoss: number;
   // Penalty for steep per-step moves in compact mode (squared excess beyond one lane)
   slopeLoss?: number;
-  // Penalty for the vertical span of an event's group connector
+  // Penalty per additional y step an event group spans beyond its contiguous block
+  groupExtraSpanLoss?: number;
+  // Deprecated: use groupExtraSpanLoss instead
   groupSpanLoss?: number;
   // Deprecated: retained for backwards compatibility
   yExtentLoss: number;

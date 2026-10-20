@@ -45,7 +45,7 @@ interface CostModel {
   lengthLoss: number;
   slopeLoss: number;
   amtLoss: number;
-  spanLoss: number;
+  extraSpanLoss: number;
 }
 
 /**
@@ -91,7 +91,7 @@ export function fit(data: Data, config: FullConfig): Data {
       metrics.distance * model.lengthLoss +
       metrics.moved * model.linearLoss +
       metrics.slope * model.slopeLoss +
-      metrics.groupSpan * model.spanLoss;
+      metrics.groupExtraSpan * model.extraSpanLoss;
     return { order, cost, metrics };
   };
 
@@ -131,12 +131,12 @@ export function fit(data: Data, config: FullConfig): Data {
       metrics.distance * model.lengthLoss +
       metrics.moved * model.linearLoss +
       (model.compact ? metrics.slope * model.slopeLoss : 0) +
-      metrics.groupSpan * model.spanLoss;
+      metrics.groupExtraSpan * model.extraSpanLoss;
     console.log(
       `Optimizer: cost=${cost.toFixed(2)}, ` +
         `crossings=${metrics.crossings}, moved=${metrics.moved}, ` +
         `distance=${metrics.distance.toFixed(2)}, slope=${metrics.slope.toFixed(2)}, ` +
-        `groupSpan=${metrics.groupSpan}, ` +
+        `groupSpan=${metrics.groupSpan}, groupExtraSpan=${metrics.groupExtraSpan}, ` +
         `evaluations=${evaluations}, compactionPasses=${compactionPasses}, ` +
         `refinementPasses=${refinementPasses}`,
     );
@@ -181,7 +181,7 @@ function createCostModel(data: Data, actorIDs: string[], config: FullConfig): Co
     lengthLoss: config.lengthLoss,
     slopeLoss: config.slopeLoss ?? 0.25,
     amtLoss: config.amtLoss,
-    spanLoss: config.groupSpanLoss ?? 2,
+    extraSpanLoss: config.groupExtraSpanLoss ?? config.groupSpanLoss ?? 2,
   };
 }
 
@@ -204,6 +204,7 @@ function evaluateOrder(model: CostModel, order: number[]): LayoutMetrics {
   if (!model.compact && model.extendEventBar) {
     const size = model.size;
     let groupSpan = 0;
+    let groupExtraSpan = 0;
     const position = new Int32Array(size);
     for (let i = 0; i < size; i++) position[order[i]] = i;
 
@@ -217,7 +218,9 @@ function evaluateOrder(model: CostModel, order: number[]): LayoutMetrics {
           if (value < min) min = value;
           if (value > max) max = value;
         });
-        groupSpan += max - min;
+        const span = max - min;
+        groupSpan += span;
+        groupExtraSpan += Math.max(0, span - (group.length - 1));
       }
     }
 
@@ -228,6 +231,7 @@ function evaluateOrder(model: CostModel, order: number[]): LayoutMetrics {
       distance: 0,
       total: 0,
       groupSpan,
+      groupExtraSpan,
       slope: 0,
     };
   }
@@ -242,6 +246,7 @@ function evaluateSequentialOrder(model: CostModel, order: number[]): LayoutMetri
   let distance = 0;
   let total = 0;
   let groupSpan = 0;
+  let groupExtraSpan = 0;
   let crossings = 0;
   let slope = 0;
   let hasPrevious = false;
@@ -319,13 +324,19 @@ function evaluateSequentialOrder(model: CostModel, order: number[]): LayoutMetri
     if (group.length > 1) {
       let min = Number.POSITIVE_INFINITY;
       let max = Number.NEGATIVE_INFINITY;
+      let count = 0;
       group.forEach(actor => {
         const value = current[actor];
         if (value === INACTIVE) return;
+        count++;
         if (value < min) min = value;
         if (value > max) max = value;
       });
-      if (max >= min) groupSpan += max - min;
+      if (max >= min && count > 1) {
+        const span = max - min;
+        groupSpan += span;
+        groupExtraSpan += Math.max(0, span - (count - 1));
+      }
     }
 
     if (hasPrevious) {
@@ -371,7 +382,7 @@ function evaluateSequentialOrder(model: CostModel, order: number[]): LayoutMetri
     hasPrevious = true;
   }
 
-  return { crossings, moved, horizontal, distance, total, groupSpan, slope };
+  return { crossings, moved, horizontal, distance, total, groupSpan, groupExtraSpan, slope };
 }
 
 function buildStates(order: number[], model: CostModel): number[][] {
@@ -421,7 +432,7 @@ function buildStates(order: number[], model: CostModel): number[][] {
 }
 
 function compactGroups(states: number[][], model: CostModel, deadline: number): number {
-  if (model.spanLoss <= EPSILON || model.events === 0) return 0;
+  if (model.extraSpanLoss <= EPSILON || model.events === 0) return 0;
 
   const work = model.events * model.size * model.size * model.size;
   const passes = Math.min(
@@ -448,7 +459,7 @@ function compactGroups(states: number[][], model: CostModel, deadline: number): 
 
       const state = states[eventIndex];
       fillPositions(state, model.compact, currentY);
-      if (groupSpan(group, currentY) <= group.length - 1 + EPSILON) continue;
+      if (groupExtraSpan(group, currentY) <= EPSILON) continue;
 
       const hasPrevious = eventIndex > 0;
       const hasNext = eventIndex + 1 < model.events;
@@ -463,7 +474,7 @@ function compactGroups(states: number[][], model: CostModel, deadline: number): 
       const currentActive = model.active[eventIndex];
       const nextActive = hasNext ? model.active[eventIndex + 1] : undefined;
 
-      let currentCost = groupSpan(group, currentY) * model.spanLoss;
+      let currentCost = groupExtraSpan(group, currentY) * model.extraSpanLoss;
       if (previousActive) {
         currentCost += transitionCost(
           previousY,
@@ -508,7 +519,7 @@ function compactGroups(states: number[][], model: CostModel, deadline: number): 
         if (sameOrder(candidate, state)) continue;
 
         fillPositions(candidate, model.compact, currentY);
-        let cost = groupSpan(group, currentY) * model.spanLoss;
+        let cost = groupExtraSpan(group, currentY) * model.extraSpanLoss;
         if (previousActive) {
           cost += transitionCost(
             previousY,
@@ -694,18 +705,20 @@ function fillPositions(
   });
 }
 
-function groupSpan(group: number[], positions: Float64Array): number {
+function groupExtraSpan(group: number[], positions: Float64Array): number {
   let min = Number.POSITIVE_INFINITY;
   let max = Number.NEGATIVE_INFINITY;
+  let count = 0;
 
   group.forEach(actor => {
     const value = positions[actor];
     if (value === INACTIVE) return;
+    count++;
     if (value < min) min = value;
     if (value > max) max = value;
   });
 
-  return max >= min ? max - min : 0;
+  return count > 1 ? Math.max(0, max - min - (count - 1)) : 0;
 }
 
 function transitionCost(

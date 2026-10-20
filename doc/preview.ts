@@ -63,6 +63,50 @@ function drawPaperExample() {
   SD.draw()
 }
 
+/**
+ * Compares a layout without group-extra-span pressure against one that
+ * penalises every additional y step a group connector spans.
+ */
+function drawGroupExtraSpanComparison() {
+  const data = [
+    {id: 0, actors: ['a', 'b', 'c']},
+    {id: 1, actors: ['a', 'c']},
+    {id: 2, actors: ['a', 'b', 'c']},
+  ];
+
+  const container = document.createElement('div');
+  container.style.display = 'flex';
+  container.style.gap = '3rem';
+  container.style.alignItems = 'flex-start';
+  document.body.appendChild(container);
+
+  [
+    {title: 'groupExtraSpanLoss: 0 — connectors may span extra y steps', loss: 0},
+    {title: 'groupExtraSpanLoss: 100 — every extra y step is penalised', loss: 100},
+  ].forEach(({title, loss}) => {
+    const panel = document.createElement('div');
+    const heading = document.createElement('h3');
+    heading.textContent = title;
+    const mount = document.createElement('div');
+    mount.id = `group-extra-span-${loss}`;
+    panel.append(heading, mount);
+    container.appendChild(panel);
+
+    const config: Config = {
+      dataFormat: 'array',
+      eventField: 'id',
+      actorArrayField: 'actors',
+      compact: false,
+      extendEventBar: true,
+      groupExtraSpanLoss: loss,
+      root: `#${mount.id}`,
+      marginRight: 20,
+    };
+    const SD = new Storygram(data, config);
+    SD.draw();
+  });
+}
+
 function drawBundesratExample() {
   const data = BundesratData
   const config: Config = {
@@ -81,4 +125,5 @@ function drawBundesratExample() {
   SD.draw()
 }
 
+drawGroupExtraSpanComparison()
 drawBundesratExample()

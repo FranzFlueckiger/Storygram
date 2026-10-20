@@ -9,6 +9,7 @@ export interface LayoutEvent {
   y: Map<string, number>;
   group: string[];
   groupSpan: number;
+  groupExtraSpan: number;
   x: number;
 }
 
@@ -27,6 +28,7 @@ export interface LayoutMetrics {
   distance: number;
   total: number;
   groupSpan: number;
+  groupExtraSpan: number;
   slope: number;
 }
 
@@ -176,9 +178,11 @@ export function buildLayout(
 
     const group = event.group.filter(actorID => drawn.has(actorID));
     let groupSpan = 0;
+    let groupExtraSpan = 0;
     if (group.length > 1) {
       const groupY = group.map(actorID => y.get(actorID)!);
       groupSpan = Math.max(...groupY) - Math.min(...groupY);
+      groupExtraSpan = Math.max(0, groupSpan - (group.length - 1));
     }
 
     drawn.forEach(actorID => {
@@ -192,7 +196,7 @@ export function buildLayout(
 
     if (state.length > maxHeight) maxHeight = state.length;
 
-    layouts.push({ event, index, state, drawn, y, group, groupSpan, x });
+    layouts.push({ event, index, state, drawn, y, group, groupSpan, groupExtraSpan, x });
   });
 
   return {
@@ -211,10 +215,12 @@ export function layoutMetrics(layout: Layout, countCrossings = true): LayoutMetr
   let distance = 0;
   let total = 0;
   let groupSpan = 0;
+  let groupExtraSpan = 0;
   let slope = 0;
 
   layout.events.forEach(event => {
     groupSpan += event.groupSpan;
+    groupExtraSpan += event.groupExtraSpan;
   });
 
   for (let i = 1; i < layout.events.length; i++) {
@@ -249,5 +255,5 @@ export function layoutMetrics(layout: Layout, countCrossings = true): LayoutMetr
     }
   }
 
-  return { crossings, moved, horizontal, distance, total, groupSpan, slope };
+  return { crossings, moved, horizontal, distance, total, groupSpan, groupExtraSpan, slope };
 }

@@ -48,7 +48,7 @@ export default class Storygram {
     actorPadding: 30,
     eventValueScaling: 0.9,
     continuous: false,
-    compact: false,
+    compact: true,
     extendEventBar: true,
     highlight: [],
     strokeWidth: (event, actor) => 0,
@@ -62,11 +62,12 @@ export default class Storygram {
     filterActorCustom: () => true,
     filterEventValueLifeTime: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
     filterGroupAmt: [0, Number.MAX_SAFE_INTEGER],
-    linearLoss: 1,
+    linearLoss: 4,
     amtLoss: 1,
-    lengthLoss: 1,
-    slopeLoss: 0.25,
-    groupSpanLoss: 2,
+    lengthLoss: 2,
+    slopeLoss: 4,
+    groupExtraSpanLoss: 4,
+    groupSpanLoss: 4,
     yExtentLoss: 0,
     root: 'body',
     tooltipPosition: 'absolute',
@@ -84,7 +85,11 @@ export default class Storygram {
   }
 
   public setConfig(config: Config) {
-    this.config = {...this.baseConfig, ...config};
+    const resolved = {...config};
+    if (resolved.groupExtraSpanLoss === undefined && resolved.groupSpanLoss !== undefined) {
+      resolved.groupExtraSpanLoss = resolved.groupSpanLoss;
+    }
+    this.config = {...this.baseConfig, ...resolved};
     this.isCalculated = false
     this.isOptimized = false
   }

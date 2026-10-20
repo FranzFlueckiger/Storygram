@@ -20,11 +20,11 @@ continuous: boolean
 
 Keeps each event's actors compact, but chooses the block's vertical offset to make lines as straight as possible against the previous event. This keeps groups tight without centering every block or pinning it to one edge. Useful for groups of similar size over time (governments, sports teams, …).
 
-The optimizer starts from one global actor order, so actors keep their relative position and expanded lines stay horizontal. A weighted per-event pass may then compact a group connector by moving actors; `linearLoss` / `lengthLoss` control how expensive that movement is, `slopeLoss` discourages steep multi-lane jumps, and `groupSpanLoss` controls how much a shorter connector is worth.
+The optimizer starts from one global actor order, so actors keep their relative position and expanded lines stay horizontal. A weighted per-event pass may then compact a group connector by moving actors; `linearLoss` / `lengthLoss` control how expensive that movement is, `slopeLoss` discourages steep multi-lane jumps, and `groupExtraSpanLoss` penalises every additional y step beyond a group's contiguous block.
 
 ```typescript
 compact: boolean
-// Default: false
+// Default: true
 ```
 
 <StorygramMount
